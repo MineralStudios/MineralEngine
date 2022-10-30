@@ -27,7 +27,7 @@
           <manifest>
             <addClasspath>true</addClasspath>
             <classpathPrefix>lib/</classpathPrefix>
-            <mainClass>gg.dragonfruit.cheat.ClientSideCheat</mainClass>
+            <mainClass>gg.mineral.server.MinecraftServer</mainClass>
           </manifest>
         </archive>
       </configuration>
