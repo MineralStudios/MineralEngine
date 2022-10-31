@@ -1,6 +1,5 @@
 package gg.mineral.server.packet.impl;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -10,8 +9,6 @@ import java.util.Random;
 import java.util.UUID;
 
 import javax.crypto.SecretKey;
-
-import org.json.JSONObject;
 
 import dev.zerite.craftlib.protocol.Packet;
 import dev.zerite.craftlib.protocol.connection.NettyConnection;
@@ -73,9 +70,7 @@ public class LoginPacketHandler implements ILoginPacketHandler {
                 + "&serverId="
                 + serverId;
 
-        try {
-            JSONObject json = JsonUtil.getJsonObject(url);
-
+        JsonUtil.getJsonObject(url).whenComplete((json, ex) -> {
             if (json == null) {
                 PlayerManager.remove(p -> p.getConnection().equals(connection));
                 // disconnect
@@ -95,11 +90,7 @@ public class LoginPacketHandler implements ILoginPacketHandler {
             player.setUUID(uuid);
 
             connection.send(new ServerLoginSuccessPacket(uuid, name));
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        });
     }
 
 }
