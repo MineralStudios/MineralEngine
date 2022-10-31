@@ -15,6 +15,16 @@
     <artifactId>craftlib-protocol</artifactId>
     <version>0.1.4</version>
 </dependency>
+<dependency>
+    <groupId>org.json</groupId>
+    <artifactId>json</artifactId>
+    <version>20220924</version>
+</dependency>
+<dependency>
+    <groupId>com.eatthepath</groupId>
+    <artifactId>fast-uuid</artifactId>
+    <version>0.2.0</version>
+</dependency>
   </dependencies>
   <build>
   <defaultGoal>clean install</defaultGoal> 
