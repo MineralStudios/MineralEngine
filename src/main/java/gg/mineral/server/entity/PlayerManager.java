@@ -4,8 +4,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
 
-import dev.zerite.craftlib.protocol.connection.NettyConnection;
-import gg.mineral.server.util.GlueList;
+import dev.zerite.craftlib.chat.component.BaseChatComponent;
+import gg.mineral.server.network.Connection;
+import gg.mineral.server.util.collection.GlueList;
 
 public class PlayerManager {
     public static List<Player> LIST = new GlueList<Player>();
@@ -20,7 +21,7 @@ public class PlayerManager {
         return null;
     }
 
-    public static Player create(String name, NettyConnection connection) {
+    public static Player create(String name, Connection connection) {
         remove(p -> p.getName().equals(name));
         Player player = new Player(name, connection);
         LIST.add(player);
@@ -37,5 +38,13 @@ public class PlayerManager {
                 iterator.remove();
             }
         }
+    }
+
+    public static void disconnect(Player player, BaseChatComponent chatComponent) {
+        // player.getConnection().state = MinecraftProtocol.PLAY;
+        // LIST.remove(player);
+        // player.getConnection().send(new
+        // ServerPlayDisconnectPacket(chatComponent.getFormattedText()));
+        // player.getConnection().close(chatComponent);
     }
 }

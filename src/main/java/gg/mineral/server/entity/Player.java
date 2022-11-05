@@ -1,16 +1,26 @@
 package gg.mineral.server.entity;
 
+import java.util.Arrays;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
-import dev.zerite.craftlib.protocol.connection.NettyConnection;
+import org.json.JSONObject;
+
 import gg.mineral.server.command.CommandExecutor;
+import gg.mineral.server.network.Connection;
+import gg.mineral.server.network.login.LoginAuthData;
+import gg.mineral.server.network.packet.login.clientbound.EncryptionRequestPacket;
+import gg.mineral.server.util.datatypes.UUIDUtil;
+import gg.mineral.server.util.json.JsonUtil;
+import gg.mineral.server.util.login.LoginUtil;
 
-public class Player implements CommandExecutor {
+public class Player extends CommandExecutor {
     String name;
     UUID uuid;
-    NettyConnection connection;
+    Connection connection;
+    LoginAuthData loginAuthData;
 
-    public Player(String name, NettyConnection connection) {
+    public Player(String name, Connection connection) {
         this.name = name;
         this.connection = connection;
     }
@@ -27,7 +37,43 @@ public class Player implements CommandExecutor {
         return uuid;
     }
 
-    public NettyConnection getConnection() {
+    public Connection getConnection() {
         return connection;
     }
+
+    public void login() {
+        this.loginAuthData = new LoginAuthData();
+        connection.sendPacket(new EncryptionRequestPacket("",
+                this.loginAuthData.getKeyPair().getPublic(), this.loginAuthData.getVerifyToken()));
+    }
+
+    public CompletableFuture<Boolean> authenticate(byte[] encryptedSharedSecret, byte[] encryptedVerifyToken) {
+        return CompletableFuture.supplyAsync(() -> {
+            if (!Arrays.equals(this.loginAuthData.getVerifyToken(),
+                    LoginUtil.decryptRsa(this.loginAuthData.getKeyPair(), encryptedVerifyToken))) {
+                return false;
+            }
+
+            String serverId = LoginUtil.hashSharedSecret(this.loginAuthData.getKeyPair().getPublic(),
+                    LoginUtil.decryptRsa(this.loginAuthData.getKeyPair(), encryptedSharedSecret));
+
+            String url = "https://sessionserver.mojang.com/session/minecraft/hasJoined?username=" +
+                    this.getName()
+                    + "&serverId="
+                    + serverId;
+
+            JSONObject json = JsonUtil.getJsonObject(url);
+
+            if (json == null) {
+                return false;
+            }
+
+            UUID uuid = UUIDUtil.fromString(json.getString("id"));
+
+            this.setUUID(uuid);
+
+            return true;
+        });
+    }
+
 }

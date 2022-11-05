@@ -2,7 +2,7 @@ package gg.mineral.server.command;
 
 import java.util.List;
 
-import gg.mineral.server.util.GlueList;
+import gg.mineral.server.util.collection.GlueList;
 
 public abstract class Command {
     public static List<Command> LIST = new GlueList<Command>();
