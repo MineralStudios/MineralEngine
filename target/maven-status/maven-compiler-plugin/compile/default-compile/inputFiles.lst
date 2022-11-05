@@ -9,6 +9,7 @@
 /home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/network/packet/handshake/serverbound/HandshakePacket.java
 /home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/network/protocol/ProtocolVersion.java
 /home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/util/network/ByteBufUtil.java
+/home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/network/http/MimeType.java
 /home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/util/messages/Messages.java
 /home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/network/packet/IncomingPacket.java
 /home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/util/icon/IconUtil.java
@@ -17,12 +18,11 @@
 /home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/entity/PlayerManager.java
 /home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/settings/ServerSettingsManager.java
 /home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/command/ArgumentType.java
+/home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/network/http/HttpsClient.java
 /home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/network/packet/registry/IncomingPacketRegistry.java
-/home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/util/network/http/HttpsClient.java
 /home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/MinecraftServer.java
 /home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/network/packet/status/clientbound/ResponsePacket.java
 /home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/network/packet/login/clientbound/EncryptionRequestPacket.java
-/home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/util/network/http/MimeType.java
 /home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/entity/Player.java
 /home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/command/Command.java
 /home/jaiden/Documents/MineralEngine/src/main/java/gg/mineral/server/network/packet/status/bidirectional/PingPacket.java

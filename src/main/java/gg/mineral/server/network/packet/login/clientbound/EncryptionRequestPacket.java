@@ -15,6 +15,7 @@ public class EncryptionRequestPacket extends OutgoingPacket {
             PublicKey publicKey, byte[] verifyToken) {
         this.serverId = serverId;
         this.publicKeyBytes = publicKey.getEncoded();
+        this.verifyToken = verifyToken;
         this.lengthOfPublicKey = (short) publicKeyBytes.length;
         this.lengthOfVerifyToken = (short) verifyToken.length;
     }
