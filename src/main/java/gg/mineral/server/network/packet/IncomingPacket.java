@@ -1,6 +1,6 @@
 package gg.mineral.server.network.packet;
 
-import gg.mineral.server.network.Connection;
+import gg.mineral.server.network.connection.Connection;
 import io.netty.buffer.ByteBuf;
 
 public abstract class IncomingPacket extends Packet {

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import dev.zerite.craftlib.chat.component.BaseChatComponent;
-import gg.mineral.server.network.Connection;
+import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.util.collection.GlueList;
 
 public class PlayerManager {

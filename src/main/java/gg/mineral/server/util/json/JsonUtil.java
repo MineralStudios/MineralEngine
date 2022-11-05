@@ -5,8 +5,8 @@ import java.net.MalformedURLException;
 
 import org.json.JSONObject;
 
-import gg.mineral.server.util.network.http.HttpsClient;
-import gg.mineral.server.util.network.http.MimeType;
+import gg.mineral.server.network.http.HttpsClient;
+import gg.mineral.server.network.http.MimeType;
 
 public class JsonUtil {
 

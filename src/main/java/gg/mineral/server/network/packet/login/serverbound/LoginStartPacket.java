@@ -1,7 +1,7 @@
 package gg.mineral.server.network.packet.login.serverbound;
 
 import gg.mineral.server.entity.PlayerManager;
-import gg.mineral.server.network.Connection;
+import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.IncomingPacket;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;

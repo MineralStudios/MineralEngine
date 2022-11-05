@@ -7,7 +7,7 @@ import java.util.concurrent.CompletableFuture;
 import org.json.JSONObject;
 
 import gg.mineral.server.command.CommandExecutor;
-import gg.mineral.server.network.Connection;
+import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.login.LoginAuthData;
 import gg.mineral.server.network.packet.login.clientbound.EncryptionRequestPacket;
 import gg.mineral.server.util.datatypes.UUIDUtil;

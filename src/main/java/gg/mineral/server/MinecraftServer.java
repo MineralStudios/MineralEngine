@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
-import gg.mineral.server.network.Connection;
-import gg.mineral.server.network.packet.AutoReadHolderHandler;
-import gg.mineral.server.network.packet.PacketDecoder;
+import gg.mineral.server.network.connection.Connection;
+import gg.mineral.server.network.packet.handler.AutoReadHolderHandler;
+import gg.mineral.server.network.packet.handler.PacketDecoder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;

@@ -1,9 +1,9 @@
 package gg.mineral.server.network.protocol;
 
-import gg.mineral.server.network.packet.IncomingPacketRegistry;
 import gg.mineral.server.network.packet.handshake.serverbound.HandshakePacket;
 import gg.mineral.server.network.packet.login.serverbound.EncryptionKeyResponsePacket;
 import gg.mineral.server.network.packet.login.serverbound.LoginStartPacket;
+import gg.mineral.server.network.packet.registry.IncomingPacketRegistry;
 import gg.mineral.server.network.packet.status.bidirectional.PingPacket;
 import gg.mineral.server.network.packet.status.serverbound.RequestPacket;
 import io.netty.util.AttributeKey;

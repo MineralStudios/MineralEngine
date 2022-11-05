@@ -1,6 +1,6 @@
 package gg.mineral.server.network.packet.handshake.serverbound;
 
-import gg.mineral.server.network.Connection;
+import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.IncomingPacket;
 import gg.mineral.server.network.protocol.ProtocolState;
 import gg.mineral.server.util.network.ByteBufUtil;
