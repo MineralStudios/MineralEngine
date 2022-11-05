@@ -1,6 +1,8 @@
 package gg.mineral.server.network.packet.registry;
 
-import gg.mineral.server.network.packet.IncomingPacket;
+import java.util.concurrent.Callable;
+
+import gg.mineral.server.network.packet.Packet;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 public abstract class IncomingPacketRegistry {
@@ -9,13 +11,13 @@ public abstract class IncomingPacketRegistry {
         registerPackets();
     }
 
-    final Int2ObjectOpenHashMap<Class<? extends IncomingPacket>> INCOMING = new Int2ObjectOpenHashMap<>();
+    final Int2ObjectOpenHashMap<Callable<Packet.INCOMING>> INCOMING = new Int2ObjectOpenHashMap<>();
 
-    public void put(int id, Class<? extends IncomingPacket> packetClass) {
-        INCOMING.put(id, packetClass);
+    public void put(int id, Callable<Packet.INCOMING> packetBuilder) {
+        INCOMING.put(id, packetBuilder);
     }
 
-    public Class<? extends IncomingPacket> get(int id) {
+    public Callable<Packet.INCOMING> get(int id) {
         return INCOMING.get(id);
     }
 

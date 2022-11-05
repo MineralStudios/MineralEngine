@@ -2,12 +2,12 @@ package gg.mineral.server.network.packet.status.serverbound;
 
 import dev.zerite.craftlib.chat.type.ChatColor;
 import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.network.packet.IncomingPacket;
+import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.network.packet.status.clientbound.ResponsePacket;
 import gg.mineral.server.network.ping.ServerPing;
 import io.netty.buffer.ByteBuf;
 
-public class RequestPacket extends IncomingPacket {
+public class RequestPacket implements Packet.INCOMING {
 
     @Override
     public void received(Connection connection) {

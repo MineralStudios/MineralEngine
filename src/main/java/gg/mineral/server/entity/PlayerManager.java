@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
 
-import dev.zerite.craftlib.chat.component.BaseChatComponent;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.util.collection.GlueList;
 
@@ -38,13 +37,5 @@ public class PlayerManager {
                 iterator.remove();
             }
         }
-    }
-
-    public static void disconnect(Player player, BaseChatComponent chatComponent) {
-        // player.getConnection().state = MinecraftProtocol.PLAY;
-        // LIST.remove(player);
-        // player.getConnection().send(new
-        // ServerPlayDisconnectPacket(chatComponent.getFormattedText()));
-        // player.getConnection().close(chatComponent);
     }
 }

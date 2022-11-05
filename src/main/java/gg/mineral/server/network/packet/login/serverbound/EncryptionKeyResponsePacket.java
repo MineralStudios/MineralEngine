@@ -3,13 +3,13 @@ package gg.mineral.server.network.packet.login.serverbound;
 import gg.mineral.server.entity.Player;
 import gg.mineral.server.entity.PlayerManager;
 import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.network.packet.IncomingPacket;
+import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.network.packet.login.clientbound.LoginSuccessPacket;
 import gg.mineral.server.network.protocol.ProtocolState;
 import gg.mineral.server.util.messages.Messages;
 import io.netty.buffer.ByteBuf;
 
-public class EncryptionKeyResponsePacket extends IncomingPacket {
+public class EncryptionKeyResponsePacket implements Packet.INCOMING {
     byte[] sharedSecretBytes, verifyToken;
 
     @Override
@@ -17,12 +17,12 @@ public class EncryptionKeyResponsePacket extends IncomingPacket {
         Player player = PlayerManager.get(p -> p.getConnection().equals(connection));
         player.authenticate(sharedSecretBytes, verifyToken).whenComplete((success, ex) -> {
             if (success) {
-                connection.sendPacket(new LoginSuccessPacket(player.getUUID(), player.getName()));
                 connection.setProtocolState(ProtocolState.PLAY);
+                connection.sendPacket(new LoginSuccessPacket(player.getUUID(), player.getName()));
                 return;
             }
 
-            PlayerManager.disconnect(player, Messages.DISCONNECT_CAN_NOT_AUTHENTICATE);
+            player.disconnect(Messages.DISCONNECT_CAN_NOT_AUTHENTICATE);
         });
     }
 

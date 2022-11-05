@@ -1,7 +1,7 @@
+gg/mineral/server/network/packet/Packet$OUTGOING.class
 gg/mineral/server/network/packet/handler/PacketDecoder.class
 gg/mineral/server/command/ArgumentType.class
 gg/mineral/server/network/packet/login/clientbound/EncryptionRequestPacket.class
-gg/mineral/server/network/packet/BidirectionalPacket.class
 gg/mineral/server/network/login/LoginAuthData.class
 gg/mineral/server/network/packet/login/clientbound/LoginSuccessPacket.class
 gg/mineral/server/network/http/HttpsClient$Mode.class
@@ -17,12 +17,10 @@ gg/mineral/server/util/collection/GlueList$1.class
 gg/mineral/server/network/packet/status/serverbound/RequestPacket.class
 gg/mineral/server/util/network/PacketUtil.class
 gg/mineral/server/util/collection/GlueList$ListItr.class
-gg/mineral/server/network/packet/OutgoingPacket.class
 gg/mineral/server/util/datatypes/UUIDUtil.class
 gg/mineral/server/util/icon/IconUtil.class
 gg/mineral/server/entity/PlayerManager.class
 gg/mineral/server/network/packet/login/serverbound/EncryptionKeyResponsePacket.class
-gg/mineral/server/network/packet/IncomingPacket.class
 gg/mineral/server/network/packet/status/bidirectional/PingPacket.class
 gg/mineral/server/network/http/HttpsClient.class
 gg/mineral/server/network/protocol/ProtocolState$1.class
@@ -43,6 +41,8 @@ gg/mineral/server/network/protocol/ProtocolState$4.class
 gg/mineral/server/settings/ServerSettingsManager.class
 gg/mineral/server/network/protocol/ProtocolState.class
 gg/mineral/server/MinecraftServer$1.class
+gg/mineral/server/network/packet/login/clientbound/DisconnectPacket.class
 gg/mineral/server/network/packet/registry/IncomingPacketRegistry.class
+gg/mineral/server/network/packet/Packet$INCOMING.class
 gg/mineral/server/util/login/LoginUtil.class
 gg/mineral/server/network/packet/status/clientbound/ResponsePacket.class

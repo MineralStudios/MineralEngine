@@ -16,7 +16,7 @@ public class ProtocolState {
 
         @Override
         public void registerPackets() {
-            put(0x00, HandshakePacket.class);
+            put(0x00, () -> new HandshakePacket());
         }
 
     };
@@ -25,8 +25,8 @@ public class ProtocolState {
 
         @Override
         public void registerPackets() {
-            put(0x00, LoginStartPacket.class);
-            put(0x01, EncryptionKeyResponsePacket.class);
+            put(0x00, () -> new LoginStartPacket());
+            put(0x01, () -> new EncryptionKeyResponsePacket());
         }
 
     };
@@ -45,8 +45,8 @@ public class ProtocolState {
 
         @Override
         public void registerPackets() {
-            put(0x00, RequestPacket.class);
-            put(0x01, PingPacket.class);
+            put(0x00, () -> new RequestPacket());
+            put(0x01, () -> new PingPacket());
         }
 
     };

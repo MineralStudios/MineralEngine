@@ -2,7 +2,6 @@ package gg.mineral.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.TimeUnit;
 
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.handler.AutoReadHolderHandler;
@@ -15,7 +14,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.timeout.ReadTimeoutHandler;
 
 public class MinecraftServer {
 
@@ -45,10 +43,7 @@ public class MinecraftServer {
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                         socketChannel.config().setTcpNoDelay(true);
                         ChannelPipeline pipeline = socketChannel.pipeline();
-                        pipeline.addLast("read_timeout",
-                                new ReadTimeoutHandler(3000,
-                                        TimeUnit.MILLISECONDS))
-                                .addLast("decoder", new PacketDecoder())
+                        pipeline.addLast("decoder", new PacketDecoder())
                                 .addLast("flow_handler", new AutoReadHolderHandler());
 
                         Connection connection = new Connection();
@@ -70,7 +65,7 @@ public class MinecraftServer {
         GROUP.shutdownGracefully().sync();
     }
 
-    public static boolean DEBUG_MESSAGES = false;
+    public static boolean DEBUG_MESSAGES = true;
 
     public static void setDebugMessages(boolean debugMessages) {
         MinecraftServer.DEBUG_MESSAGES = debugMessages;

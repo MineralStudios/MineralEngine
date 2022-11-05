@@ -1,12 +1,12 @@
 package gg.mineral.server.network.packet.handshake.serverbound;
 
 import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.network.packet.IncomingPacket;
+import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.network.protocol.ProtocolState;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 
-public class HandshakePacket extends IncomingPacket {
+public class HandshakePacket implements Packet.INCOMING {
 
     int protocol, port, nextState;
     String serverAddress;

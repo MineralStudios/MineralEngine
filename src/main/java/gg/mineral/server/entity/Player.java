@@ -6,9 +6,11 @@ import java.util.concurrent.CompletableFuture;
 
 import org.json.JSONObject;
 
+import dev.zerite.craftlib.chat.component.BaseChatComponent;
 import gg.mineral.server.command.CommandExecutor;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.login.LoginAuthData;
+import gg.mineral.server.network.packet.login.clientbound.DisconnectPacket;
 import gg.mineral.server.network.packet.login.clientbound.EncryptionRequestPacket;
 import gg.mineral.server.util.datatypes.UUIDUtil;
 import gg.mineral.server.util.json.JsonUtil;
@@ -74,6 +76,12 @@ public class Player extends CommandExecutor {
 
             return true;
         });
+    }
+
+    public void disconnect(BaseChatComponent chatComponent) {
+        PlayerManager.LIST.remove(this);
+        connection.sendPacket(new DisconnectPacket(chatComponent));
+        connection.close();
     }
 
 }

@@ -1,10 +1,10 @@
 package gg.mineral.server.network.packet.status.bidirectional;
 
 import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.network.packet.BidirectionalPacket;
+import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 
-public class PingPacket extends BidirectionalPacket {
+public class PingPacket implements Packet.INCOMING, Packet.OUTGOING {
 
     long time;
 

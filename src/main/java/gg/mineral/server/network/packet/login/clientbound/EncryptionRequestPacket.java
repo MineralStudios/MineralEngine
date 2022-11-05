@@ -2,11 +2,11 @@ package gg.mineral.server.network.packet.login.clientbound;
 
 import java.security.PublicKey;
 
-import gg.mineral.server.network.packet.OutgoingPacket;
+import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 
-public class EncryptionRequestPacket extends OutgoingPacket {
+public class EncryptionRequestPacket implements Packet.OUTGOING {
     String serverId;
     short lengthOfPublicKey, lengthOfVerifyToken;
     byte[] publicKeyBytes, verifyToken;
