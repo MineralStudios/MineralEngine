@@ -5,6 +5,7 @@ import gg.mineral.server.entity.PlayerManager;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.IncomingPacket;
 import gg.mineral.server.network.packet.login.clientbound.LoginSuccessPacket;
+import gg.mineral.server.network.protocol.ProtocolState;
 import gg.mineral.server.util.messages.Messages;
 import io.netty.buffer.ByteBuf;
 
@@ -17,6 +18,7 @@ public class EncryptionKeyResponsePacket extends IncomingPacket {
         player.authenticate(sharedSecretBytes, verifyToken).whenComplete((success, ex) -> {
             if (success) {
                 connection.sendPacket(new LoginSuccessPacket(player.getUUID(), player.getName()));
+                connection.setProtocolState(ProtocolState.PLAY);
                 return;
             }
 
