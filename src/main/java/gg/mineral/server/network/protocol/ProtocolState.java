@@ -35,7 +35,6 @@ public class ProtocolState {
 
         @Override
         public void registerPackets() {
-            // TODO Auto-generated method stub
 
         }
 

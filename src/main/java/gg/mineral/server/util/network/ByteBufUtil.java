@@ -119,4 +119,34 @@ public class ByteBufUtil {
         buf.writeLong(uuid.getMostSignificantBits());
         buf.writeLong(uuid.getLeastSignificantBits());
     }
+
+    public static void writeBytes(ByteBuf buf, byte[] bytes) {
+        writeVarInt(buf, bytes.length);
+        buf.writeBytes(bytes);
+    }
+
+    public static byte[] readBytes(ByteBuf buf) {
+        byte[] bytes = new byte[ByteBufUtil.readVarInt(buf)];
+        buf.readBytes(bytes);
+        return bytes;
+    }
+
+    public static void writeIntArray(ByteBuf buf, int[] ints) {
+        writeVarInt(buf, ints.length);
+
+        for (int i = 0; i < ints.length; i++) {
+            buf.writeInt(ints[i]);
+        }
+    }
+
+    public static int[] readIntArray(ByteBuf buf) {
+        int length = ByteBufUtil.readVarInt(buf);
+        int[] ints = new int[length];
+
+        for (int i = 0; i < ints.length; i++) {
+            ints[i] = buf.readInt();
+        }
+
+        return ints;
+    }
 }

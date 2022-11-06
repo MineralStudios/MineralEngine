@@ -24,9 +24,9 @@ public class EncryptionRequestPacket implements Packet.OUTGOING {
     public void serialize(ByteBuf os) {
         ByteBufUtil.writeString(os, serverId);
         os.writeShort(lengthOfPublicKey);
-        os.writeBytes(publicKeyBytes);
+        ByteBufUtil.writeBytes(os, publicKeyBytes);
         os.writeShort(lengthOfVerifyToken);
-        os.writeBytes(verifyToken);
+        ByteBufUtil.writeBytes(os, verifyToken);
     }
 
     @Override
