@@ -8,6 +8,14 @@ public class KeepAlivePacket implements Packet.INCOMING, Packet.OUTGOING {
 
     int keepAliveId;
 
+    public KeepAlivePacket() {
+
+    }
+
+    public KeepAlivePacket(int keepAliveId) {
+        this.keepAliveId = keepAliveId;
+    }
+
     @Override
     public void serialize(ByteBuf os) {
         os.writeInt(keepAliveId);

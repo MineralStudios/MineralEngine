@@ -8,6 +8,9 @@ public class HeldItemChangePacket implements Packet.INCOMING, Packet.OUTGOING {
 
     short slot;
 
+    public HeldItemChangePacket() {
+    }
+
     public HeldItemChangePacket(short slot) {
         this.slot = slot;
     }

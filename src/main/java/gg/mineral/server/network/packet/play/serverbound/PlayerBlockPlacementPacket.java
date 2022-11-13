@@ -6,7 +6,7 @@ import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 
-public class PlayerBlockPlacement implements Packet.INCOMING {
+public class PlayerBlockPlacementPacket implements Packet.INCOMING {
     int x, z;
     short y;
     byte direction, cursorX, cursorY, cursorZ;
