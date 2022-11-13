@@ -8,7 +8,6 @@ import io.netty.buffer.ByteBuf;
 
 public class EncryptionRequestPacket implements Packet.OUTGOING {
     String serverId;
-    short lengthOfPublicKey, lengthOfVerifyToken;
     byte[] publicKeyBytes, verifyToken;
 
     public EncryptionRequestPacket(String serverId,
@@ -16,16 +15,14 @@ public class EncryptionRequestPacket implements Packet.OUTGOING {
         this.serverId = serverId;
         this.publicKeyBytes = publicKey.getEncoded();
         this.verifyToken = verifyToken;
-        this.lengthOfPublicKey = (short) publicKeyBytes.length;
-        this.lengthOfVerifyToken = (short) verifyToken.length;
     }
 
     @Override
     public void serialize(ByteBuf os) {
         ByteBufUtil.writeString(os, serverId);
-        os.writeShort(lengthOfPublicKey);
+        os.writeShort(publicKeyBytes.length);
         os.writeBytes(publicKeyBytes);
-        os.writeShort(lengthOfVerifyToken);
+        os.writeShort(verifyToken.length);
         os.writeBytes(verifyToken);
     }
 

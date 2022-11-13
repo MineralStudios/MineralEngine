@@ -45,7 +45,7 @@ public class Player extends HumanEntity implements CommandExecutor {
         return connection;
     }
 
-    public void login() {
+    public void attemptLogin() {
         this.loginAuthData = new LoginAuthData();
         connection.sendPacket(new EncryptionRequestPacket("",
                 this.loginAuthData.getKeyPair().getPublic(), this.loginAuthData.getVerifyToken()));

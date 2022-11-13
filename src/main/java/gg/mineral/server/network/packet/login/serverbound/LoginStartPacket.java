@@ -12,7 +12,7 @@ public class LoginStartPacket implements Packet.INCOMING {
 
     @Override
     public void received(Connection connection) {
-        PlayerManager.create(name, connection).login();
+        PlayerManager.create(name, connection).attemptLogin();
     }
 
     @Override
