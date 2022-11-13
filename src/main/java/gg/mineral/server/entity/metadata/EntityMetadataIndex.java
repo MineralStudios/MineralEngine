@@ -1,4 +1,38 @@
-package gg.mineral.server.entity;
+package gg.mineral.server.entity.metadata;
+
+import gg.mineral.server.entity.Ageable;
+import gg.mineral.server.entity.ArmorStand;
+import gg.mineral.server.entity.Arrow;
+import gg.mineral.server.entity.Bat;
+import gg.mineral.server.entity.Blaze;
+import gg.mineral.server.entity.Boat;
+import gg.mineral.server.entity.Creeper;
+import gg.mineral.server.entity.EnderCrystal;
+import gg.mineral.server.entity.Enderman;
+import gg.mineral.server.entity.Entity;
+import gg.mineral.server.entity.Firework;
+import gg.mineral.server.entity.Ghast;
+import gg.mineral.server.entity.Guardian;
+import gg.mineral.server.entity.Horse;
+import gg.mineral.server.entity.HumanEntity;
+import gg.mineral.server.entity.IronGolem;
+import gg.mineral.server.entity.Item;
+import gg.mineral.server.entity.ItemFrame;
+import gg.mineral.server.entity.LivingEntity;
+import gg.mineral.server.entity.Minecart;
+import gg.mineral.server.entity.Ocelot;
+import gg.mineral.server.entity.Pig;
+import gg.mineral.server.entity.PoweredMinecart;
+import gg.mineral.server.entity.Rabbit;
+import gg.mineral.server.entity.Sheep;
+import gg.mineral.server.entity.Skeleton;
+import gg.mineral.server.entity.Slime;
+import gg.mineral.server.entity.Spider;
+import gg.mineral.server.entity.Villager;
+import gg.mineral.server.entity.Witch;
+import gg.mineral.server.entity.Wither;
+import gg.mineral.server.entity.Wolf;
+import gg.mineral.server.entity.Zombie;
 
 /**
  * Index constants for entity metadata.

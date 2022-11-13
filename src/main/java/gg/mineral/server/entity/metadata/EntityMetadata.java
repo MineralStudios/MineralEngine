@@ -1,4 +1,4 @@
-package gg.mineral.server.entity;
+package gg.mineral.server.entity.metadata;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import gg.mineral.server.entity.Entity;
 import gg.mineral.server.inventory.item.ItemStack;
 import gg.mineral.server.util.collection.GlueList;
 

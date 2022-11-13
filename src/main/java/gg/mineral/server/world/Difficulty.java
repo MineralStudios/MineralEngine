@@ -12,4 +12,13 @@ public enum Difficulty {
     public byte getId() {
         return id;
     }
+
+    public static Difficulty fromId(byte id) {
+        for (Difficulty difficulty : Difficulty.values()) {
+            if (difficulty.getId() == id) {
+                return difficulty;
+            }
+        }
+        return null;
+    }
 }

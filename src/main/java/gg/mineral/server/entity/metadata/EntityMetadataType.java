@@ -1,4 +1,4 @@
-package gg.mineral.server.entity;
+package gg.mineral.server.entity.metadata;
 
 import gg.mineral.server.inventory.item.ItemStack;
 import gg.mineral.server.util.math.EulerAngle;

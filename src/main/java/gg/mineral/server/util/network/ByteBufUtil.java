@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import gg.mineral.server.entity.EntityMetadata;
-import gg.mineral.server.entity.EntityMetadataIndex;
-import gg.mineral.server.entity.EntityMetadataType;
 import gg.mineral.server.entity.attribute.Modifier;
 import gg.mineral.server.entity.attribute.Property;
+import gg.mineral.server.entity.metadata.EntityMetadata;
+import gg.mineral.server.entity.metadata.EntityMetadataIndex;
+import gg.mineral.server.entity.metadata.EntityMetadataType;
 import gg.mineral.server.inventory.item.ItemStack;
 import gg.mineral.server.inventory.item.Material;
 import gg.mineral.server.util.math.EulerAngle;
