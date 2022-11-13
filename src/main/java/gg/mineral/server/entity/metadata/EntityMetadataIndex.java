@@ -1,17 +1,8 @@
 package gg.mineral.server.entity.metadata;
 
 import gg.mineral.server.entity.Ageable;
-import gg.mineral.server.entity.ArmorStand;
-import gg.mineral.server.entity.Arrow;
-import gg.mineral.server.entity.Boat;
-import gg.mineral.server.entity.EnderCrystal;
 import gg.mineral.server.entity.Entity;
-import gg.mineral.server.entity.Firework;
-import gg.mineral.server.entity.Item;
-import gg.mineral.server.entity.ItemFrame;
 import gg.mineral.server.entity.LivingEntity;
-import gg.mineral.server.entity.Minecart;
-import gg.mineral.server.entity.PoweredMinecart;
 import gg.mineral.server.entity.living.Bat;
 import gg.mineral.server.entity.living.Blaze;
 import gg.mineral.server.entity.living.Creeper;
@@ -33,6 +24,15 @@ import gg.mineral.server.entity.living.Witch;
 import gg.mineral.server.entity.living.Wither;
 import gg.mineral.server.entity.living.Wolf;
 import gg.mineral.server.entity.living.Zombie;
+import gg.mineral.server.entity.objects.ArmorStand;
+import gg.mineral.server.entity.objects.Arrow;
+import gg.mineral.server.entity.objects.Boat;
+import gg.mineral.server.entity.objects.EnderCrystal;
+import gg.mineral.server.entity.objects.Firework;
+import gg.mineral.server.entity.objects.Item;
+import gg.mineral.server.entity.objects.ItemFrame;
+import gg.mineral.server.entity.objects.Minecart;
+import gg.mineral.server.entity.objects.PoweredMinecart;
 
 /**
  * Index constants for entity metadata.
