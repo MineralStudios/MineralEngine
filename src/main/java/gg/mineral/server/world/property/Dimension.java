@@ -1,4 +1,4 @@
-package gg.mineral.server.world;
+package gg.mineral.server.world.property;
 
 public enum Dimension {
     NETHER((byte) -1), OVERWORLD((byte) 0), END((byte) 1);

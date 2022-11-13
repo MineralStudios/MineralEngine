@@ -1,4 +1,6 @@
-package gg.mineral.server.world;
+package gg.mineral.server.util.math;
+
+import gg.mineral.server.world.World;
 
 public class Location {
 
