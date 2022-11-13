@@ -30,4 +30,24 @@ public class BlockChangePacket implements Packet.OUTGOING {
         return 0x23;
     }
 
+    public short getMetadata() {
+        return blockMetadata;
+    }
+
+    public int getType() {
+        return blockId;
+    }
+
+    public short getY() {
+        return y;
+    }
+
+    public int getZ() {
+        return z;
+    }
+
+    public int getX() {
+        return x;
+    }
+
 }

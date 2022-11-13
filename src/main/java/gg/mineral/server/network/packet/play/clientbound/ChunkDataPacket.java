@@ -1,20 +1,18 @@
 package gg.mineral.server.network.packet.play.clientbound;
 
 import gg.mineral.server.network.packet.Packet;
-import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 
 public class ChunkDataPacket implements Packet.OUTGOING {
 
-    int chunkX, chunkZ, compressedSize, primaryBitMap, addBitMap;
+    int chunkX, chunkZ, primaryBitMap, addBitMap;
     byte[] compressedData;
     boolean groundUpContinuous;
 
-    public ChunkDataPacket(int chunkX, int chunkZ, int compresserSize, int primaryBitMap, int addBitMap,
+    public ChunkDataPacket(int chunkX, int chunkZ, int primaryBitMap, int addBitMap,
             byte[] compressedData, boolean groundUpContinuous) {
         this.chunkX = chunkX;
         this.chunkZ = chunkZ;
-        this.compressedSize = compresserSize;
         this.primaryBitMap = primaryBitMap;
         this.addBitMap = addBitMap;
         this.groundUpContinuous = groundUpContinuous;
@@ -28,8 +26,8 @@ public class ChunkDataPacket implements Packet.OUTGOING {
         os.writeBoolean(groundUpContinuous);
         os.writeShort(primaryBitMap);
         os.writeShort(addBitMap);
-        os.writeInt(compressedSize);
-        ByteBufUtil.writeBytes(os, compressedData);
+        os.writeInt(compressedData.length);
+        os.writeBytes(compressedData);
     }
 
     @Override

@@ -7,6 +7,11 @@ public class CollectItemPacket implements Packet.OUTGOING {
 
     int collectorEntityId, collectedEntityId;
 
+    public CollectItemPacket(int collectorEntityId, int collectedEntityId) {
+        this.collectorEntityId = collectorEntityId;
+        this.collectedEntityId = collectedEntityId;
+    }
+
     @Override
     public void serialize(ByteBuf os) {
         os.writeInt(collectedEntityId);

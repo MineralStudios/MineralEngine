@@ -7,6 +7,11 @@ public class ChangeGameStatePacket implements Packet.OUTGOING {
     short reason;
     float value;
 
+    public ChangeGameStatePacket(short reason, float value) {
+        this.reason = reason;
+        this.value = value;
+    }
+
     @Override
     public void serialize(ByteBuf os) {
         os.writeByte(reason);

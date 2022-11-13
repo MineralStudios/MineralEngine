@@ -8,6 +8,11 @@ public class DestroyEntitiesPacket implements Packet.OUTGOING {
     byte count;
     int[] entityIds;
 
+    public DestroyEntitiesPacket(byte count, int... entityIds) {
+        this.count = count;
+        this.entityIds = entityIds;
+    }
+
     @Override
     public void serialize(ByteBuf os) {
         os.writeByte(count);

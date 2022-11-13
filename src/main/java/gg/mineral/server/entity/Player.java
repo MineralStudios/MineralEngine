@@ -16,7 +16,7 @@ import gg.mineral.server.util.datatypes.UUIDUtil;
 import gg.mineral.server.util.json.JsonUtil;
 import gg.mineral.server.util.login.LoginUtil;
 
-public class Player extends CommandExecutor {
+public class Player extends HumanEntity implements CommandExecutor {
     String name;
     UUID uuid;
     Connection connection;

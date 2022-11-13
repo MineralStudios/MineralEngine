@@ -5,9 +5,15 @@ import io.netty.buffer.ByteBuf;
 
 public class HeldItemChangePacket implements Packet.OUTGOING {
 
+    short slot;
+
+    public HeldItemChangePacket(short slot) {
+        this.slot = slot;
+    }
+
     @Override
     public void serialize(ByteBuf os) {
-
+        os.writeShort(slot);
     }
 
     @Override
