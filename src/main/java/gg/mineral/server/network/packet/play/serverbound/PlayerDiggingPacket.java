@@ -24,9 +24,4 @@ public class PlayerDiggingPacket implements Packet.INCOMING {
         face = is.readByte();
     }
 
-    @Override
-    public int getId() {
-        return 0x07;
-    }
-
 }

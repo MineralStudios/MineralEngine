@@ -27,9 +27,4 @@ public class PlayerPositionAndLookPacket implements Packet.INCOMING {
         onGround = is.readBoolean();
     }
 
-    @Override
-    public int getId() {
-        return 0x06;
-    }
-
 }

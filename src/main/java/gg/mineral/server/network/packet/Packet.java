@@ -15,7 +15,5 @@ public class Packet {
         public void received(Connection connection);
 
         public void deserialize(ByteBuf is);
-
-        public int getId();
     }
 }

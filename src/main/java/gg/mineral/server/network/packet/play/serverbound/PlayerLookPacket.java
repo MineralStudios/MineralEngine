@@ -21,10 +21,4 @@ public class PlayerLookPacket implements Packet.INCOMING {
         pitch = is.readFloat();
         onGround = is.readBoolean();
     }
-
-    @Override
-    public int getId() {
-        return 0x05;
-    }
-
 }

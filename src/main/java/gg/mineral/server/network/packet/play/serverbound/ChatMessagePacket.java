@@ -19,10 +19,4 @@ public class ChatMessagePacket implements Packet.INCOMING {
     public void deserialize(ByteBuf is) {
         message = ByteBufUtil.readString(is);
     }
-
-    @Override
-    public int getId() {
-        return 0x01;
-    }
-
 }

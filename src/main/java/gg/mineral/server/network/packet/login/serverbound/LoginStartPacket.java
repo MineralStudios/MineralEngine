@@ -1,6 +1,6 @@
 package gg.mineral.server.network.packet.login.serverbound;
 
-import gg.mineral.server.entity.PlayerManager;
+import gg.mineral.server.entity.living.human.manager.PlayerManager;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
@@ -19,10 +19,4 @@ public class LoginStartPacket implements Packet.INCOMING {
     public void deserialize(ByteBuf is) {
         name = ByteBufUtil.readString(is);
     }
-
-    @Override
-    public int getId() {
-        return 0x00;
-    }
-
 }

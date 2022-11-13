@@ -21,9 +21,4 @@ public class RequestPacket implements Packet.INCOMING {
     public void deserialize(ByteBuf is) {
     }
 
-    @Override
-    public int getId() {
-        return 0x00;
-    }
-
 }

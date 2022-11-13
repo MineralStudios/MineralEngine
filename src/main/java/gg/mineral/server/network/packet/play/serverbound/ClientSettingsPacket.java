@@ -27,10 +27,4 @@ public class ClientSettingsPacket implements Packet.INCOMING {
         difficulty = Difficulty.fromId(is.readByte());
         showCape = is.readBoolean();
     }
-
-    @Override
-    public int getId() {
-        return 0x15;
-    }
-
 }

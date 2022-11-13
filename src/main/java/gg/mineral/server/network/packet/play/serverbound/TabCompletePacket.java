@@ -18,9 +18,4 @@ public class TabCompletePacket implements Packet.INCOMING {
     public void deserialize(ByteBuf is) {
         text = ByteBufUtil.readString(is);
     }
-
-    @Override
-    public int getId() {
-        return 0x14;
-    }
 }

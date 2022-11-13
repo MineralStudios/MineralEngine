@@ -18,10 +18,4 @@ public class EnchantItemPacket implements Packet.INCOMING {
         windowId = is.readByte();
         enchantment = is.readByte();
     }
-
-    @Override
-    public int getId() {
-        return 0x11;
-    }
-
 }

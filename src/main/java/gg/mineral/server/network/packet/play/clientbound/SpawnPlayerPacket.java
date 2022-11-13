@@ -2,7 +2,7 @@ package gg.mineral.server.network.packet.play.clientbound;
 
 import java.util.List;
 
-import gg.mineral.server.entity.PlayerProperty;
+import gg.mineral.server.entity.living.human.property.PlayerProperty;
 import gg.mineral.server.entity.metadata.EntityMetadata;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.math.MathUtil;

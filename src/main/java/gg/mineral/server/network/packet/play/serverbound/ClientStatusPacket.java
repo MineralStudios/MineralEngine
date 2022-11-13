@@ -17,10 +17,4 @@ public class ClientStatusPacket implements Packet.INCOMING {
     public void deserialize(ByteBuf is) {
         actionId = is.readByte();
     }
-
-    @Override
-    public int getId() {
-        return 0x16;
-    }
-
 }

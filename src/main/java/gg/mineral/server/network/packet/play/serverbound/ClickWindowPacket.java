@@ -27,9 +27,4 @@ public class ClickWindowPacket implements Packet.INCOMING {
         clickedItem = ByteBufUtil.readSlot(is);
     }
 
-    @Override
-    public int getId() {
-        return 0x0E;
-    }
-
 }

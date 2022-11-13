@@ -20,10 +20,4 @@ public class UseEntityPacket implements Packet.INCOMING {
         target = is.readInt();
         mouse = is.readByte();
     }
-
-    @Override
-    public int getId() {
-        return 0x02;
-    }
-
 }

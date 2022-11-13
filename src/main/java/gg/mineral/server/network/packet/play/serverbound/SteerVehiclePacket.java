@@ -21,10 +21,4 @@ public class SteerVehiclePacket implements Packet.INCOMING {
         jump = is.readBoolean();
         unmount = is.readBoolean();
     }
-
-    @Override
-    public int getId() {
-        return 0x0C;
-    }
-
 }

@@ -21,9 +21,4 @@ public class EntityActionPacket implements Packet.INCOMING {
         jumpBoost = is.readInt();
     }
 
-    @Override
-    public int getId() {
-        return 0x0B;
-    }
-
 }

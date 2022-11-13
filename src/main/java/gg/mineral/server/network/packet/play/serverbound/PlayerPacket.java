@@ -18,10 +18,4 @@ public class PlayerPacket implements Packet.INCOMING {
     public void deserialize(ByteBuf is) {
         onGround = is.readBoolean();
     }
-
-    @Override
-    public int getId() {
-        return 0x03;
-    }
-
 }

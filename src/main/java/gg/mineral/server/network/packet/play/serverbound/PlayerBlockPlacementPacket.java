@@ -30,9 +30,4 @@ public class PlayerBlockPlacementPacket implements Packet.INCOMING {
         cursorZ = is.readByte();
     }
 
-    @Override
-    public int getId() {
-        return 0x08;
-    }
-
 }

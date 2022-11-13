@@ -23,9 +23,4 @@ public class PlayerPositionPacket implements Packet.INCOMING {
         onGround = is.readBoolean();
     }
 
-    @Override
-    public int getId() {
-        return 0x04;
-    }
-
 }

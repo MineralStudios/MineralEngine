@@ -12,11 +12,6 @@ public class HandshakePacket implements Packet.INCOMING {
     String serverAddress;
 
     @Override
-    public int getId() {
-        return 0x00;
-    }
-
-    @Override
     public void received(Connection connection) {
         connection.PROTOCOL_VERSION = protocol;
         connection.setProtocolState(ProtocolState.getState(nextState));

@@ -1,6 +1,6 @@
 package gg.mineral.server.network.packet.play.clientbound;
 
-import gg.mineral.server.entity.Gamemode;
+import gg.mineral.server.entity.living.human.property.Gamemode;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import gg.mineral.server.world.Difficulty;
