@@ -24,6 +24,8 @@ public class EncryptionKeyResponsePacket implements Packet.INCOMING {
     @Override
     public void received(Connection connection) {
         Player player = PlayerManager.get(p -> p.getConnection().equals(connection));
+
+        // TODO: enable encryption
         player.authenticate(sharedSecretBytes, verifyToken).whenComplete((success, ex) -> {
             if (success) {
                 connection.setProtocolState(ProtocolState.PLAY);
