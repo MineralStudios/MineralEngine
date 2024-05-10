@@ -18,7 +18,7 @@ public class Entity {
     @Getter
     protected final int id;
 
-    public void tick() {
+    public void tick(int threadNumber) {
 
     }
 }

@@ -37,7 +37,7 @@ public class TickLoop {
         for (int i = start; i < end; i++) {
             Entity entity = entities[i];
             if (entity != null)
-                entity.tick();
+                entity.tick(threadNumber);
         }
     }
 }

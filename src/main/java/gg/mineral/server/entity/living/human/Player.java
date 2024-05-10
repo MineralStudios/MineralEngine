@@ -86,14 +86,14 @@ public class Player extends HumanEntity implements CommandExecutor {
         this.chunkZ = (byte) Math.floor(getZ() / 16);
     }
 
-    public void tick() {
+    public void tick(int threadNumber) {
 
-        super.tick();
+        super.tick(threadNumber);
         updateChunkPosition();
 
         if (getOldChunkX() != getChunkX() || getOldChunkZ() != getChunkZ()
                 || isFirstTick())
-            sendUpdates();
+            sendUpdates(threadNumber);
 
         // Tick connection last
         getConnection().tick();
@@ -101,21 +101,21 @@ public class Player extends HumanEntity implements CommandExecutor {
         setFirstTick(false);
     }
 
-    public List<Chunk> getChunkLoadUpdates() {
+    public List<Chunk> getChunkLoadUpdates(int threadNumber) {
 
         byte viewDistance = getViewDistance();
         List<Chunk> chunks = new GlueList<>();
 
         for (byte x = (byte) -viewDistance; x <= viewDistance; x++)
             for (byte z = (byte) -viewDistance; z <= viewDistance; z++)
-                createChunkUpdate(Chunk.toKey((byte) (getChunkX() + x), (byte) (getChunkZ() + z)))
+                createChunkUpdate(threadNumber, Chunk.toKey((byte) (getChunkX() + x), (byte) (getChunkZ() + z)))
                         .ifPresent(chunks::add);
 
         return chunks;
     }
 
-    public Optional<Chunk> createChunkUpdate(short key) {
-        loadedChunks.put(key, MinecraftServer.getTickLoop().getCurrentTick());
+    public Optional<Chunk> createChunkUpdate(int threadNumber, short key) {
+        loadedChunks.put(key, MinecraftServer.getTickLoop().getCurrentTicks()[threadNumber]);
         if (getVisibleChunks().contains(key))
             return Optional.empty();
 
@@ -124,8 +124,8 @@ public class Player extends HumanEntity implements CommandExecutor {
         return Optional.of(chunk);
     }
 
-    public void sendUpdates() {
-        List<Chunk> chunks = getChunkLoadUpdates();
+    public void sendUpdates(int threadNumber) {
+        List<Chunk> chunks = getChunkLoadUpdates(threadNumber);
 
         ObjectIterator<Entry> iterator = loadedChunks.short2IntEntrySet().fastIterator();
 
@@ -133,7 +133,7 @@ public class Player extends HumanEntity implements CommandExecutor {
 
         while (iterator.hasNext()) {
             Entry entry = iterator.next();
-            if (MinecraftServer.getTickLoop().getCurrentTick() - entry.getIntValue() > 100) {
+            if (MinecraftServer.getTickLoop().getCurrentTicks()[threadNumber] - entry.getIntValue() > 100) {
                 short key = entry.getShortKey();
                 if (getVisibleChunks().rem(key)) {
                     chunks.add(new EmptyChunk(world, Chunk.xFromKey(key), Chunk.zFromKey(key)));
