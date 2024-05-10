@@ -4,4 +4,8 @@ import gg.mineral.server.entity.LivingEntity;
 
 public class Bat extends LivingEntity {
 
+    public Bat(int id) {
+        super(id);
+    }
+
 }

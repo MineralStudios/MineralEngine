@@ -1,0 +1,604 @@
+package gg.mineral.server.world.chunk;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.zip.DeflaterOutputStream;
+
+import gg.mineral.server.network.packet.play.clientbound.ChunkDataPacket;
+import gg.mineral.server.world.World;
+import gg.mineral.server.world.block.Block;
+import lombok.Getter;
+
+/**
+ * Represents a chunk of the map.
+ * 
+ * @author Graham Edgecombe
+ */
+public abstract class Chunk {
+
+    private static final ChunkSection EMPTY_SECTION = new ChunkSection();
+
+    /**
+     * The dimensions of a chunk (width: x, height: z, depth: y).
+     */
+    public static final int WIDTH = 16, HEIGHT = 16, DEPTH = 256;
+
+    /**
+     * The Y depth of a single chunk section.
+     */
+    private static final int SEC_DEPTH = 16;
+
+    public static short toKey(byte x, byte z) {
+        return (short) ((x << 8) | (z & 0xFF));
+    }
+
+    public static byte xFromKey(short key) {
+        return (byte) ((key >> 8) & 0xFF);
+    }
+
+    public static byte zFromKey(short key) {
+        return (byte) (key & 0xFF);
+    }
+
+    public static final class ChunkSection {
+        private static final int ARRAY_SIZE = WIDTH * HEIGHT * SEC_DEPTH;
+
+        // these probably should be made non-public
+        public final byte[] types, metaData, skyLight, blockLight;
+
+        public int count;
+
+        public void recount() {
+            count = 0;
+            for (byte type : types)
+                if (type != 0)
+                    count++;
+        }
+
+        /**
+         * Create a new, empty ChunkSection.
+         */
+        public ChunkSection() {
+            types = new byte[ARRAY_SIZE];
+            metaData = new byte[ARRAY_SIZE];
+            skyLight = new byte[ARRAY_SIZE];
+            blockLight = new byte[ARRAY_SIZE];
+            Arrays.fill(skyLight, (byte) 0xf);
+            recount();
+        }
+
+        /**
+         * Create a ChunkSection with the specified chunk data.
+         */
+        public ChunkSection(byte[] types, byte[] metaData, byte[] skyLight, byte[] blockLight) {
+            if (types.length != ARRAY_SIZE || metaData.length != ARRAY_SIZE || skyLight.length != ARRAY_SIZE
+                    || blockLight.length != ARRAY_SIZE)
+                throw new IllegalArgumentException("An array length was not " + ARRAY_SIZE + ": " + types.length + " "
+                        + metaData.length + " " + skyLight.length + " " + blockLight.length);
+
+            this.types = types;
+            this.metaData = metaData;
+            this.skyLight = skyLight;
+            this.blockLight = blockLight;
+
+            System.arraycopy(types, 0, this.types, 0, ARRAY_SIZE);
+            System.arraycopy(metaData, 0, this.metaData, 0, ARRAY_SIZE);
+            System.arraycopy(skyLight, 0, this.skyLight, 0, ARRAY_SIZE);
+            System.arraycopy(blockLight, 0, this.blockLight, 0, ARRAY_SIZE);
+
+        }
+
+        public int index(int x, int y, int z) {
+            if (x < 0 || z < 0 || x >= WIDTH || z >= HEIGHT)
+                throw new IndexOutOfBoundsException("Coords (x=" + x + ",z=" + z + ") out of section bounds");
+
+            return ((y & 0xf) << 8) | (z << 4) | x;
+        }
+
+        public boolean isEmpty() {
+            for (byte type : types)
+                if (type != 0)
+                    return false;
+
+            return true;
+        }
+
+        public ChunkSection snapshot() {
+            return new ChunkSection(types.clone(), metaData.clone(), skyLight.clone(), blockLight.clone());
+        }
+    }
+
+    /**
+     * The world of this chunk.
+     */
+    @Getter
+    private final World world;
+
+    /**
+     * The coordinates of this chunk.
+     */
+    @Getter
+    private final byte x, z;
+
+    /**
+     * The array of chunk sections this chunk contains, or null if it is unloaded.
+     */
+    private ChunkSection[] sections = new ChunkSection[DEPTH / SEC_DEPTH];
+
+    /**
+     * The array of biomes this chunk contains, or null if it is unloaded.
+     */
+    private byte[] biomes;
+
+    /**
+     * Creates a new chunk with a specified X and Z coordinate.
+     * 
+     * @param x The X coordinate.
+     * @param z The Z coordinate.
+     */
+    public Chunk(World world, byte x, byte z) {
+        this.world = world;
+        this.x = x;
+        this.z = z;
+        load();
+    }
+
+    public abstract void load();
+
+    @Override
+    public String toString() {
+        return "Chunk{world=" + world.getName() + ",x=" + x + ",z=" + z + '}';
+    }
+
+    // ======== Basic stuff ========
+
+    public Block getBlock(int x, int y, int z) {
+        return new Block(this, (this.x << 4) | (x & 0xf), y & 0xff, (this.z << 4) |
+                (z & 0xf));
+    }
+
+    // ======== Data access ========
+
+    /**
+     * Attempt to get the ChunkSection at the specified height.
+     * 
+     * @param y the y value.
+     * @return The ChunkSection, or null if it is empty.
+     */
+    private ChunkSection getSection(int y) {
+        int idx = y >> 4;
+        if (y < 0 || y >= DEPTH || idx >= sections.length)
+            return null;
+
+        return sections[idx];
+    }
+
+    /**
+     * Gets the type of a block within this chunk.
+     * 
+     * @param x The X coordinate.
+     * @param z The Z coordinate.
+     * @param y The Y coordinate.
+     * @return The type.
+     */
+    public int getType(int x, int z, int y) {
+        ChunkSection section = getSection(y);
+        return section == null ? 0 : (section.types[section.index(x, y, z)] & 0xff);
+    }
+
+    /**
+     * Sets the type of a block within this chunk.
+     * 
+     * @param x    The X coordinate.
+     * @param z    The Z coordinate.
+     * @param y    The Y coordinate.
+     * @param type The type.
+     */
+    public void setType(int x, int z, int y, int type) {
+        if (type < 0 || type > 0xfff)
+            throw new IllegalArgumentException("Block type out of range: " + type);
+
+        ChunkSection section = getSection(y);
+        if (section == null) {
+            if (type == 0) {
+                // don't need to create chunk for air
+                return;
+            } else {
+                // create new ChunkSection for this y coordinate
+                int idx = y >> 4;
+                if (y < 0 || y >= DEPTH || idx >= sections.length) {
+                    // y is out of range somehow
+                    return;
+                }
+                sections[idx] = section = new ChunkSection();
+            }
+        }
+
+        // update the air count and height map
+        int index = section.index(x, y, z);
+        if (type == 0) {
+            if (section.types[index] != 0) {
+                section.count--;
+            }
+        } else {
+            if (section.types[index] == 0) {
+                section.count++;
+            }
+        }
+        // update the type - also sets metadata to 0
+        section.types[section.index(x, y, z)] = (byte) type;
+
+        if (type == 0 && section.count == 0) {
+            // destroy the empty section
+            sections[y / SEC_DEPTH] = null;
+            return;
+        }
+    }
+
+    /**
+     * Gets the metadata of a block within this chunk.
+     * 
+     * @param x The X coordinate.
+     * @param z The Z coordinate.
+     * @param y The Y coordinate.
+     * @return The metadata.
+     */
+    public int getMetaData(int x, int z, int y) {
+        ChunkSection section = getSection(y);
+        return section == null ? 0 : section.metaData[section.index(x, y, z)];
+    }
+
+    /**
+     * Sets the metadata of a block within this chunk.
+     * 
+     * @param x        The X coordinate.
+     * @param z        The Z coordinate.
+     * @param y        The Y coordinate.
+     * @param metaData The metadata.
+     */
+    public void setMetaData(int x, int z, int y, int metaData) {
+        if (metaData < 0 || metaData >= 16)
+            throw new IllegalArgumentException("Metadata out of range: " + metaData);
+        ChunkSection section = getSection(y);
+        if (section == null)
+            return; // can't set metadata on an empty section
+        section.metaData[section.index(x, y, z)] = (byte) metaData;
+    }
+
+    /**
+     * Gets the sky light level of a block within this chunk.
+     * 
+     * @param x The X coordinate.
+     * @param z The Z coordinate.
+     * @param y The Y coordinate.
+     * @return The sky light level.
+     */
+    public byte getSkyLight(int x, int z, int y) {
+        ChunkSection section = getSection(y);
+        return section == null ? 0 : section.skyLight[section.index(x, y, z)];
+    }
+
+    /**
+     * Sets the sky light level of a block within this chunk.
+     * 
+     * @param x        The X coordinate.
+     * @param z        The Z coordinate.
+     * @param y        The Y coordinate.
+     * @param skyLight The sky light level.
+     */
+    public void setSkyLight(int x, int z, int y, int skyLight) {
+        ChunkSection section = getSection(y);
+        if (section == null)
+            return; // can't set light on an empty section
+        section.skyLight[section.index(x, y, z)] = (byte) skyLight;
+    }
+
+    /**
+     * Gets the block light level of a block within this chunk.
+     * 
+     * @param x The X coordinate.
+     * @param z The Z coordinate.
+     * @param y The Y coordinate.
+     * @return The block light level.v
+     */
+    public byte getBlockLight(int x, int z, int y) {
+        ChunkSection section = getSection(y);
+        return section == null ? 0 : section.blockLight[section.index(x, y, z)];
+    }
+
+    /**
+     * Sets the block light level of a block within this chunk.
+     * 
+     * @param x          The X coordinate.
+     * @param z          The Z coordinate.
+     * @param y          The Y coordinate.
+     * @param blockLight The block light level.
+     */
+    public void setBlockLight(int x, int z, int y, int blockLight) {
+        ChunkSection section = getSection(y);
+        if (section == null)
+            return; // can't set light on an empty section
+        section.blockLight[section.index(x, y, z)] = (byte) blockLight;
+    }
+
+    /**
+     * Gets the biome of a column within this chunk.
+     * 
+     * @param x The X coordinate.
+     * @param z The Z coordinate.
+     * @return The biome.
+     */
+    public int getBiome(int x, int z) {
+        if (biomes == null)
+            return 0;
+        return biomes[z * WIDTH + x] & 0xFF;
+    }
+
+    /**
+     * Sets the biome of a column within this chunk,
+     * 
+     * @param x     The X coordinate.
+     * @param z     The Z coordinate.
+     * @param biome The biome.
+     */
+    public void setBiome(int x, int z, int biome) {
+        if (biomes == null)
+            return;
+        biomes[z * WIDTH + x] = (byte) biome;
+    }
+
+    /**
+     * Set the entire biome array of this chunk.
+     * 
+     * @param newBiomes The biome array.
+     */
+    public void setBiomes(byte[] newBiomes) {
+        if (biomes == null)
+            throw new IllegalStateException("Must initialize chunk first");
+
+        if (newBiomes.length != biomes.length)
+            throw new IllegalArgumentException("Biomes array not of length " + biomes.length);
+
+        System.arraycopy(newBiomes, 0, biomes, 0, biomes.length);
+    }
+
+    public ChunkDataPacket toPacket() {
+        // this may need to be changed to "true" depending on resolution of
+        // some inconsistencies on the wiki
+        return toPacket(world.getEnvironment() == World.Environment.NORMAL);
+    }
+
+    public ChunkDataPacket toPacket(boolean skylight) {
+        return toPacket(skylight, true);
+    }
+
+    public ChunkDataPacket toPacket(boolean skylight, boolean entireChunk) {
+        int primaryBitmap = 0;
+        int addBitmap = 0;
+
+        byte[] output = new byte[196864];
+        int outputPos = 0;
+
+        ChunkSection[] chunkSections = new ChunkSection[16];
+        for (int i = 0; i < 16; i++)
+            chunkSections[i] = sections[i] != null ? sections[i].snapshot() : EMPTY_SECTION;
+
+        for (int i = 0; i < chunkSections.length; i++) {
+            ChunkSection section = chunkSections[i];
+
+            if (section == EMPTY_SECTION) {
+                continue;
+            }
+
+            boolean foundBlock = false;
+            boolean foundAdd = false;
+
+            for (int y = 0; y < 16; y++) {
+                for (int z = 0; z < 16; z++) {
+                    for (int x = 0; x < 16; x++) {
+                        int index = section.index(x, y, z);
+                        int type = section.types[index] & 0xff;
+                        int metaData = section.metaData[index] & 0xff;
+                        // int blockLight = section.blockLight[index] & 0xff;
+                        // int skyLight = section.skyLight[index] & 0xff;
+
+                        if (type != 0 || metaData != 0) {
+                            foundBlock = true;
+                        }
+                        if ((type & 0xf00) != 0) {
+                            foundAdd = true;
+                        }
+                    }
+                }
+            }
+
+            if (foundBlock) {
+                primaryBitmap |= 1 << i;
+            }
+            if (foundAdd) {
+                addBitmap |= 1 << i;
+            }
+        }
+
+        int mask = primaryBitmap | addBitmap;
+        // int fullSectionsCount = Integer.bitCount(mask);
+
+        for (int i = 0; i < 16; i++) {
+            if ((mask & (1 << i)) == 0) {
+                continue;
+            }
+
+            ChunkSection section = chunkSections[i];
+            System.arraycopy(section.types, 0, output, outputPos, 4096);
+            outputPos += 4096;
+        }
+
+        for (int i = 0; i < 16; i++) {
+            if ((primaryBitmap & (1 << i)) == 0) {
+                continue;
+            }
+
+            ChunkSection section = chunkSections[i];
+            for (int j = 0; j < 2048; j++) {
+                output[outputPos++] = (byte) ((section.metaData[j << 1] << 4) | (section.metaData[(j << 1) + 1] & 0xf));
+            }
+        }
+
+        for (int i = 0; i < 16; i++) {
+            if ((primaryBitmap & (1 << i)) == 0) {
+                continue;
+            }
+
+            ChunkSection section = chunkSections[i];
+            System.arraycopy(section.blockLight, 0, output, outputPos, 2048);
+            outputPos += 2048;
+        }
+
+        if (skylight) {
+            for (int i = 0; i < 16; i++) {
+                if ((primaryBitmap & (1 << i)) == 0) {
+                    continue;
+                }
+
+                ChunkSection section = chunkSections[i];
+                System.arraycopy(section.skyLight, 0, output, outputPos, 2048);
+                outputPos += 2048;
+            }
+        }
+
+        if (entireChunk) {
+            if (biomes == null) {
+                biomes = new byte[256];
+            }
+            System.arraycopy(biomes, 0, output, outputPos, 256);
+            outputPos += 256;
+        }
+
+        byte[] compressedData = compress(output, outputPos);
+
+        return new ChunkDataPacket(x, z, primaryBitmap, addBitmap, entireChunk, compressedData);
+    }
+
+    public ChunkDataPacket toDecompressedPacket(boolean skylight) {
+        return toDecompressedPacket(skylight, true);
+    }
+
+    public ChunkDataPacket toDecompressedPacket(boolean skylight, boolean entireChunk) {
+        int primaryBitmap = 0;
+        int addBitmap = 0;
+
+        byte[] output = new byte[196864];
+        int outputPos = 0;
+
+        ChunkSection[] chunkSections = new ChunkSection[16];
+        for (int i = 0; i < 16; i++)
+            chunkSections[i] = sections[i] != null ? sections[i].snapshot() : EMPTY_SECTION;
+
+        for (int i = 0; i < chunkSections.length; i++) {
+            ChunkSection section = chunkSections[i];
+
+            if (section == EMPTY_SECTION) {
+                continue;
+            }
+
+            boolean foundBlock = false;
+            boolean foundAdd = false;
+
+            for (int y = 0; y < 16; y++) {
+                for (int z = 0; z < 16; z++) {
+                    for (int x = 0; x < 16; x++) {
+                        int index = section.index(x, y, z);
+                        int type = section.types[index] & 0xff;
+                        int metaData = section.metaData[index] & 0xff;
+                        // int blockLight = section.blockLight[index] & 0xff;
+                        // int skyLight = section.skyLight[index] & 0xff;
+
+                        if (type != 0 || metaData != 0) {
+                            foundBlock = true;
+                        }
+                        if ((type & 0xf00) != 0) {
+                            foundAdd = true;
+                        }
+                    }
+                }
+            }
+
+            if (foundBlock) {
+                primaryBitmap |= 1 << i;
+            }
+            if (foundAdd) {
+                addBitmap |= 1 << i;
+            }
+        }
+
+        int mask = primaryBitmap | addBitmap;
+        // int fullSectionsCount = Integer.bitCount(mask);
+
+        for (int i = 0; i < 16; i++) {
+            if ((mask & (1 << i)) == 0) {
+                continue;
+            }
+
+            ChunkSection section = chunkSections[i];
+            System.arraycopy(section.types, 0, output, outputPos, 4096);
+            outputPos += 4096;
+        }
+
+        for (int i = 0; i < 16; i++) {
+            if ((primaryBitmap & (1 << i)) == 0) {
+                continue;
+            }
+
+            ChunkSection section = chunkSections[i];
+            for (int j = 0; j < 2048; j++) {
+                output[outputPos++] = (byte) ((section.metaData[j << 1] << 4) | (section.metaData[(j << 1) + 1] & 0xf));
+            }
+        }
+
+        for (int i = 0; i < 16; i++) {
+            if ((primaryBitmap & (1 << i)) == 0) {
+                continue;
+            }
+
+            ChunkSection section = chunkSections[i];
+            System.arraycopy(section.blockLight, 0, output, outputPos, 2048);
+            outputPos += 2048;
+        }
+
+        if (skylight) {
+            for (int i = 0; i < 16; i++) {
+                if ((primaryBitmap & (1 << i)) == 0) {
+                    continue;
+                }
+
+                ChunkSection section = chunkSections[i];
+                System.arraycopy(section.skyLight, 0, output, outputPos, 2048);
+                outputPos += 2048;
+            }
+        }
+
+        if (entireChunk) {
+            if (biomes == null) {
+                biomes = new byte[256];
+            }
+            System.arraycopy(biomes, 0, output, outputPos, 256);
+            outputPos += 256;
+        }
+
+        byte[] data = Arrays.copyOf(output, outputPos);
+
+        return new ChunkDataPacket(x, z, primaryBitmap, addBitmap, entireChunk, data);
+    }
+
+    public static byte[] compress(byte[] data, int length) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try (DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(outputStream)) {
+            deflaterOutputStream.write(data, 0, length);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to compress chunk data", e);
+        }
+        return outputStream.toByteArray();
+    }
+
+}

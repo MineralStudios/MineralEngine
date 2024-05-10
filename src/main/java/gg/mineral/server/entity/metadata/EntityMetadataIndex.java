@@ -33,6 +33,7 @@ import gg.mineral.server.entity.objects.Item;
 import gg.mineral.server.entity.objects.ItemFrame;
 import gg.mineral.server.entity.objects.Minecart;
 import gg.mineral.server.entity.objects.PoweredMinecart;
+import lombok.Getter;
 
 /**
  * Index constants for entity metadata.
@@ -151,8 +152,11 @@ public enum EntityMetadataIndex {
 
     ENDER_CRYSTAL_HEALTH(8, EntityMetadataType.INT, EnderCrystal.class);
 
+    @Getter
     private final int index;
+    @Getter
     private final EntityMetadataType type;
+    @Getter
     private final Class<? extends Entity> appliesTo;
 
     EntityMetadataIndex(int index, EntityMetadataType type, Class<? extends Entity> appliesTo) {
@@ -170,18 +174,6 @@ public enum EntityMetadataIndex {
             }
         }
         return output;
-    }
-
-    public int getIndex() {
-        return index;
-    }
-
-    public EntityMetadataType getType() {
-        return type;
-    }
-
-    public Class<?> getAppliesTo() {
-        return appliesTo;
     }
 
     public boolean appliesTo(Class<? extends Entity> clazz) {

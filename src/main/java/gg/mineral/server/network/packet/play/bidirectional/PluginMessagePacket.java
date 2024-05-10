@@ -4,18 +4,14 @@ import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
+@AllArgsConstructor
 public class PluginMessagePacket implements Packet.INCOMING, Packet.OUTGOING {
     String channel;
     byte[] data;
-
-    public PluginMessagePacket(String channel, byte[] data) {
-        this.channel = channel;
-        this.data = data;
-    }
-
-    public PluginMessagePacket() {
-    }
 
     @Override
     public void serialize(ByteBuf os) {
@@ -39,7 +35,7 @@ public class PluginMessagePacket implements Packet.INCOMING, Packet.OUTGOING {
     }
 
     @Override
-    public int getId() {
+    public byte getId() {
         return 0x3F;
     }
 

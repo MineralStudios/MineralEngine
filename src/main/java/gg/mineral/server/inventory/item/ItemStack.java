@@ -8,10 +8,16 @@ import gg.mineral.server.util.collection.GlueList;
 import gg.mineral.server.util.nbt.CompoundTag;
 import gg.mineral.server.util.nbt.TagType;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import lombok.Getter;
+import lombok.Setter;
 
 public class ItemStack {
 
+    @Getter
+    @Setter
     String displayName;
+    @Getter
+    @Setter
     List<String> lore;
     Map<Enchantment, Integer> enchants;
     int hideFlag;
@@ -34,22 +40,6 @@ public class ItemStack {
 
     public boolean hasEnchants() {
         return enchants != null && !enchants.isEmpty();
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public List<String> getLore() {
-        return lore;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    public void setLore(List<String> lore) {
-        this.lore = lore;
     }
 
     public void writeNbt(CompoundTag tag) {

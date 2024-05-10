@@ -4,4 +4,8 @@ import gg.mineral.server.entity.LivingEntity;
 
 public class Ocelot extends LivingEntity {
 
+    public Ocelot(int id) {
+        super(id);
+    }
+
 }

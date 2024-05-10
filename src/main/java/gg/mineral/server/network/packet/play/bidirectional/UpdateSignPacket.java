@@ -4,7 +4,9 @@ import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 public class UpdateSignPacket implements Packet.INCOMING, Packet.OUTGOING {
     int x, z;
     short y;
@@ -18,9 +20,6 @@ public class UpdateSignPacket implements Packet.INCOMING, Packet.OUTGOING {
         this.line2 = line2;
         this.line3 = line3;
         this.line4 = line4;
-    }
-
-    public UpdateSignPacket() {
     }
 
     @Override
@@ -52,7 +51,7 @@ public class UpdateSignPacket implements Packet.INCOMING, Packet.OUTGOING {
     }
 
     @Override
-    public int getId() {
+    public byte getId() {
         return 0x33;
     }
 

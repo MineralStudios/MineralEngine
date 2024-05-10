@@ -4,4 +4,8 @@ import gg.mineral.server.entity.LivingEntity;
 
 public class Spider extends LivingEntity {
 
+    public Spider(int id) {
+        super(id);
+    }
+
 }

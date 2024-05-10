@@ -24,7 +24,7 @@ public class LoginSuccessPacket implements Packet.OUTGOING {
     }
 
     @Override
-    public int getId() {
+    public byte getId() {
         return 0x02;
     }
 

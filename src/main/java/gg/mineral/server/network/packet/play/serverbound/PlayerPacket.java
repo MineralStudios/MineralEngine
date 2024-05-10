@@ -1,5 +1,6 @@
 package gg.mineral.server.network.packet.play.serverbound;
 
+import gg.mineral.server.entity.manager.EntityManager;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
@@ -10,8 +11,7 @@ public class PlayerPacket implements Packet.INCOMING {
 
     @Override
     public void received(Connection connection) {
-        // TODO Auto-generated method stub
-
+        EntityManager.get(p -> p.getConnection().equals(connection)).ifPresent(player -> player.setOnGround(onGround));
     }
 
     @Override

@@ -4,4 +4,8 @@ import gg.mineral.server.entity.LivingEntity;
 
 public class Wolf extends LivingEntity {
 
+    public Wolf(int id) {
+        super(id);
+    }
+
 }

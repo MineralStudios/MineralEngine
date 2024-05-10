@@ -4,4 +4,8 @@ import gg.mineral.server.entity.Entity;
 
 public class Boat extends Entity {
 
+    public Boat(int id) {
+        super(id);
+    }
+
 }

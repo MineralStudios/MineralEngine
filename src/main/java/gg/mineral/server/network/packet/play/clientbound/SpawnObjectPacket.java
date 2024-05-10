@@ -21,7 +21,7 @@ public class SpawnObjectPacket implements Packet.OUTGOING {
     }
 
     @Override
-    public int getId() {
+    public byte getId() {
         return 0x0E;
     }
 

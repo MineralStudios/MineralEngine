@@ -2,6 +2,7 @@ package gg.mineral.server.util.network;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,23 @@ public class ByteBufUtil {
 
         do {
             currentByte = buf.readByte();
+            value |= (currentByte & 127) << position++ * 7;
+            if (position > 5) {
+                throw new RuntimeException("VarInt too big");
+            }
+        } while ((currentByte & 128) == 128);
+
+        return value;
+    }
+
+    public static int readVarInt(ByteBuffer buf) {
+        int value = 0;
+        int position = 0;
+
+        byte currentByte;
+
+        do {
+            currentByte = buf.get();
             value |= (currentByte & 127) << position++ * 7;
             if (position > 5) {
                 throw new RuntimeException("VarInt too big");
@@ -383,10 +401,11 @@ public class ByteBufUtil {
 
             buf.writeShort(modifiers.size());
             for (Modifier modifier : modifiers) {
-                writeUuid(buf, modifier.getUUID());
+                writeUuid(buf, modifier.getUuid());
                 buf.writeDouble(modifier.getAmount());
                 buf.writeByte(modifier.getOperation());
             }
         }
     }
+
 }

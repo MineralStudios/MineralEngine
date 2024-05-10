@@ -1,5 +1,6 @@
 package gg.mineral.server.network.packet.play.serverbound;
 
+import gg.mineral.server.entity.manager.EntityManager;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
@@ -12,8 +13,15 @@ public class PlayerPositionAndLookPacket implements Packet.INCOMING {
 
     @Override
     public void received(Connection connection) {
-        // TODO Auto-generated method stub
-
+        EntityManager.get(p -> p.getConnection().equals(connection)).ifPresent(player -> {
+            player.setX((float) x);
+            player.setY((float) feetY);
+            player.setHeadY((float) headY);
+            player.setZ((float) z);
+            player.setYaw(yaw);
+            player.setPitch(pitch);
+            player.setOnGround(onGround);
+        });
     }
 
     @Override

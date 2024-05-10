@@ -4,4 +4,8 @@ import gg.mineral.server.entity.LivingEntity;
 
 public class Enderman extends LivingEntity {
 
+    public Enderman(int id) {
+        super(id);
+    }
+
 }

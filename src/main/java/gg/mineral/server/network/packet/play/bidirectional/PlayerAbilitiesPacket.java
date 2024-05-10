@@ -4,7 +4,9 @@ import gg.mineral.server.entity.living.human.property.PlayerAbilities;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 public class PlayerAbilitiesPacket implements Packet.INCOMING, Packet.OUTGOING {
     byte flags;
     float flyingSpeed, walkingSpeed;
@@ -23,9 +25,6 @@ public class PlayerAbilitiesPacket implements Packet.INCOMING, Packet.OUTGOING {
 
         this.flyingSpeed = playerAbilities.flySpeed();
         this.walkingSpeed = playerAbilities.walkSpeed();
-    }
-
-    public PlayerAbilitiesPacket() {
     }
 
     @Override
@@ -49,7 +48,7 @@ public class PlayerAbilitiesPacket implements Packet.INCOMING, Packet.OUTGOING {
     }
 
     @Override
-    public int getId() {
+    public byte getId() {
         return 0x39;
     }
 

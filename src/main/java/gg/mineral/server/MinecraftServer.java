@@ -2,10 +2,13 @@ package gg.mineral.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.Executors;
 
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.handler.AutoReadHolderHandler;
 import gg.mineral.server.network.packet.handler.PacketDecoder;
+import gg.mineral.server.tick.TickLoop;
+import gg.mineral.server.tick.TickThreadFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -14,14 +17,27 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import java.util.concurrent.ScheduledExecutorService;
+import lombok.Getter;
 
 public class MinecraftServer {
+
+    @Getter
+    static final TickLoop tickLoop = new TickLoop();
+
+    @Getter
+    static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(getThreadCount(),
+            TickThreadFactory.INSTANCE);
+
+    public static int getThreadCount() {
+        return Runtime.getRuntime().availableProcessors();
+    }
 
     public static void main(String[] args) throws IOException, InterruptedException {
         start(25565);
     }
 
-    static EventLoopGroup GROUP = new NioEventLoopGroup();
+    static EventLoopGroup GROUP = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors(), executor);
 
     /**
      * Starts the server.
@@ -52,6 +68,9 @@ public class MinecraftServer {
                     }
                 });
         ChannelFuture f = b.bind().sync();
+
+        System.out.println("[Mineral] Server started on port " + port);
+        tickLoop.start();
         try {
             f.channel().closeFuture().sync();
         } catch (InterruptedException e) {
@@ -62,10 +81,11 @@ public class MinecraftServer {
     }
 
     public static void stop() throws InterruptedException {
+        executor.shutdown();
         GROUP.shutdownGracefully().sync();
     }
 
-    public static boolean DEBUG_MESSAGES = true;
+    public static boolean DEBUG_MESSAGES = false;
 
     public static void setDebugMessages(boolean debugMessages) {
         MinecraftServer.DEBUG_MESSAGES = debugMessages;

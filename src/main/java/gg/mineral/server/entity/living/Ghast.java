@@ -4,4 +4,8 @@ import gg.mineral.server.entity.LivingEntity;
 
 public class Ghast extends LivingEntity {
 
+    public Ghast(int id) {
+        super(id);
+    }
+
 }

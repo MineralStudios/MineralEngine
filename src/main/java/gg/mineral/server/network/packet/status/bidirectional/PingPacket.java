@@ -3,20 +3,17 @@ package gg.mineral.server.network.packet.status.bidirectional;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
+@AllArgsConstructor
 public class PingPacket implements Packet.INCOMING, Packet.OUTGOING {
 
     long time;
 
-    public PingPacket() {
-    }
-
-    public PingPacket(long time) {
-        this.time = time;
-    }
-
     @Override
-    public int getId() {
+    public byte getId() {
         return 0x01;
     }
 

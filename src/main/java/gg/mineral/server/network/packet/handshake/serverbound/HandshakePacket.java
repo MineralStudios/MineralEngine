@@ -13,7 +13,7 @@ public class HandshakePacket implements Packet.INCOMING {
 
     @Override
     public void received(Connection connection) {
-        connection.PROTOCOL_VERSION = protocol;
+        connection.PROTOCOL_VERSION = (byte) protocol;
         connection.setProtocolState(ProtocolState.getState(nextState));
     }
 

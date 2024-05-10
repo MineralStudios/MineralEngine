@@ -4,19 +4,15 @@ import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
+@AllArgsConstructor
 public class AnimationPacket implements Packet.INCOMING, Packet.OUTGOING {
 
     int entityId;
     short animationId;
-
-    public AnimationPacket(int entityId, short animationId) {
-        this.entityId = entityId;
-        this.animationId = animationId;
-    }
-
-    public AnimationPacket() {
-    }
 
     @Override
     public void serialize(ByteBuf os) {
@@ -37,7 +33,7 @@ public class AnimationPacket implements Packet.INCOMING, Packet.OUTGOING {
     }
 
     @Override
-    public int getId() {
+    public byte getId() {
         return 0x0B;
     }
 

@@ -8,7 +8,7 @@ public class Packet {
     public static interface OUTGOING {
         public void serialize(ByteBuf os);
 
-        public int getId();
+        public byte getId();
     }
 
     public static interface INCOMING {

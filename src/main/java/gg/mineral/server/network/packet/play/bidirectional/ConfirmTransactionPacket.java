@@ -16,7 +16,7 @@ public class ConfirmTransactionPacket implements Packet.INCOMING, Packet.OUTGOIN
     }
 
     @Override
-    public int getId() {
+    public byte getId() {
         return 0x32;
     }
 

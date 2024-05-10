@@ -1,5 +1,6 @@
 package gg.mineral.server.util.network;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -9,21 +10,26 @@ import gg.mineral.server.network.packet.registry.IncomingPacketRegistry;
 import gg.mineral.server.util.collection.GlueList;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer;
 
 public class PacketUtil {
 
-    public static List<Packet.INCOMING> deserialize(ByteBuf data, IncomingPacketRegistry incomingPacketRegistry)
-            throws Exception {
+    public static List<Packet.INCOMING> deserialize(ByteBuf data, IncomingPacketRegistry incomingPacketRegistry) {
         List<Packet.INCOMING> packets = new GlueList<>();
 
-        for (ByteBuf packetBuf : splitPackets(data)) {
-            int id = ByteBufUtil.readVarInt(packetBuf);
+        processPackets(data, packetBuf -> {
+            try {
+                byte id = packetBuf.readByte();
 
-            Callable<INCOMING> packetBuilder = incomingPacketRegistry.get(id);
-            Packet.INCOMING packet = packetBuilder.call();
-            packet.deserialize(packetBuf);
-            packets.add(packet);
-        }
+                Callable<INCOMING> packetBuilder = incomingPacketRegistry.get(id);
+                Packet.INCOMING packet = packetBuilder.call();
+                packet.deserialize(packetBuf);
+                packets.add(packet);
+                packetBuf.release();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
 
         data.discardReadBytes();
         return packets;
@@ -41,37 +47,36 @@ public class PacketUtil {
         return os;
     }
 
-    public static List<ByteBuf> splitPackets(ByteBuf buf) {
-        List<ByteBuf> bufList = new GlueList<>();
+    public static void processPackets(ByteBuf buf, Consumer<ByteBuf> consumer) {
         buf.markReaderIndex();
         byte[] lengthBytes = new byte[3];
 
         for (int position = 0; position < lengthBytes.length; ++position) {
             if (!buf.isReadable()) {
                 buf.resetReaderIndex();
-                return bufList;
+                return;
             }
 
             lengthBytes[position] = buf.readByte();
 
-            if (lengthBytes[position] < 0) {
+            if (lengthBytes[position] < 0)
                 continue;
-            }
 
-            ByteBuf byteBuf = Unpooled.wrappedBuffer(lengthBytes);
+            ByteBuffer byteBuf = ByteBuffer.wrap(lengthBytes);
 
             try {
                 int length = ByteBufUtil.readVarInt(byteBuf);
                 if (buf.readableBytes() < length) {
                     buf.resetReaderIndex();
-                    return bufList;
+                    return;
                 }
-                bufList.add(buf.readBytes(length));
+                ByteBuf splitBuf = buf.readBytes(length);
+                consumer.accept(splitBuf);
             } finally {
-                byteBuf.release();
+                byteBuf.clear();
             }
-            return bufList;
+            return;
         }
-        return bufList;
+        return;
     }
 }

@@ -3,17 +3,14 @@ package gg.mineral.server.network.packet.play.bidirectional;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
+@AllArgsConstructor
 public class HeldItemChangePacket implements Packet.INCOMING, Packet.OUTGOING {
 
     short slot;
-
-    public HeldItemChangePacket() {
-    }
-
-    public HeldItemChangePacket(short slot) {
-        this.slot = slot;
-    }
 
     @Override
     public void serialize(ByteBuf os) {
@@ -21,7 +18,7 @@ public class HeldItemChangePacket implements Packet.INCOMING, Packet.OUTGOING {
     }
 
     @Override
-    public int getId() {
+    public byte getId() {
         return 0x09;
     }
 

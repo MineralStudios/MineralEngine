@@ -3,6 +3,7 @@ package gg.mineral.server.entity.metadata;
 import gg.mineral.server.inventory.item.ItemStack;
 import gg.mineral.server.util.math.EulerAngle;
 import gg.mineral.server.util.math.Vector;
+import lombok.Getter;
 
 /**
  * The types of values that entity metadata can contain.
@@ -17,6 +18,7 @@ public enum EntityMetadataType {
     VECTOR(Vector.class),
     EULER_ANGLE(EulerAngle.class);
 
+    @Getter
     private final Class<?> dataType;
 
     EntityMetadataType(Class<?> dataType) {
@@ -27,11 +29,7 @@ public enum EntityMetadataType {
         return values()[id];
     }
 
-    public Class<?> getDataType() {
-        return dataType;
-    }
-
-    public int getId() {
-        return ordinal();
+    public byte getId() {
+        return (byte) ordinal();
     }
 }

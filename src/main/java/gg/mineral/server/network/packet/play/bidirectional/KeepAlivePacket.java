@@ -3,18 +3,14 @@ package gg.mineral.server.network.packet.play.bidirectional;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
+@AllArgsConstructor
 public class KeepAlivePacket implements Packet.INCOMING, Packet.OUTGOING {
 
     int keepAliveId;
-
-    public KeepAlivePacket() {
-
-    }
-
-    public KeepAlivePacket(int keepAliveId) {
-        this.keepAliveId = keepAliveId;
-    }
 
     @Override
     public void serialize(ByteBuf os) {
@@ -23,7 +19,7 @@ public class KeepAlivePacket implements Packet.INCOMING, Packet.OUTGOING {
 
     @Override
     public void received(Connection connection) {
-        connection.sendPacket(this);
+        // connection.sendPacket(this);
     }
 
     @Override
@@ -32,7 +28,7 @@ public class KeepAlivePacket implements Packet.INCOMING, Packet.OUTGOING {
     }
 
     @Override
-    public int getId() {
+    public byte getId() {
         return 0x00;
     }
 
