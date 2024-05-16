@@ -12,6 +12,7 @@ import gg.mineral.server.entity.living.human.Player;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.util.collection.ConcurrentHashSet;
 import gg.mineral.server.util.collection.NonBlockingHashMap;
+import gg.mineral.server.util.collection.ShortNonBlockingArrayMap;
 import gg.mineral.server.world.World;
 import gg.mineral.server.world.WorldManager;
 import lombok.Getter;
@@ -21,7 +22,7 @@ public class EntityManager {
     @Getter
     static final NonBlockingHashMap<Integer, Entity> entities = new NonBlockingHashMap<>();
     @Getter
-    static final NonBlockingHashMap<Short, ConcurrentHashSet<Integer>> chunkPosToEntityMap = new NonBlockingHashMap<>();
+    static final ShortNonBlockingArrayMap<ConcurrentHashSet<Integer>> chunkPosToEntityMap = new ShortNonBlockingArrayMap<>();
     static AtomicInteger nextEntityId = new AtomicInteger(0);
 
     public static void addEntity(Entity entity) {
