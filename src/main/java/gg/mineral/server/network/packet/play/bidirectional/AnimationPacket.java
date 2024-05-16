@@ -1,5 +1,6 @@
 package gg.mineral.server.network.packet.play.bidirectional;
 
+import gg.mineral.server.entity.manager.EntityManager;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
@@ -22,14 +23,24 @@ public class AnimationPacket implements Packet.INCOMING, Packet.OUTGOING {
 
     @Override
     public void received(Connection connection) {
-        // TODO Auto-generated method stub
+        if (animationId == 1) {
+            EntityManager.get(connection)
+                    .ifPresent(player -> {
+                        player.getVisibleEntities().keySet().forEach(id -> {
+                            EntityManager.getPlayer(id)
+                                    .ifPresent(otherPlayer -> {
+                                        otherPlayer.updateArm(player);
+                                    });
+                        });
+                    });
+        }
 
     }
 
     @Override
     public void deserialize(ByteBuf is) {
         entityId = is.readInt();
-        animationId = is.readByte();
+        animationId = is.readUnsignedByte();
     }
 
     @Override

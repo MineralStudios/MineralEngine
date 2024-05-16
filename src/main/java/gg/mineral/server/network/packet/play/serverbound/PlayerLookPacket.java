@@ -12,7 +12,7 @@ public class PlayerLookPacket implements Packet.INCOMING {
 
     @Override
     public void received(Connection connection) {
-        EntityManager.get(p -> p.getConnection().equals(connection)).ifPresent(player -> {
+        EntityManager.get(connection).ifPresent(player -> {
             player.setYaw(yaw);
             player.setPitch(pitch);
             player.setOnGround(onGround);

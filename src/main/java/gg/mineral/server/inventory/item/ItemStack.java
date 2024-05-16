@@ -19,7 +19,7 @@ public class ItemStack {
     @Getter
     @Setter
     List<String> lore;
-    Map<Enchantment, Integer> enchants;
+    Object2IntOpenHashMap<Enchantment> enchants;
     int hideFlag;
     short amount, durability;
     Material material;
@@ -44,38 +44,34 @@ public class ItemStack {
 
     public void writeNbt(CompoundTag tag) {
         CompoundTag displayTags = new CompoundTag();
-        if (hasDisplayName()) {
+        if (hasDisplayName())
             displayTags.putString("Name", getDisplayName());
-        }
-        if (hasLore()) {
+
+        if (hasLore())
             displayTags.putList("Lore", TagType.STRING, getLore());
-        }
 
-        if (!displayTags.isEmpty()) {
+        if (!displayTags.isEmpty())
             tag.putCompound("display", displayTags);
-        }
 
-        if (hasEnchants()) {
+        if (hasEnchants())
             writeNbtEnchants("ench", tag, enchants);
-        }
 
-        if (hideFlag != 0) {
+        if (hideFlag != 0)
             tag.putInt("HideFlags", hideFlag);
-        }
     }
 
     public void readNbt(CompoundTag tag) {
         if (tag.isCompound("display")) {
             CompoundTag display = tag.getCompound("display");
-            if (display.isString("Name")) {
+            if (display.isString("Name"))
                 setDisplayName(display.getString("Name"));
-            }
-            if (display.isList("Lore", TagType.STRING)) {
+
+            if (display.isList("Lore", TagType.STRING))
                 setLore(display.<String>getList("Lore", TagType.STRING));
-            }
+
         }
 
-        Map<Enchantment, Integer> tagEnchants = readNbtEnchants("ench", tag);
+        Object2IntOpenHashMap<Enchantment> tagEnchants = readNbtEnchants("ench", tag);
         if (tagEnchants != null) {
             if (enchants == null)
                 enchants = tagEnchants;
@@ -83,9 +79,9 @@ public class ItemStack {
                 enchants.putAll(tagEnchants);
         }
 
-        if (tag.isInt("HideFlags")) {
+        if (tag.isInt("HideFlags"))
             hideFlag = tag.getInt("HideFlags");
-        }
+
     }
 
     protected static void writeNbtEnchants(String name, CompoundTag to, Map<Enchantment, Integer> enchants) {
@@ -101,8 +97,8 @@ public class ItemStack {
         to.putCompoundList(name, ench);
     }
 
-    protected static Map<Enchantment, Integer> readNbtEnchants(String name, CompoundTag tag) {
-        Map<Enchantment, Integer> result = null;
+    protected static Object2IntOpenHashMap<Enchantment> readNbtEnchants(String name, CompoundTag tag) {
+        Object2IntOpenHashMap<Enchantment> result = null;
 
         if (tag.isList(name, TagType.COMPOUND)) {
             Iterable<CompoundTag> enchs = tag.getCompoundList(name);
@@ -119,6 +115,7 @@ public class ItemStack {
         return result;
     }
 
+    // TODO: Implement the following methods
     public int getTypeId() {
         return 0;
     }

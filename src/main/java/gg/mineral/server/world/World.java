@@ -1,13 +1,13 @@
 package gg.mineral.server.world;
 
-import java.util.concurrent.ConcurrentHashMap;
+import gg.mineral.server.util.collection.NonBlockingHashMap;
 import gg.mineral.server.world.chunk.Chunk;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class World {
-    public static final short MIN_COORD = -2047, MAX_COORD = 2048;
+    public static final byte MIN_CHUNK_COORD = -127, MAX_CHUNK_COORD = (byte) 128;
     @Getter
     final byte id;
     @Getter
@@ -17,7 +17,7 @@ public class World {
     @Getter
     final Generator generator;
     // use concurrent map to ensure everything is done atomically
-    ConcurrentHashMap<Short, Chunk> chunkCache = new ConcurrentHashMap<>();
+    NonBlockingHashMap<Short, Chunk> chunkCache = new NonBlockingHashMap<>();
 
     public static enum Environment {
         NORMAL, NETHER, END
@@ -36,6 +36,8 @@ public class World {
     }
 
     public static interface Generator {
+        boolean pregenerate();
+
         Chunk generate(World world, byte chunkX, byte chunkZ);
     }
 

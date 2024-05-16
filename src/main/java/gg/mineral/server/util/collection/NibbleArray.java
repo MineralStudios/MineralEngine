@@ -46,9 +46,8 @@ public final class NibbleArray {
      */
     public NibbleArray(int size, byte value) {
         rawData = new byte[size / 2];
-        if (value != 0) {
+        if (value != 0)
             fill(value);
-        }
     }
 
     /**
@@ -144,6 +143,15 @@ public final class NibbleArray {
      */
     public NibbleArray snapshot() {
         return new NibbleArray(rawData.clone());
+    }
+
+    public byte[] toByteArray() {
+        byte[] bytes = new byte[rawData.length * 2];
+        for (int i = 0; i < rawData.length; i++) {
+            bytes[i * 2] = (byte) (rawData[i] & 0x0f);
+            bytes[i * 2 + 1] = (byte) ((rawData[i] & 0xf0) >> 4);
+        }
+        return bytes;
     }
 
 }

@@ -1,7 +1,6 @@
 package gg.mineral.server.network.packet.play.clientbound;
 
 import gg.mineral.server.network.packet.Packet;
-import gg.mineral.server.util.math.MathUtil;
 import io.netty.buffer.ByteBuf;
 
 public class EntityRelativeMovePacket implements Packet.OUTGOING {
@@ -9,11 +8,11 @@ public class EntityRelativeMovePacket implements Packet.OUTGOING {
     int entityId;
     byte deltaX, deltaY, deltaZ;
 
-    public EntityRelativeMovePacket(int entityId, double deltaX, double deltaY, double deltaZ) {
+    public EntityRelativeMovePacket(int entityId, byte deltaX, byte deltaY, byte deltaZ) {
         this.entityId = entityId;
-        this.deltaX = MathUtil.toFixedPointByte(deltaX);
-        this.deltaY = MathUtil.toFixedPointByte(deltaY);
-        this.deltaZ = MathUtil.toFixedPointByte(deltaZ);
+        this.deltaX = deltaX;
+        this.deltaY = deltaY;
+        this.deltaZ = deltaZ;
     }
 
     @Override

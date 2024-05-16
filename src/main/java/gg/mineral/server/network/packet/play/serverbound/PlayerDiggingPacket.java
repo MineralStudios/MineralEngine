@@ -14,7 +14,7 @@ public class PlayerDiggingPacket implements Packet.INCOMING {
 
     @Override
     public void received(Connection connection) {
-        EntityManager.get(p -> p.getConnection().equals(connection)).ifPresent(player -> {
+        EntityManager.get(connection).ifPresent(player -> {
             if (status == 2 || (status == 0 && player.getGamemode() == Gamemode.CREATIVE)) { // done digging
                 int type = player.getWorld().getType(x, y, z);
                 int meta = player.getWorld().getMetaData(x, y, z);

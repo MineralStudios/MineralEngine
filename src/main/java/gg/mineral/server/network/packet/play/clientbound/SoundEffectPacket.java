@@ -10,13 +10,13 @@ public class SoundEffectPacket implements Packet.OUTGOING {
     float volume;
     short pitch;
 
-    public SoundEffectPacket(String soundName, int x, int y, int z, float volume, short pitch) {
+    public SoundEffectPacket(String soundName, double x, double y, double z, float volume, float pitch) {
         this.soundName = soundName;
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this.x = (int) (x * 8);
+        this.y = (int) (y * 8);
+        this.z = (int) (z * 8);
         this.volume = volume;
-        this.pitch = pitch;
+        this.pitch = (short) (pitch * 63);
     }
 
     @Override

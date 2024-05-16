@@ -18,4 +18,6 @@ public interface CommandExecutor {
     default void removePermission(String permission) {
         permissions.remove(permission);
     }
+
+    public void msg(String message);
 }

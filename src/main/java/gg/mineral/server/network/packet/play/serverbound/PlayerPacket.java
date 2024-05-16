@@ -11,7 +11,7 @@ public class PlayerPacket implements Packet.INCOMING {
 
     @Override
     public void received(Connection connection) {
-        EntityManager.get(p -> p.getConnection().equals(connection)).ifPresent(player -> player.setOnGround(onGround));
+        EntityManager.get(connection).ifPresent(player -> player.setOnGround(onGround));
     }
 
     @Override

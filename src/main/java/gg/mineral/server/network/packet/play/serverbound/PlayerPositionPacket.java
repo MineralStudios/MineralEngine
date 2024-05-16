@@ -11,11 +11,14 @@ public class PlayerPositionPacket implements Packet.INCOMING {
 
     @Override
     public void received(Connection connection) {
-        EntityManager.get(p -> p.getConnection().equals(connection)).ifPresent(player -> {
-            player.setX((float) x);
-            player.setY((float) feetY);
-            player.setHeadY((float) headY);
-            player.setZ((float) z);
+        EntityManager.get(connection).ifPresent(player -> {
+            player.setX(x);
+            player.setY(feetY);
+            player.setHeadY(headY);
+            player.setZ(z);
+            player.setMotX(x - player.getX());
+            player.setMotY(feetY - player.getY());
+            player.setMotZ(z - player.getZ());
             player.setOnGround(onGround);
         });
     }

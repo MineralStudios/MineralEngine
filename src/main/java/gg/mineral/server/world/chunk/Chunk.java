@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.zip.DeflaterOutputStream;
 
 import gg.mineral.server.network.packet.play.clientbound.ChunkDataPacket;
+import gg.mineral.server.util.collection.NibbleArray;
 import gg.mineral.server.world.World;
 import gg.mineral.server.world.block.Block;
 import lombok.Getter;
@@ -45,7 +46,8 @@ public abstract class Chunk {
         private static final int ARRAY_SIZE = WIDTH * HEIGHT * SEC_DEPTH;
 
         // these probably should be made non-public
-        public final byte[] types, metaData, skyLight, blockLight;
+        public final byte[] types, metaData;
+        public final NibbleArray skyLight, blockLight;
 
         public int count;
 
@@ -62,31 +64,9 @@ public abstract class Chunk {
         public ChunkSection() {
             types = new byte[ARRAY_SIZE];
             metaData = new byte[ARRAY_SIZE];
-            skyLight = new byte[ARRAY_SIZE];
-            blockLight = new byte[ARRAY_SIZE];
-            Arrays.fill(skyLight, (byte) 0xf);
+            skyLight = new NibbleArray(ARRAY_SIZE, (byte) 0xf);
+            blockLight = new NibbleArray(ARRAY_SIZE);
             recount();
-        }
-
-        /**
-         * Create a ChunkSection with the specified chunk data.
-         */
-        public ChunkSection(byte[] types, byte[] metaData, byte[] skyLight, byte[] blockLight) {
-            if (types.length != ARRAY_SIZE || metaData.length != ARRAY_SIZE || skyLight.length != ARRAY_SIZE
-                    || blockLight.length != ARRAY_SIZE)
-                throw new IllegalArgumentException("An array length was not " + ARRAY_SIZE + ": " + types.length + " "
-                        + metaData.length + " " + skyLight.length + " " + blockLight.length);
-
-            this.types = types;
-            this.metaData = metaData;
-            this.skyLight = skyLight;
-            this.blockLight = blockLight;
-
-            System.arraycopy(types, 0, this.types, 0, ARRAY_SIZE);
-            System.arraycopy(metaData, 0, this.metaData, 0, ARRAY_SIZE);
-            System.arraycopy(skyLight, 0, this.skyLight, 0, ARRAY_SIZE);
-            System.arraycopy(blockLight, 0, this.blockLight, 0, ARRAY_SIZE);
-
         }
 
         public int index(int x, int y, int z) {
@@ -102,10 +82,6 @@ public abstract class Chunk {
                     return false;
 
             return true;
-        }
-
-        public ChunkSection snapshot() {
-            return new ChunkSection(types.clone(), metaData.clone(), skyLight.clone(), blockLight.clone());
         }
     }
 
@@ -276,7 +252,7 @@ public abstract class Chunk {
      */
     public byte getSkyLight(int x, int z, int y) {
         ChunkSection section = getSection(y);
-        return section == null ? 0 : section.skyLight[section.index(x, y, z)];
+        return section == null ? 0 : section.skyLight.get(section.index(x, y, z));
     }
 
     /**
@@ -291,7 +267,7 @@ public abstract class Chunk {
         ChunkSection section = getSection(y);
         if (section == null)
             return; // can't set light on an empty section
-        section.skyLight[section.index(x, y, z)] = (byte) skyLight;
+        section.skyLight.set(section.index(x, y, z), (byte) skyLight);
     }
 
     /**
@@ -304,7 +280,7 @@ public abstract class Chunk {
      */
     public byte getBlockLight(int x, int z, int y) {
         ChunkSection section = getSection(y);
-        return section == null ? 0 : section.blockLight[section.index(x, y, z)];
+        return section == null ? 0 : section.blockLight.get(section.index(x, y, z));
     }
 
     /**
@@ -319,7 +295,7 @@ public abstract class Chunk {
         ChunkSection section = getSection(y);
         if (section == null)
             return; // can't set light on an empty section
-        section.blockLight[section.index(x, y, z)] = (byte) blockLight;
+        section.blockLight.set(section.index(x, y, z), (byte) blockLight);
     }
 
     /**
@@ -380,16 +356,11 @@ public abstract class Chunk {
         byte[] output = new byte[196864];
         int outputPos = 0;
 
-        ChunkSection[] chunkSections = new ChunkSection[16];
-        for (int i = 0; i < 16; i++)
-            chunkSections[i] = sections[i] != null ? sections[i].snapshot() : EMPTY_SECTION;
+        for (int i = 0; i < sections.length; i++) {
+            ChunkSection section = sections[i];
 
-        for (int i = 0; i < chunkSections.length; i++) {
-            ChunkSection section = chunkSections[i];
-
-            if (section == EMPTY_SECTION) {
+            if (section == null)
                 continue;
-            }
 
             boolean foundBlock = false;
             boolean foundAdd = false;
@@ -403,12 +374,12 @@ public abstract class Chunk {
                         // int blockLight = section.blockLight[index] & 0xff;
                         // int skyLight = section.skyLight[index] & 0xff;
 
-                        if (type != 0 || metaData != 0) {
+                        if (type != 0 || metaData != 0)
                             foundBlock = true;
-                        }
-                        if ((type & 0xf00) != 0) {
+
+                        if ((type & 0xf00) != 0)
                             foundAdd = true;
-                        }
+
                     }
                 }
             }
@@ -425,52 +396,41 @@ public abstract class Chunk {
         // int fullSectionsCount = Integer.bitCount(mask);
 
         for (int i = 0; i < 16; i++) {
-            if ((mask & (1 << i)) == 0) {
+            if ((mask & (1 << i)) == 0)
                 continue;
-            }
 
-            ChunkSection section = chunkSections[i];
+            ChunkSection section = sections[i];
+            if (section == null)
+                section = EMPTY_SECTION;
             System.arraycopy(section.types, 0, output, outputPos, 4096);
             outputPos += 4096;
         }
 
         for (int i = 0; i < 16; i++) {
-            if ((primaryBitmap & (1 << i)) == 0) {
+            if ((primaryBitmap & (1 << i)) == 0)
                 continue;
-            }
 
-            ChunkSection section = chunkSections[i];
-            for (int j = 0; j < 2048; j++) {
+            ChunkSection section = sections[i];
+
+            if (section == null)
+                section = EMPTY_SECTION;
+
+            for (int j = 0; j < 2048; j++)
                 output[outputPos++] = (byte) ((section.metaData[j << 1] << 4) | (section.metaData[(j << 1) + 1] & 0xf));
-            }
-        }
 
-        for (int i = 0; i < 16; i++) {
-            if ((primaryBitmap & (1 << i)) == 0) {
-                continue;
-            }
-
-            ChunkSection section = chunkSections[i];
-            System.arraycopy(section.blockLight, 0, output, outputPos, 2048);
+            System.arraycopy(section.blockLight.toByteArray(), 0, output, outputPos, 2048);
             outputPos += 2048;
-        }
 
-        if (skylight) {
-            for (int i = 0; i < 16; i++) {
-                if ((primaryBitmap & (1 << i)) == 0) {
-                    continue;
-                }
-
-                ChunkSection section = chunkSections[i];
-                System.arraycopy(section.skyLight, 0, output, outputPos, 2048);
+            if (skylight) {
+                System.arraycopy(section.skyLight.toByteArray(), 0, output, outputPos, 2048);
                 outputPos += 2048;
             }
         }
 
         if (entireChunk) {
-            if (biomes == null) {
+            if (biomes == null)
                 biomes = new byte[256];
-            }
+
             System.arraycopy(biomes, 0, output, outputPos, 256);
             outputPos += 256;
         }
@@ -491,16 +451,11 @@ public abstract class Chunk {
         byte[] output = new byte[196864];
         int outputPos = 0;
 
-        ChunkSection[] chunkSections = new ChunkSection[16];
-        for (int i = 0; i < 16; i++)
-            chunkSections[i] = sections[i] != null ? sections[i].snapshot() : EMPTY_SECTION;
+        for (int i = 0; i < sections.length; i++) {
+            ChunkSection section = sections[i];
 
-        for (int i = 0; i < chunkSections.length; i++) {
-            ChunkSection section = chunkSections[i];
-
-            if (section == EMPTY_SECTION) {
+            if (section == null)
                 continue;
-            }
 
             boolean foundBlock = false;
             boolean foundAdd = false;
@@ -514,74 +469,61 @@ public abstract class Chunk {
                         // int blockLight = section.blockLight[index] & 0xff;
                         // int skyLight = section.skyLight[index] & 0xff;
 
-                        if (type != 0 || metaData != 0) {
+                        if (type != 0 || metaData != 0)
                             foundBlock = true;
-                        }
-                        if ((type & 0xf00) != 0) {
+
+                        if ((type & 0xf00) != 0)
                             foundAdd = true;
-                        }
+
                     }
                 }
             }
 
-            if (foundBlock) {
+            if (foundBlock)
                 primaryBitmap |= 1 << i;
-            }
-            if (foundAdd) {
+
+            if (foundAdd)
                 addBitmap |= 1 << i;
-            }
+
         }
 
         int mask = primaryBitmap | addBitmap;
         // int fullSectionsCount = Integer.bitCount(mask);
 
         for (int i = 0; i < 16; i++) {
-            if ((mask & (1 << i)) == 0) {
+            if ((mask & (1 << i)) == 0)
                 continue;
-            }
 
-            ChunkSection section = chunkSections[i];
+            ChunkSection section = sections[i];
+            if (section == null)
+                section = EMPTY_SECTION;
             System.arraycopy(section.types, 0, output, outputPos, 4096);
             outputPos += 4096;
         }
 
         for (int i = 0; i < 16; i++) {
-            if ((primaryBitmap & (1 << i)) == 0) {
+            if ((primaryBitmap & (1 << i)) == 0)
                 continue;
-            }
 
-            ChunkSection section = chunkSections[i];
-            for (int j = 0; j < 2048; j++) {
+            ChunkSection section = sections[i];
+            if (section == null)
+                section = EMPTY_SECTION;
+            for (int j = 0; j < 2048; j++)
                 output[outputPos++] = (byte) ((section.metaData[j << 1] << 4) | (section.metaData[(j << 1) + 1] & 0xf));
-            }
-        }
 
-        for (int i = 0; i < 16; i++) {
-            if ((primaryBitmap & (1 << i)) == 0) {
-                continue;
-            }
-
-            ChunkSection section = chunkSections[i];
-            System.arraycopy(section.blockLight, 0, output, outputPos, 2048);
+            System.arraycopy(section.blockLight.toByteArray(), 0, output, outputPos, 2048);
             outputPos += 2048;
-        }
 
-        if (skylight) {
-            for (int i = 0; i < 16; i++) {
-                if ((primaryBitmap & (1 << i)) == 0) {
-                    continue;
-                }
-
-                ChunkSection section = chunkSections[i];
-                System.arraycopy(section.skyLight, 0, output, outputPos, 2048);
+            if (skylight) {
+                System.arraycopy(section.skyLight.toByteArray(), 0, output, outputPos, 2048);
                 outputPos += 2048;
             }
         }
 
         if (entireChunk) {
-            if (biomes == null) {
+            if (biomes == null)
                 biomes = new byte[256];
-            }
+
             System.arraycopy(biomes, 0, output, outputPos, 256);
             outputPos += 256;
         }

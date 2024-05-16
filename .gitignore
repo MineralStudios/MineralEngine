@@ -1,4 +1,6 @@
 target
+/target
+./target
 .vscode
 .settings
 .project

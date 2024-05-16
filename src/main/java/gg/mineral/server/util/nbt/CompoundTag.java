@@ -260,7 +260,7 @@ public final class CompoundTag extends Tag<Map<String, Tag>> {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Tag<?>> T getTag(String key, Class<T> clazz) {
+    public <T extends Tag<?>> T getTag(String key, Class<T> clazz) {
         if (!is(key, clazz)) {
             throw new IllegalArgumentException(
                     "Compound does not contain " + clazz.getSimpleName() + " \"" + key + "\"");

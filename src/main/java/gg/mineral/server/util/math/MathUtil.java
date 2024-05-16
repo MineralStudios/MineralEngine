@@ -105,11 +105,19 @@ public class MathUtil {
         return 0;
     }
 
+    public static byte angleToByte(float angle) {
+        return (byte) (angle * 256 / 360);
+    }
+
     public static short toVelocityUnits(double value) {
         return (short) (value * 8000D);
     }
 
     public static double fromVelocityUnits(short value) {
         return value / 8000D;
+    }
+
+    public static int unsigned(short s) {
+        return s & 0xFFFF;
     }
 }

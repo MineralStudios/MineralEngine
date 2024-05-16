@@ -17,18 +17,19 @@ public class SpawnPlayerPacket implements Packet.OUTGOING {
     short currentItem;
     List<EntityMetadata.Entry> entries;
 
-    public SpawnPlayerPacket(int entityId, double x, double y, double z, String playerUUID, String playerName,
-            List<PlayerProperty> playerProperties, byte yaw, byte pitch, short currentItem,
+    public SpawnPlayerPacket(int entityId, int x, int y, int z, float yaw, float pitch, String playerUUID,
+            String playerName,
+            List<PlayerProperty> playerProperties, short currentItem,
             List<EntityMetadata.Entry> entries) {
         this.entityId = entityId;
-        this.x = MathUtil.toFixedPointInt(x);
-        this.y = MathUtil.toFixedPointInt(y);
-        this.z = MathUtil.toFixedPointInt(z);
+        this.x = x;
+        this.y = y;
+        this.z = z;
         this.playerUUID = playerUUID;
         this.playerName = playerName;
         this.playerProperties = playerProperties;
-        this.yaw = yaw;
-        this.pitch = pitch;
+        this.yaw = MathUtil.angleToByte(yaw);
+        this.pitch = MathUtil.angleToByte(pitch);
         this.currentItem = currentItem;
         this.entries = entries;
     }

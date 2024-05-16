@@ -9,6 +9,7 @@ import gg.mineral.server.network.packet.handler.AutoReadHolderHandler;
 import gg.mineral.server.network.packet.handler.PacketDecoder;
 import gg.mineral.server.tick.TickLoop;
 import gg.mineral.server.tick.TickThreadFactory;
+import gg.mineral.server.world.WorldManager;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -26,18 +27,22 @@ public class MinecraftServer {
     static final TickLoop tickLoop = new TickLoop();
 
     @Getter
-    static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(getThreadCount(),
+    static final ScheduledExecutorService tickExecutor = Executors.newScheduledThreadPool(getTickThreadCount(),
             TickThreadFactory.INSTANCE);
 
-    public static int getThreadCount() {
+    public static int getTickThreadCount() {
         return Runtime.getRuntime().availableProcessors();
+    }
+
+    public static int getNetworkThreadCount() {
+        return getTickThreadCount() / 2;
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
         start(25565);
     }
 
-    static EventLoopGroup GROUP = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors(), executor);
+    static EventLoopGroup GROUP = new NioEventLoopGroup(getNetworkThreadCount());
 
     /**
      * Starts the server.
@@ -50,6 +55,7 @@ public class MinecraftServer {
 
     public static void start(int port)
             throws IOException, InterruptedException {
+        WorldManager.init();
         ServerBootstrap b = new ServerBootstrap();
         b.group(GROUP)
                 .channel(NioServerSocketChannel.class)
@@ -81,7 +87,7 @@ public class MinecraftServer {
     }
 
     public static void stop() throws InterruptedException {
-        executor.shutdown();
+        tickExecutor.shutdown();
         GROUP.shutdownGracefully().sync();
     }
 

@@ -46,6 +46,9 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
     @Getter
     @Setter
     UUID uuid;
+    @Getter
+    @Setter
+    int entityId;
     boolean packetsQueued;
 
     public void attemptLogin(String name) {
@@ -125,6 +128,7 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
         return true;
     }
 
+    @Override
     public void channelActive(ChannelHandlerContext channelhandlercontext) throws Exception {
         super.channelActive(channelhandlercontext);
         this.channel = channelhandlercontext.channel();
@@ -134,8 +138,9 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        EntityManager.remove(p -> p.getConnection().equals(this));
+        EntityManager.getEntities().remove(this.entityId);
         setProtocolState(ProtocolState.HANDSHAKE);
+        LIST.remove(this);
         super.channelInactive(ctx);
     }
 

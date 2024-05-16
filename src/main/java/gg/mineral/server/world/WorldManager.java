@@ -24,7 +24,16 @@ public class WorldManager {
                 };
             }
 
+            @Override
+            public boolean pregenerate() {
+                return true;
+            }
+
         });
+    }
+
+    public static void init() {
+        System.out.println("[Mineral] Worlds initialized.");
     }
 
     public static World getWorld(byte id) {
@@ -34,6 +43,10 @@ public class WorldManager {
     public static World createWorld(String name, Environment environment, Generator generator) {
         byte id = (byte) worlds.size();
         World world = new World(id, name, environment, generator);
+        if (generator.pregenerate())
+            for (byte x = World.MIN_CHUNK_COORD; x < World.MAX_CHUNK_COORD; x++)
+                for (byte z = World.MIN_CHUNK_COORD; z < World.MAX_CHUNK_COORD; z++)
+                    world.getChunk(Chunk.toKey(x, z));
         worlds.put(id, world);
         return world;
     }

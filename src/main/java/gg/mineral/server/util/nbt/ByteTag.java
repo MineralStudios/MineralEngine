@@ -3,7 +3,7 @@ package gg.mineral.server.util.nbt;
 /**
  * The {@code TAG_Byte} tag.
  */
-final class ByteTag extends Tag<Byte> {
+public final class ByteTag extends Tag<Byte> {
 
     /**
      * The value.
