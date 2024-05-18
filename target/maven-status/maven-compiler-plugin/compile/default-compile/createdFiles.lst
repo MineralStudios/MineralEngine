@@ -89,12 +89,12 @@ gg/mineral/server/entity/objects/Minecart.class
 gg/mineral/server/network/packet/play/clientbound/MapChunkBulkPacket.class
 gg/mineral/server/network/packet/play/clientbound/StatisticsPacket.class
 gg/mineral/server/network/packet/play/bidirectional/PluginMessagePacket.class
+gg/mineral/server/util/collection/ShortNonBlockingArrayMap.class
 gg/mineral/server/network/packet/play/clientbound/EntityLookAndRelativeMovePacket.class
 gg/mineral/server/entity/living/Ocelot.class
 gg/mineral/server/util/nbt/DoubleTag.class
 gg/mineral/server/network/packet/play/clientbound/SpawnExperienceOrbPacket.class
 gg/mineral/server/network/packet/play/clientbound/ScoreboardObjectivePacket.class
-gg/mineral/server/util/collection/ConcurrentIntHashSet.class
 gg/mineral/server/entity/metadata/EntityMetadataIndex$ArmorStandFlags.class
 gg/mineral/server/util/json/JsonUtil.class
 gg/mineral/server/util/network/PacketUtil.class
@@ -125,8 +125,8 @@ gg/mineral/server/entity/metadata/EntityMetadataIndex.class
 gg/mineral/server/entity/metadata/EntityMetadata.class
 gg/mineral/server/network/packet/play/serverbound/PlayerPacket.class
 gg/mineral/server/network/packet/play/bidirectional/PlayerAbilitiesPacket.class
-gg/mineral/server/util/collection/ConcurrentIntHashSet$1.class
 gg/mineral/server/network/packet/play/clientbound/EntityEffectPacket.class
+gg/mineral/server/util/collection/ConcurrentHashSet.class
 gg/mineral/server/network/packet/play/serverbound/PlayerLookPacket.class
 gg/mineral/server/entity/objects/Firework.class
 gg/mineral/server/util/collection/NonBlockingHashMap$SnapshotK.class

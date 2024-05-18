@@ -15,7 +15,6 @@ import gg.mineral.server.entity.metadata.EntityMetadata;
 import gg.mineral.server.entity.metadata.EntityMetadataIndex;
 import gg.mineral.server.entity.metadata.EntityMetadataType;
 import gg.mineral.server.inventory.item.ItemStack;
-import gg.mineral.server.inventory.item.Material;
 import gg.mineral.server.util.math.EulerAngle;
 import gg.mineral.server.util.math.Vector;
 import gg.mineral.server.util.nbt.CompoundTag;
@@ -248,13 +247,8 @@ public class ByteBufUtil {
         short amount = buf.readUnsignedByte();
         short durability = buf.readShort();
 
-        Material material = Material.getById(type);
-        if (material == null) {
-            return null;
-        }
-
         CompoundTag tag = readCompound(buf, network);
-        ItemStack stack = new ItemStack(material, amount, durability);
+        ItemStack stack = new ItemStack(type, amount, durability);
         stack.readNbt(tag);
         return stack;
     }

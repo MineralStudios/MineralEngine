@@ -1,9 +1,12 @@
 package gg.mineral.server.inventory.item;
 
+import lombok.Getter;
+
 public enum Material {
 
     UNKNOWN(-1); // TODO create materials
 
+    @Getter
     int id;
 
     Material(int id) {

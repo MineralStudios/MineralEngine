@@ -1,6 +1,6 @@
 package gg.mineral.server.world;
 
-import gg.mineral.server.util.collection.NonBlockingHashMap;
+import gg.mineral.server.util.collection.ShortNonBlockingArrayMap;
 import gg.mineral.server.world.chunk.Chunk;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ public class World {
     @Getter
     final Generator generator;
     // use concurrent map to ensure everything is done atomically
-    NonBlockingHashMap<Short, Chunk> chunkCache = new NonBlockingHashMap<>();
+    ShortNonBlockingArrayMap<Chunk> chunkCache = new ShortNonBlockingArrayMap<>();
 
     public static enum Environment {
         NORMAL, NETHER, END

@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.zip.DeflaterOutputStream;
 
 import gg.mineral.server.network.packet.play.clientbound.ChunkDataPacket;
+import gg.mineral.server.util.collection.ConcurrentHashSet;
 import gg.mineral.server.util.collection.NibbleArray;
 import gg.mineral.server.world.World;
 import gg.mineral.server.world.block.Block;
@@ -17,6 +18,9 @@ import lombok.Getter;
  * @author Graham Edgecombe
  */
 public abstract class Chunk {
+
+    @Getter
+    ConcurrentHashSet<Integer> entities = new ConcurrentHashSet<>();
 
     private static final ChunkSection EMPTY_SECTION = new ChunkSection();
 

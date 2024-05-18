@@ -11,6 +11,8 @@ import org.json.JSONObject;
 
 import dev.zerite.craftlib.chat.component.BaseChatComponent;
 import gg.mineral.server.MinecraftServer;
+import gg.mineral.server.entity.Entity;
+import gg.mineral.server.entity.living.human.Player;
 import gg.mineral.server.entity.manager.EntityManager;
 import gg.mineral.server.network.login.LoginAuthData;
 import gg.mineral.server.network.packet.Packet;
@@ -26,6 +28,7 @@ import gg.mineral.server.util.collection.GlueList;
 import gg.mineral.server.util.datatypes.UUIDUtil;
 import gg.mineral.server.util.json.JsonUtil;
 import gg.mineral.server.util.login.LoginUtil;
+import gg.mineral.server.util.messages.Messages;
 import gg.mineral.server.util.network.PacketUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -53,6 +56,14 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
 
     public void attemptLogin(String name) {
         this.name = name;
+
+        for (Entity entity : EntityManager.getEntities().values())
+            if (entity instanceof Player player)
+                if (player.getName().equalsIgnoreCase(name)) {
+                    disconnect(Messages.DISCONNECT_ALREADY_LOGGED_IN);
+                    return;
+                }
+
         this.loginAuthData = new LoginAuthData();
         sendPacket(new EncryptionRequestPacket("",
                 this.loginAuthData.getKeyPair().getPublic(), this.loginAuthData.getVerifyToken()));
@@ -138,7 +149,7 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        EntityManager.getEntities().remove(this.entityId);
+        EntityManager.remove(this.entityId);
         setProtocolState(ProtocolState.HANDSHAKE);
         LIST.remove(this);
         super.channelInactive(ctx);

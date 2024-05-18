@@ -137,10 +137,20 @@ public class Player extends HumanEntity implements CommandExecutor {
         this.chunkZ = (byte) Math.floor(getZ() / 16);
 
         if (oldChunkX != chunkX || oldChunkZ != chunkZ)
-            EntityManager.getChunkPosToEntityMap().get(Chunk.toKey(oldChunkX, oldChunkZ)).remove(this.getId());
-        EntityManager.getChunkPosToEntityMap()
-                .computeIfAbsent(Chunk.toKey(chunkX, chunkZ), k -> new ConcurrentHashSet<Integer>())
-                .add(this.getId());
+            getLastChunk().getEntities().remove(this.getId());
+        getChunk().getEntities().add(this.getId());
+    }
+
+    public Chunk getChunk() {
+        return getChunk(Chunk.toKey(chunkX, chunkZ));
+    }
+
+    public Chunk getChunk(short key) {
+        return getWorld().getChunk(key);
+    }
+
+    public Chunk getLastChunk() {
+        return getChunk(Chunk.toKey(oldChunkX, oldChunkZ));
     }
 
     @Override
@@ -169,7 +179,7 @@ public class Player extends HumanEntity implements CommandExecutor {
 
         for (short key : visibleChunks) {
 
-            ConcurrentHashSet<Integer> newlyVisible = EntityManager.getChunkPosToEntityMap().get(key);
+            ConcurrentHashSet<Integer> newlyVisible = getChunk(key).getEntities();
 
             if (newlyVisible == null)
                 continue;
@@ -204,7 +214,7 @@ public class Player extends HumanEntity implements CommandExecutor {
                             yaw = MathUtil.angleToByte(player.getYaw()),
                             pitch = MathUtil.angleToByte(player.getPitch());
                     visibleEntities.put(player.getId(), new int[] { x, y, z, yaw, pitch });
-                    getConnection().queuePacket(new SpawnPlayerPacket(player.getId(),
+                    getConnection().sendPacket(new SpawnPlayerPacket(player.getId(), // TODO: Reduce packet flushing
                             x, y, z, player.getYaw(),
                             player.getPitch(), player.getUuid().toString(),
                             player.getName(), new GlueList<>() /* TODO: player property */, (short) 0 /*
@@ -348,7 +358,7 @@ public class Player extends HumanEntity implements CommandExecutor {
                 short key = entry.getShortKey();
                 if (visibleChunks.rem(key)) {
                     chunks.add(new EmptyChunk(world, Chunk.xFromKey(key), Chunk.zFromKey(key)));
-                    ConcurrentHashSet<Integer> newlyInvisible = EntityManager.getChunkPosToEntityMap().get(key);
+                    ConcurrentHashSet<Integer> newlyInvisible = getChunk(key).getEntities();
 
                     if (newlyInvisible != null) {
                         for (int playerId : newlyInvisible) {

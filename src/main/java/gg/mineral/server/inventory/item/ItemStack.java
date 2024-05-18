@@ -21,11 +21,11 @@ public class ItemStack {
     List<String> lore;
     Object2IntOpenHashMap<Enchantment> enchants;
     int hideFlag;
-    short amount, durability;
-    Material material;
+    @Getter
+    short durability, typeId, amount;
 
-    public ItemStack(Material material, short amount, short durability) {
-        this.material = material;
+    public ItemStack(short typeId, short amount, short durability) {
+        this.typeId = typeId;
         this.amount = amount;
         this.durability = durability;
     }
@@ -113,18 +113,5 @@ public class ItemStack {
         }
 
         return result;
-    }
-
-    // TODO: Implement the following methods
-    public int getTypeId() {
-        return 0;
-    }
-
-    public int getAmount() {
-        return 0;
-    }
-
-    public int getDurability() {
-        return 0;
     }
 }
