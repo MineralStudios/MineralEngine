@@ -19,7 +19,7 @@ public abstract class Command {
         LIST.add(new KnockbackCommand());
     }
 
-    @Getter
+    @Getter 
     String permission, name;
 
     public abstract void execute(CommandExecutor commandExecutor, String[] arguments);

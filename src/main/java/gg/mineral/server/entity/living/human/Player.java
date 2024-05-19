@@ -16,6 +16,8 @@ import gg.mineral.server.entity.living.human.property.Gamemode;
 import gg.mineral.server.entity.living.human.property.PlayerAbilities;
 import gg.mineral.server.entity.manager.EntityManager;
 import gg.mineral.server.entity.metadata.EntityMetadata;
+import gg.mineral.server.inventory.item.ItemStack;
+import gg.mineral.server.inventory.item.Material;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.login.clientbound.LoginSuccessPacket;
 import gg.mineral.server.network.packet.play.bidirectional.AnimationPacket;
@@ -32,6 +34,7 @@ import gg.mineral.server.network.packet.play.clientbound.EntityRelativeMovePacke
 import gg.mineral.server.network.packet.play.clientbound.JoinGamePacket;
 import gg.mineral.server.network.packet.play.clientbound.MapChunkBulkPacket;
 import gg.mineral.server.network.packet.play.clientbound.PlayerPositionAndLookPacket;
+import gg.mineral.server.network.packet.play.clientbound.SetSlotPacket;
 import gg.mineral.server.network.packet.play.clientbound.SpawnPlayerPacket;
 import gg.mineral.server.network.packet.play.clientbound.SpawnPositionPacket;
 import gg.mineral.server.util.collection.ConcurrentHashSet;
@@ -404,6 +407,9 @@ public class Player extends HumanEntity implements CommandExecutor {
                 new PlayerPositionAndLookPacket(0, 70, 0, 0f, 0f, false));
 
         effectSpeed();
+
+        connection.sendPacket(
+                new SetSlotPacket((byte) 0, (short) 36, new ItemStack(Material.DIAMOND_SWORD, (short) 1, (short) 1)));
     }
 
     public void updateProperties() {

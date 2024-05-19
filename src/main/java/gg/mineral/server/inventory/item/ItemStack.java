@@ -61,6 +61,8 @@ public class ItemStack {
     }
 
     public void readNbt(CompoundTag tag) {
+        if (tag == null)
+            return;
         if (tag.isCompound("display")) {
             CompoundTag display = tag.getCompound("display");
             if (display.isString("Name"))

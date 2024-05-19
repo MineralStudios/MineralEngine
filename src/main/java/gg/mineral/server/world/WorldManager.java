@@ -1,7 +1,7 @@
 package gg.mineral.server.world;
 
-import gg.mineral.server.world.World.Environment;
-import gg.mineral.server.world.World.Generator;
+import gg.mineral.server.world.IWorld.Environment;
+import gg.mineral.server.world.IWorld.Generator;
 import gg.mineral.server.world.chunk.Chunk;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap;
 

@@ -1,50 +1,278 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" output="target/classes" path="src/main/java">
+	<classpathentry kind="src" output="build/resources/test" path="src/test/resources">
 		<attributes>
-			<attribute name="optional" value="true"/>
-			<attribute name="maven.pomderived" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry excluding="**" kind="src" output="target/classes" path="src/main/resources">
-		<attributes>
-			<attribute name="maven.pomderived" value="true"/>
-			<attribute name="optional" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="src" output="target/test-classes" path="src/test/java">
-		<attributes>
-			<attribute name="optional" value="true"/>
-			<attribute name="maven.pomderived" value="true"/>
-			<attribute name="test" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry excluding="**" kind="src" output="target/test-classes" path="src/test/resources">
-		<attributes>
-			<attribute name="maven.pomderived" value="true"/>
 			<attribute name="test" value="true"/>
 			<attribute name="optional" value="true"/>
+			<attribute name="gradle.buildServer" value="true"/>
+			<attribute name="resource" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="build/classes/java/test" path="src/test/java">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="optional" value="true"/>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="build/resources/main" path="src/main/resources">
+		<attributes>
+			<attribute name="optional" value="true"/>
+			<attribute name="gradle.buildServer" value="true"/>
+			<attribute name="resource" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="build/classes/java/main" path="src/main/java">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="build/classes/java/test" path="build/generated/sources/annotationProcessor/java/test">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="optional" value="true"/>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="build/classes/java/main" path="build/generated/sources/annotationProcessor/java/main">
+		<attributes>
+			<attribute name="optional" value="true"/>
+			<attribute name="gradle.buildServer" value="true"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17">
 		<attributes>
-			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="gradle.buildServer" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.30/f195ee86e6c896ea47a1d39defbe20eb59cd149d/lombok-1.18.30.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.30/f41b66af9925b6476e18c77d476f905710ee8488/lombok-1.18.30-sources.jar">
 		<attributes>
-			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="gradle.buildServer" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="src" path="target/generated-sources/annotations">
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec/4.1.104.Final/f51fcfd3baac88b2c0b8dc715932ad5622d17429/netty-codec-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec/4.1.104.Final/9236e3e2fec23a81ca5e60b8eb41cdb3eaa95543/netty-codec-4.1.104.Final-sources.jar">
 		<attributes>
-			<attribute name="optional" value="true"/>
+			<attribute name="gradle.buildServer" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="src" output="target/test-classes" path="target/generated-test-sources/test-annotations">
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-resolver/4.1.104.Final/dfa4fe5c3a6eabb7af09902eb63266829876d8a2/netty-resolver-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-resolver/4.1.104.Final/407e0f2b3409ea8f70d16359e9afc7345a8c6316/netty-resolver-4.1.104.Final-sources.jar">
 		<attributes>
-			<attribute name="optional" value="true"/>
-			<attribute name="test" value="true"/>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk8/1.3.72/916d54b9eb6442b615e6f1488978f551c0674720/kotlin-stdlib-jdk8-1.3.72.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk8/1.3.72/ec2720a30a88d8460b719051818e2172120d7961/kotlin-stdlib-jdk8-1.3.72-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-handler-proxy/4.1.104.Final/50a2d899a8f8a68daed1a9b6d7750184310cc45f/netty-handler-proxy-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-handler-proxy/4.1.104.Final/bd0aeb726a855f87d4d304deecd6c374ae96fb58/netty-handler-proxy-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/com.eatthepath/fast-uuid/0.2.0/d20659178a2c2424a7e9da7d99d717d03ec6b311/fast-uuid-0.2.0.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/com.eatthepath/fast-uuid/0.2.0/40654d508788658c5c8c799eb7a14aff33d7f20d/fast-uuid-0.2.0-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.8.6/9180733b7df8542621dc12e21e87557e8c99b8cb/gson-2.8.6.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.8.6/1b9adea7bbe0b251818f42fde0bd2988d7e5f20a/gson-2.8.6-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-mqtt/4.1.104.Final/7c71b2c53a38ce52b47da104a3dc412d4e9cbbaa/netty-codec-mqtt-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-mqtt/4.1.104.Final/ecdfa93aa374607ca5c555bab4c3e9ffbe9badd5/netty-codec-mqtt-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-handler/4.1.104.Final/18c0e659950cdef5f12c36eccfa14cbd2ad2049d/netty-handler-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-handler/4.1.104.Final/7a31a95a3d28968519cd2a15d7a5cf1c7944769/netty-handler-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-redis/4.1.104.Final/7aa1baed1a9164c3149a72859ca898494c28b8f/netty-codec-redis-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-redis/4.1.104.Final/a48950273ca4d52e1a07a0d91c342ecd78b7c1dc/netty-codec-redis-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-stomp/4.1.104.Final/83b90a8002c41857312853c733da85f7dfe5484a/netty-codec-stomp-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-stomp/4.1.104.Final/3673e95750f09ffd07b92ff835ea10ce5a2f6d9f/netty-codec-stomp-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.3.72/8032138f12c0180bc4e51fe139d4c52b46db6109/kotlin-stdlib-1.3.72.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.3.72/28f81264fad20dd20cc692003f4a27d355632073/kotlin-stdlib-1.3.72-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/dev.zerite.craftlib/craftlib-chat/0.1.4/12ef20c336d10dbfddec602c807c8d27b76c94c1/craftlib-chat-0.1.4.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/dev.zerite.craftlib/craftlib-chat/0.1.4/d126aeba1eb0f109ebcda8cb04e77c801b2e082e/craftlib-chat-0.1.4-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-memcache/4.1.104.Final/dee7e23be9bb7bbbc5644a6df7a7f31e136a5e74/netty-codec-memcache-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-memcache/4.1.104.Final/81a9a1a50d099504ecee417ed344cd216ad140fa/netty-codec-memcache-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-smtp/4.1.104.Final/c31975008b63a97f4d9cee41759efa79195c75b3/netty-codec-smtp-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-smtp/4.1.104.Final/ae3ed0251216999f0ccc7b668835fba39d3e189d/netty-codec-smtp-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-rxtx/4.1.104.Final/5eebfc4a7bdfc4bef2c20e6c6cdfd6d4dad5b3d6/netty-transport-rxtx-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-rxtx/4.1.104.Final/5a1221861e911b3a729d9e89499eaab6a230b724/netty-transport-rxtx-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-common/4.1.104.Final/ec5fc4a7c5475eb20805e14f7274aa28872b5ba1/netty-common-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-common/4.1.104.Final/2e243c2b46ed6eb6e37b88a2f37d2615c4ab70d9/netty-common-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport/4.1.104.Final/da7b263b6fedc5add70e78ee8927c8bd2b9bb589/netty-transport-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport/4.1.104.Final/2b57aac3b07cfcecd08306c67d5898cd8955a232/netty-transport-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-handler-ssl-ocsp/4.1.104.Final/9fb822d09196bde997de74fe9249a27f1002a24e/netty-handler-ssl-ocsp-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-handler-ssl-ocsp/4.1.104.Final/eb246b8ddd2fa73949380ebd4b94c36982252c6f/netty-handler-ssl-ocsp-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-classes-kqueue/4.1.104.Final/56ba882515e29e29f028497a5dcdc8d1a80ced80/netty-transport-classes-kqueue-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-classes-kqueue/4.1.104.Final/d77dd9d6dad3c4f58d84be8ad8bf954b7e621b45/netty-transport-classes-kqueue-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.3.72/6ca8bee3d88957eaaaef077c41c908c9940492d8/kotlin-stdlib-common-1.3.72.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-common/1.3.72/8c35588215bc56f828c189e9edc37ee51672cf5c/kotlin-stdlib-common-1.3.72-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/5991ca87ef1fb5544943d9abc5a9a37583fabe03/annotations-13.0-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-resolver-dns-native-macos/4.1.104.Final/71f45e806438d782f05093589506460f27ff5b39/netty-resolver-dns-native-macos-4.1.104.Final-osx-aarch_64.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-epoll/4.1.104.Final/45e81243bd61c97e110c189a335e122c9664a9f0/netty-transport-native-epoll-4.1.104.Final-linux-riscv64.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-epoll/4.1.104.Final/832b271a266accb695bd051d585d07d9400af635/netty-transport-native-epoll-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-epoll/4.1.104.Final/623f64cd9be2b2600bee421481031f598c9b1948/netty-transport-native-epoll-4.1.104.Final-linux-x86_64.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-epoll/4.1.104.Final/832b271a266accb695bd051d585d07d9400af635/netty-transport-native-epoll-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/it.unimi.dsi/fastutil/8.5.12/c24946d46824bd528054bface3231d2ecb7e95e8/fastutil-8.5.12.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/it.unimi.dsi/fastutil/8.5.12/a57be04c180ac69159c5dc2e9902deebc25780bd/fastutil-8.5.12-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-http2/4.1.104.Final/5bb757929f7c4d1bf12740a378a99643caaad1ac/netty-codec-http2-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-http2/4.1.104.Final/5dc564fe8c69a53566e2cb65610079fbddf3c077/netty-codec-http2-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-epoll/4.1.104.Final/a84423d68bbb680ac4f249e8644c8ea32d9a7237/netty-transport-native-epoll-4.1.104.Final-linux-aarch_64.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-epoll/4.1.104.Final/832b271a266accb695bd051d585d07d9400af635/netty-transport-native-epoll-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-xml/4.1.104.Final/f9e6c029a18350b7513395f3052671134b50c37a/netty-codec-xml-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-xml/4.1.104.Final/20ba153a1c27d05d9598b80a46658445528f48ee/netty-codec-xml-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-kqueue/4.1.104.Final/40bc1da6daddd97a86d7b4662352c9fce4214570/netty-transport-native-kqueue-4.1.104.Final-osx-aarch_64.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-kqueue/4.1.104.Final/4f55918186b8f7d3011544bf732a9215372a7161/netty-transport-native-kqueue-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-http/4.1.104.Final/2db1556de1b8dc07695604bf51a0a133263ad63f/netty-codec-http-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-http/4.1.104.Final/6b2c49128a1e3d621e9b268f566762f92bdf61bb/netty-codec-http-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-resolver-dns-native-macos/4.1.104.Final/8bea981983e7fe8a0cd6bee491102ba86061651b/netty-resolver-dns-native-macos-4.1.104.Final-osx-x86_64.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-socks/4.1.104.Final/5b126ceba61275f38297cacd5ea0cd6d3addee04/netty-codec-socks-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-socks/4.1.104.Final/f3218608f11645eebe0e09de05a13cdf616e10a3/netty-codec-socks-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/org.json/json/20231013/e22e0c040fe16f04ffdb85d851d77b07fc05ea52/json-20231013.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/org.json/json/20231013/7bfb6c84a7caf8b6556b90cf107cd91f9811201a/json-20231013-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-unix-common/4.1.104.Final/d4da9f7237ac3ac292891e0b2d5364acbce128cf/netty-transport-native-unix-common-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-unix-common/4.1.104.Final/439ed4a07c675006519341380421afe0bb0dad99/netty-transport-native-unix-common-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-buffer/4.1.104.Final/756797174b94a3aee11ce83522473f3c18287a43/netty-buffer-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-buffer/4.1.104.Final/5be1f2fd165b2fe970df650dc0aa0c24df697319/netty-buffer-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-kqueue/4.1.104.Final/f4e6082e46f0fad6b10a458d9b6c717024f6b815/netty-transport-native-kqueue-4.1.104.Final-osx-x86_64.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-native-kqueue/4.1.104.Final/4f55918186b8f7d3011544bf732a9215372a7161/netty-transport-native-kqueue-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-sctp/4.1.104.Final/47d45888212f73cf8ce0c82f20160718f8b27d8d/netty-transport-sctp-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-sctp/4.1.104.Final/b29e4291e10c2aac7840484d4c930f4936d90524/netty-transport-sctp-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-resolver-dns-classes-macos/4.1.104.Final/def0b2dc9bbfc1bd83f5d6b1e566a4e55ca8983e/netty-resolver-dns-classes-macos-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-resolver-dns-classes-macos/4.1.104.Final/ecf62f5236a8efe6c726ea448f73a7e3c6a9175c/netty-resolver-dns-classes-macos-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-dns/4.1.104.Final/8e237ce67ab230ed1ba749d6651b278333c21b3f/netty-codec-dns-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-dns/4.1.104.Final/bb83466840c791765c772d51d579637be8eaf8b8/netty-codec-dns-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-resolver-dns/4.1.104.Final/f1210e5856fecb9182d58c0d33fa6e946b344b40/netty-resolver-dns-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-resolver-dns/4.1.104.Final/b0e57bae2ac77d8e78cac9310a4373cc47f40f04/netty-resolver-dns-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk7/1.3.72/3adfc2f4ea4243e01204be8081fe63bde6b12815/kotlin-stdlib-jdk7-1.3.72.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib-jdk7/1.3.72/e83fed78d9bc2951a2c7e457969d5fd171cb9d5f/kotlin-stdlib-jdk7-1.3.72-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-classes-epoll/4.1.104.Final/700fdbabab44709b0eccffe8f91c4226a5787356/netty-transport-classes-epoll-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-classes-epoll/4.1.104.Final/934b035e44b3050ac7624dd11eb8dfca359b74ec/netty-transport-classes-epoll-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-haproxy/4.1.104.Final/1389cd7bb1fa637a06afd3d4d9e7ddc3a01877bc/netty-codec-haproxy-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-haproxy/4.1.104.Final/c1d35a5f23395ae6923a50e42255872717c4ccea/netty-codec-haproxy-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-udt/4.1.104.Final/dbbe857190caf1a2c29535d3c7df0ed143a618b0/netty-transport-udt-4.1.104.Final.jar" sourcepath="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport-udt/4.1.104.Final/4fb49b4808d148bc5afd26db77e012c5faca7f99/netty-transport-udt-4.1.104.Final-sources.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/home/debian/.gradle/caches/modules-2/files-2.1/io.netty/netty-all/4.1.104.Final/d75246285e5fac6f6dad47e387ed4f46f36e521d/netty-all-4.1.104.Final.jar">
+		<attributes>
+			<attribute name="gradle.buildServer" value="true"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>

@@ -157,17 +157,15 @@ public class ByteBufUtil {
     }
 
     public static void writeIntArray(ByteBuf buf, int[] ints) {
-        for (int i = 0; i < ints.length; i++) {
+        for (int i = 0; i < ints.length; i++)
             buf.writeInt(ints[i]);
-        }
     }
 
     public static int[] readIntArray(ByteBuf buf, int length) {
         int[] ints = new int[length];
 
-        for (int i = 0; i < ints.length; i++) {
+        for (int i = 0; i < ints.length; i++)
             ints[i] = buf.readInt();
-        }
 
         return ints;
     }
@@ -206,12 +204,12 @@ public class ByteBufUtil {
      */
     public static void writeCompound(ByteBuf buf, CompoundTag data) {
         if (data == null) {
-            buf.writeByte(0);
+            buf.writeShort(-1);
             return;
         }
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try (NBTOutputStream str = new NBTOutputStream(out, false)) {
+        try (NBTOutputStream str = new NBTOutputStream(out)) {
             str.writeTag(data);
         } catch (IOException e) {
             e.printStackTrace();
@@ -240,9 +238,8 @@ public class ByteBufUtil {
      */
     public static ItemStack readSlot(ByteBuf buf, boolean network) {
         short type = buf.readShort();
-        if (type == -1) {
+        if (type == -1)
             return null;
-        }
 
         short amount = buf.readUnsignedByte();
         short durability = buf.readShort();

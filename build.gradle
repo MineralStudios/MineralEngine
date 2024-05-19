@@ -1,0 +1,51 @@
+plugins {
+    id 'java'
+    id 'org.graalvm.buildtools.native' version '0.10.1' // Add the GraalVM native plugin
+}
+
+group = 'gg.mineral'
+version = '1.0-SNAPSHOT'
+description = 'MineralEngine'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'dev.zerite.craftlib:craftlib-chat:0.1.4'
+    implementation 'io.netty:netty-all:4.1.104.Final'
+    implementation 'org.json:json:20231013'
+    implementation 'com.eatthepath:fast-uuid:0.2.0'
+    implementation 'it.unimi.dsi:fastutil:8.5.12'
+
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+}
+
+compileJava {
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
+    options.compilerArgs += ["-parameters"]
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    manifest {
+        attributes(
+            'Main-Class': 'gg.mineral.server.MinecraftServer'
+        )
+    }
+}
+
+graalvmNative {
+    binaries {
+        main {
+            imageName = "MineralEngine"
+            mainClass = "gg.mineral.server.MinecraftServer"
+            buildArgs = ['--enable-url-protocols=https', '--gc=G1', '-march=native']
+        }
+    }
+}
