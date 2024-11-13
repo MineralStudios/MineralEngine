@@ -1,7 +1,6 @@
 package gg.mineral.server.util.nbt;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.util.List;
 import java.util.Map;
 
@@ -10,23 +9,83 @@ import java.util.Map;
  */
 public enum TagType {
 
-    END("End", null, Void.class),
-    BYTE("Byte", ByteTag.class, byte.class),
-    SHORT("Short", ShortTag.class, short.class),
-    INT("Int", IntTag.class, int.class),
-    LONG("Long", LongTag.class, long.class),
-    FLOAT("Float", FloatTag.class, float.class),
-    DOUBLE("Double", DoubleTag.class, double.class),
-    BYTE_ARRAY("Byte_Array", ByteArrayTag.class, byte[].class),
-    STRING("String", StringTag.class, String.class),
+    END("End", null, Void.class) {
+        @Override
+        public Tag<?> newObj(Object type) {
+            return null;
+        }
+    },
+    BYTE("Byte", ByteTag.class, byte.class) {
+        @Override
+        public Tag<?> newObj(Object type) {
+            return new ByteTag((byte) type);
+        }
+    },
+    SHORT("Short", ShortTag.class, short.class) {
+        @Override
+        public Tag<?> newObj(Object type) {
+            return new ShortTag((short) type);
+        }
+    },
+    INT("Int", IntTag.class, int.class) {
+        @Override
+        public Tag<?> newObj(Object type) {
+            return new IntTag((int) type);
+        }
+    },
+    LONG("Long", LongTag.class, long.class) {
+        @Override
+        public Tag<?> newObj(Object type) {
+            return new LongTag((long) type);
+        }
+    },
+    FLOAT("Float", FloatTag.class, float.class) {
+        @Override
+        public Tag<?> newObj(Object type) {
+            return new FloatTag((float) type);
+        }
+    },
+    DOUBLE("Double", DoubleTag.class, double.class) {
+        @Override
+        public Tag<?> newObj(Object type) {
+            return new DoubleTag((double) type);
+        }
+    },
+    BYTE_ARRAY("Byte_Array", ByteArrayTag.class, byte[].class) {
+        @Override
+        public Tag<?> newObj(Object type) {
+            return new ByteArrayTag((byte[]) type);
+        }
+    },
+    STRING("String", StringTag.class, String.class) {
+        @Override
+        public Tag<?> newObj(Object type) {
+            return new StringTag((String) type);
+        }
+    },
     // javac complains about this because ListTag is generic
     @SuppressWarnings("unchecked")
-    LIST("List", ListTag.class, List.class),
-    COMPOUND("Compound", CompoundTag.class, Map.class),
-    INT_ARRAY("Int_Array", IntArrayTag.class, int[].class);
+    LIST("List", ListTag.class, List.class) {
+        @Override
+        public Tag<?> newObj(Object type) {
+            return null;
+        }
+    },
+    COMPOUND("Compound", CompoundTag.class, Map.class) {
+        @Override
+        public Tag<?> newObj(Object type) {
+            return new CompoundTag();
+        }
+    },
+    INT_ARRAY("Int_Array", IntArrayTag.class, int[].class) {
+        @Override
+        public Tag<?> newObj(Object type) {
+            return new IntArrayTag((int[]) type);
+        }
+    };
 
     private final String name;
-    private final Class<? extends Tag> tagClass;
+    private final Class<? extends Tag<?>> tagClass;
     private final Class<?> valueClass;
 
     <V, T extends Tag<? extends V>> TagType(String name, Class<T> tagClass, Class<V> valueClass) {
@@ -56,7 +115,7 @@ public enum TagType {
         return name;
     }
 
-    public Class<? extends Tag> getTagClass() {
+    public Class<? extends Tag<?>> getTagClass() {
         return tagClass;
     }
 
@@ -64,7 +123,5 @@ public enum TagType {
         return valueClass;
     }
 
-    public Constructor<? extends Tag> getConstructor() throws NoSuchMethodException {
-        return tagClass.getConstructor(valueClass);
-    }
+    public abstract Tag<?> newObj(Object type);
 }

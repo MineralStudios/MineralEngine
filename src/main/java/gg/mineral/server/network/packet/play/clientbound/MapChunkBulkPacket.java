@@ -26,7 +26,7 @@ public class MapChunkBulkPacket implements Packet.OUTGOING {
         Pair[] output = new Pair[this.columns.length];
         for (int i = 0; i < this.columns.length; i++) {
             Chunk column = this.columns[i];
-            ChunkDataPacket out = column.toDecompressedPacket(skyLight);
+            ChunkDataPacket out = column.toPacket(skyLight, false);
             System.arraycopy(out.getCompressedData(), 0, bytes, bytesPosition, out.getCompressedData().length);
             bytesPosition += out.getCompressedData().length;
             output[i] = new Pair(column, out);

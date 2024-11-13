@@ -8,4 +8,8 @@ public class Bat extends LivingEntity {
         super(id);
     }
 
+    @Override
+    public void tickAsync() {
+    }
+
 }

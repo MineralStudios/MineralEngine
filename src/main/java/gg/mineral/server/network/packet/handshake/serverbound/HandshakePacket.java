@@ -5,11 +5,16 @@ import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.network.protocol.ProtocolState;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class HandshakePacket implements Packet.INCOMING {
-
-    int protocol, port, nextState;
-    String serverAddress;
+    private int protocol, port, nextState;
+    private String serverAddress;
 
     @Override
     public void received(Connection connection) {

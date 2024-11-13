@@ -18,7 +18,7 @@ public class VersionCommand extends Command {
                 + " (v1.0.0)");
         commandExecutor.msg(" ");
         commandExecutor.msg("Programming Language: " + ChatColor.AQUA.toString() + "Java");
-        commandExecutor.msg("Compilation: " + ChatColor.AQUA.toString() + "Native AOT (GraalVM)");
+        commandExecutor.msg("Developer: " + ChatColor.AQUA.toString() + "Jaiden");
         commandExecutor.msg(
                 ChatColor.GRAY.toString() + ChatColor.STRIKETHROUGH.toString() + "-------------------------------");
     }

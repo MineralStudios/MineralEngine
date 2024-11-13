@@ -7,4 +7,9 @@ public class IronGolem extends LivingEntity {
     public IronGolem(int id) {
         super(id);
     }
+
+    @Override
+    public void tickAsync() {
+    }
+
 }

@@ -8,8 +8,8 @@ import lombok.Data;
 @AllArgsConstructor
 @Data
 public class Property {
-    double value, lastValue;
-    List<Modifier> modifiers;
+    private double value, lastValue;
+    private List<Modifier> modifiers;
 
     public void setValue(double value) {
         lastValue = this.value;

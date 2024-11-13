@@ -1,7 +1,6 @@
 package gg.mineral.server.network.ping;
 
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.json.JSONArray;
@@ -11,49 +10,42 @@ import com.eatthepath.uuid.FastUUID;
 
 import gg.mineral.server.util.icon.IconUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.RequiredArgsConstructor;
+import lombok.val;
 
+@RequiredArgsConstructor
 public class ServerPing {
-
-    String motd;
-    int maxPlayers, onlinePlayers, protocol;
-    String name;
-    Map<UUID, String> PLAYER_SAMPLE = new Object2ObjectOpenHashMap<>();
-
-    public ServerPing(String motd, int onlinePlayers, int maxPlayers, int protocol, String name) {
-        this.motd = motd;
-        this.onlinePlayers = onlinePlayers;
-        this.maxPlayers = maxPlayers;
-        this.protocol = protocol;
-        this.name = name;
-    }
+    private final String motd;
+    private final int maxPlayers, onlinePlayers, protocol;
+    private final String name;
+    private final Map<UUID, String> playerSampleMap = new Object2ObjectOpenHashMap<>();
 
     public void addPlayerSample(UUID uuid, String name) {
-        PLAYER_SAMPLE.put(uuid, name);
+        playerSampleMap.put(uuid, name);
     }
 
     public void addLineToSample(String string) {
-        PLAYER_SAMPLE.put(UUID.randomUUID(), string);
+        playerSampleMap.put(UUID.randomUUID(), string);
     }
 
     public String toJsonString() {
-        JSONObject jsonObj = new JSONObject();
+        val jsonObj = new JSONObject();
 
-        JSONObject version = new JSONObject()
+        val version = new JSONObject()
                 .put("name", name)
                 .put("protocol", protocol);
 
-        JSONObject players = new JSONObject()
+        val players = new JSONObject()
                 .put("max", maxPlayers)
                 .put("online", onlinePlayers);
 
-        if (!PLAYER_SAMPLE.isEmpty()) {
+        if (!playerSampleMap.isEmpty()) {
             JSONArray playerSample = new JSONArray();
 
-            for (Entry<UUID, String> e : PLAYER_SAMPLE.entrySet()) {
+            for (val e : playerSampleMap.entrySet())
                 playerSample.put(new JSONObject()
                         .put("id", FastUUID.toString(e.getKey()))
                         .put("name", e.getValue()));
-            }
 
             players.put("sample", playerSample);
         }

@@ -4,6 +4,7 @@ import gg.mineral.server.entity.manager.EntityManager;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
+import lombok.val;
 
 public class PlayerLookPacket implements Packet.INCOMING {
 
@@ -12,11 +13,14 @@ public class PlayerLookPacket implements Packet.INCOMING {
 
     @Override
     public void received(Connection connection) {
-        EntityManager.get(connection).ifPresent(player -> {
-            player.setYaw(yaw);
-            player.setPitch(pitch);
-            player.setOnGround(onGround);
-        });
+        val player = EntityManager.get(connection);
+
+        if (player == null)
+            return;
+
+        player.setYaw(yaw);
+        player.setPitch(pitch);
+        player.setOnGround(onGround);
     }
 
     @Override

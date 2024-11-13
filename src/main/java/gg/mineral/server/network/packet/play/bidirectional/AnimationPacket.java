@@ -7,11 +7,11 @@ import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.val;
 
 @NoArgsConstructor
 @AllArgsConstructor
 public class AnimationPacket implements Packet.INCOMING, Packet.OUTGOING {
-
     int entityId;
     short animationId;
 
@@ -24,15 +24,12 @@ public class AnimationPacket implements Packet.INCOMING, Packet.OUTGOING {
     @Override
     public void received(Connection connection) {
         if (animationId == 1) {
-            EntityManager.get(connection)
-                    .ifPresent(player -> {
-                        player.getVisibleEntities().keySet().forEach(id -> {
-                            EntityManager.getPlayer(id)
-                                    .ifPresent(otherPlayer -> {
-                                        otherPlayer.updateArm(player);
-                                    });
-                        });
-                    });
+            val player = EntityManager.get(connection);
+
+            if (player == null)
+                return;
+
+            player.swingArm();
         }
 
     }

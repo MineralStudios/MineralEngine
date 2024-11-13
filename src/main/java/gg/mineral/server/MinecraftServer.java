@@ -2,47 +2,43 @@ package gg.mineral.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
-import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.network.packet.handler.AutoReadHolderHandler;
-import gg.mineral.server.network.packet.handler.PacketDecoder;
+import gg.mineral.server.network.channel.MineralChannelInitializer;
 import gg.mineral.server.tick.TickLoop;
-import gg.mineral.server.tick.TickThreadFactory;
 import gg.mineral.server.world.WorldManager;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
+import io.netty.channel.kqueue.KQueue;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
+import io.netty.channel.kqueue.KQueueServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import java.util.concurrent.ScheduledExecutorService;
 import lombok.Getter;
+import lombok.val;
 
 public class MinecraftServer {
 
-    @Getter
-    static final TickLoop tickLoop = new TickLoop();
+    private static final int NETWORK_THREADS = Runtime.getRuntime().availableProcessors();
 
     @Getter
-    static final ScheduledExecutorService tickExecutor = Executors.newScheduledThreadPool(getTickThreadCount(),
-            TickThreadFactory.INSTANCE);
+    private final TickLoop tickLoop = new TickLoop();
 
-    public static int getTickThreadCount() {
-        return Runtime.getRuntime().availableProcessors();
-    }
-
-    public static int getNetworkThreadCount() {
-        return getTickThreadCount() / 2;
-    }
+    @Getter
+    private static final ExecutorService asyncExecutor = Executors.newWorkStealingPool();
+    @Getter
+    private static final ScheduledExecutorService tickExecutor = Executors.newSingleThreadScheduledExecutor();
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        start(25565);
+        new MinecraftServer().start(25565);
     }
 
-    static EventLoopGroup GROUP = new NioEventLoopGroup(getNetworkThreadCount());
+    private EventLoopGroup group;
 
     /**
      * Starts the server.
@@ -53,27 +49,25 @@ public class MinecraftServer {
      * @throws InterruptedException
      */
 
-    public static void start(int port)
+    public void start(int port)
             throws IOException, InterruptedException {
         WorldManager.init();
-        ServerBootstrap b = new ServerBootstrap();
-        b.group(GROUP)
-                .channel(NioServerSocketChannel.class)
-                .localAddress(new InetSocketAddress(port))
-                .childHandler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    protected void initChannel(SocketChannel socketChannel) throws Exception {
-                        socketChannel.config().setTcpNoDelay(true);
-                        ChannelPipeline pipeline = socketChannel.pipeline();
-                        pipeline.addLast("decoder", new PacketDecoder())
-                                .addLast("flow_handler", new AutoReadHolderHandler());
+        if (Epoll.isAvailable())
+            group = new EpollEventLoopGroup(NETWORK_THREADS);
+        else if (KQueue.isAvailable())
+            group = new KQueueEventLoopGroup(NETWORK_THREADS);
+        else
+            group = new NioEventLoopGroup(NETWORK_THREADS);
 
-                        Connection connection = new Connection();
-                        Connection.LIST.add(connection);
-                        pipeline.addLast("packet_handler", connection);
-                    }
-                });
-        ChannelFuture f = b.bind().sync();
+        val b = new ServerBootstrap();
+        b.group(group)
+                .channel(Epoll.isAvailable() ? EpollServerSocketChannel.class
+                        : KQueue.isAvailable()
+                                ? KQueueServerSocketChannel.class
+                                : NioServerSocketChannel.class)
+                .localAddress(new InetSocketAddress(port))
+                .childHandler(new MineralChannelInitializer(this));
+        val f = b.bind().sync();
 
         System.out.println("[Mineral] Server started on port " + port);
         tickLoop.start();
@@ -86,14 +80,16 @@ public class MinecraftServer {
 
     }
 
-    public static void stop() throws InterruptedException {
+    public void stop() throws InterruptedException {
         tickExecutor.shutdown();
-        GROUP.shutdownGracefully().sync();
+        asyncExecutor.shutdown();
+        if (group != null)
+            group.shutdownGracefully().sync();
     }
 
-    public static boolean DEBUG_MESSAGES = false;
+    public boolean debugMessages = false;
 
-    public static void setDebugMessages(boolean debugMessages) {
-        MinecraftServer.DEBUG_MESSAGES = debugMessages;
+    public void setDebugMessages(boolean debugMessages) {
+        this.debugMessages = debugMessages;
     }
 }

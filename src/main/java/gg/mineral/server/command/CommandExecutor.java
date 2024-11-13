@@ -2,6 +2,7 @@ package gg.mineral.server.command;
 
 import java.util.Set;
 
+import gg.mineral.server.MinecraftServer;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 public interface CommandExecutor {
@@ -20,4 +21,6 @@ public interface CommandExecutor {
     }
 
     public void msg(String message);
+
+    MinecraftServer getServer();
 }

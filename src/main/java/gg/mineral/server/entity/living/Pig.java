@@ -8,4 +8,8 @@ public class Pig extends LivingEntity {
         super(id);
     }
 
+    @Override
+    public void tickAsync() {
+    }
+
 }

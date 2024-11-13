@@ -8,4 +8,8 @@ public class Arrow extends Entity {
         super(id);
     }
 
+    @Override
+    public void tickAsync() {
+    }
+
 }

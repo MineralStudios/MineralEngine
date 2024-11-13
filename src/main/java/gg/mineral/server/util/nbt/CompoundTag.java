@@ -1,18 +1,25 @@
 package gg.mineral.server.util.nbt;
 
-import java.lang.reflect.Constructor;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.Nullable;
+
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import lombok.NonNull;
 
 /**
  * The {@code TAG_Compound} tag.
  */
-public final class CompoundTag extends Tag<Map<String, Tag>> {
+public final class CompoundTag extends Tag<Object2ObjectLinkedOpenHashMap<String, Tag<?>>> {
 
     /**
      * The value.
      */
-    private final Map<String, Tag> value = new LinkedHashMap<>();
+    private final Object2ObjectLinkedOpenHashMap<String, Tag<?>> value = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates a new, empty CompoundTag.
@@ -22,14 +29,15 @@ public final class CompoundTag extends Tag<Map<String, Tag>> {
     }
 
     @Override
-    public Map<String, Tag> getValue() {
+    @NonNull
+    public Object2ObjectLinkedOpenHashMap<String, Tag<?>> getValue() {
         return value;
     }
 
     @Override
     protected void valueToString(StringBuilder bldr) {
         bldr.append(value.size()).append(" entries\n{\n");
-        for (Map.Entry<String, Tag> entry : value.entrySet()) {
+        for (Map.Entry<String, Tag<?>> entry : value.entrySet()) {
             bldr.append("    ").append(entry.getKey()).append(": ")
                     .append(entry.getValue().toString().replaceAll("\n", "\n    ")).append("\n");
         }
@@ -65,27 +73,33 @@ public final class CompoundTag extends Tag<Map<String, Tag>> {
     }
 
     public byte getByte(String key) {
-        return get(key, ByteTag.class);
+        Byte tag = get(key, ByteTag.class);
+        return tag == null ? 0 : tag;
     }
 
     public short getShort(String key) {
-        return get(key, ShortTag.class);
+        Short tag = get(key, ShortTag.class);
+        return tag == null ? 0 : tag;
     }
 
     public int getInt(String key) {
-        return get(key, IntTag.class);
+        Integer tag = get(key, IntTag.class);
+        return tag == null ? 0 : tag;
     }
 
     public long getLong(String key) {
-        return get(key, LongTag.class);
+        Long tag = get(key, LongTag.class);
+        return tag == null ? 0 : tag;
     }
 
     public float getFloat(String key) {
-        return get(key, FloatTag.class);
+        Float tag = get(key, FloatTag.class);
+        return tag == null ? 0 : tag;
     }
 
     public double getDouble(String key) {
-        return get(key, DoubleTag.class);
+        Double tag = get(key, DoubleTag.class);
+        return tag == null ? 0 : tag;
     }
 
     public byte[] getByteArray(String key) {
@@ -105,9 +119,10 @@ public final class CompoundTag extends Tag<Map<String, Tag>> {
 
     @SuppressWarnings("unchecked")
     public <V> List<V> getList(String key, TagType type) {
-        List<? extends Tag> original = getTagList(key, type);
+        List<? extends Tag<?>> original = getTagList(key, type);
         List<V> result = new ArrayList<>(original.size());
-        result.addAll(original.stream().map(item -> (V) item.getValue()).collect(Collectors.toList()));
+        result.addAll(
+                original.stream().map(item -> item == null ? null : (V) item.getValue()).collect(Collectors.toList()));
         return result;
     }
 
@@ -165,7 +180,7 @@ public final class CompoundTag extends Tag<Map<String, Tag>> {
     public boolean isList(String key, TagType type) {
         if (!is(key, ListTag.class))
             return false;
-        ListTag tag = getTag(key, ListTag.class);
+        ListTag<?> tag = getTag(key, ListTag.class);
         return tag.getChildType() == type;
     }
 
@@ -220,17 +235,11 @@ public final class CompoundTag extends Tag<Map<String, Tag>> {
     // Fancy sets
 
     public <V> void putList(String key, TagType type, List<V> value) {
-        // the reflection here is really gross but I'm not sure a good way around it
-        try {
-            Constructor<? extends Tag> constructor = type.getConstructor();
-            List<Tag> result = new ArrayList<>(value.size());
-            for (V item : value) {
-                result.add(constructor.newInstance(item));
-            }
-            put(key, new ListTag<>(type, result));
-        } catch (ReflectiveOperationException e) {
-            throw new IllegalArgumentException("Unable to create list of type " + type, e);
-        }
+        List<Tag<?>> result = new ArrayList<>(value.size());
+        for (V item : value)
+            result.add(type.newObj(item));
+
+        put(key, new ListTag<>(type, result));
     }
 
     public void putCompound(String key, CompoundTag tag) {
@@ -247,16 +256,18 @@ public final class CompoundTag extends Tag<Map<String, Tag>> {
     private <T extends Tag<?>> boolean is(String key, Class<T> clazz) {
         if (!containsKey(key))
             return false;
-        final Tag tag = value.get(key);
+        final Tag<?> tag = value.get(key);
         return tag != null && clazz == tag.getClass();
     }
 
-    void put(String key, Tag tag) {
+    void put(String key, Tag<?> tag) {
         value.put(key, tag);
     }
 
+    @Nullable
     private <V, T extends Tag<V>> V get(String key, Class<T> clazz) {
-        return getTag(key, clazz).getValue();
+        T tag = getTag(key, clazz);
+        return tag != null ? tag.getValue() : null;
     }
 
     @SuppressWarnings("unchecked")
@@ -268,7 +279,7 @@ public final class CompoundTag extends Tag<Map<String, Tag>> {
         return (T) value.get(key);
     }
 
-    private List<? extends Tag> getTagList(String key, TagType type) {
+    private List<? extends Tag<?>> getTagList(String key, TagType type) {
         ListTag<?> tag = getTag(key, ListTag.class);
         if (tag.getValue().size() == 0) {
             // empty lists are allowed to be the wrong type

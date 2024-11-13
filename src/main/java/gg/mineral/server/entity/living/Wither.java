@@ -8,4 +8,8 @@ public class Wither extends LivingEntity {
         super(id);
     }
 
+    @Override
+    public void tickAsync() {
+    }
+
 }

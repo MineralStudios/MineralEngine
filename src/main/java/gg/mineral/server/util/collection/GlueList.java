@@ -87,6 +87,7 @@ import static java.lang.Math.min;
  * @see ArrayList
  * @param <T> the type of elements held in this collection
  */
+@SuppressWarnings("unused")
 public class GlueList<T> extends AbstractList<T> implements List<T>, Cloneable, Serializable {
 
     transient Node<T> first;
@@ -439,7 +440,6 @@ public class GlueList<T> extends AbstractList<T> implements List<T>, Cloneable, 
         return indexOf(o) != -1;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public T remove(int index) {
 
@@ -700,7 +700,7 @@ public class GlueList<T> extends AbstractList<T> implements List<T>, Cloneable, 
         return objects;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "hiding" })
     @Override
     public <T> T[] toArray(T[] a) {
         return (T[]) Arrays.copyOf(toArray(), size, a.getClass());

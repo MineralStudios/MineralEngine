@@ -1,76 +1,87 @@
 package gg.mineral.server.entity.manager;
 
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+
+import org.jetbrains.annotations.Nullable;
 
 import gg.mineral.server.entity.Entity;
 import gg.mineral.server.entity.living.human.Player;
 import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.util.collection.NonBlockingHashMap;
 import gg.mineral.server.world.World;
 import gg.mineral.server.world.WorldManager;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
+import lombok.val;
 
 public class EntityManager {
-
     @Getter
-    static final NonBlockingHashMap<Integer, Entity> entities = new NonBlockingHashMap<>();
-    static AtomicInteger nextEntityId = new AtomicInteger(0);
+    private static final Int2ObjectOpenHashMap<Entity> entities = new Int2ObjectOpenHashMap<>();
+    private static int nextEntityId = 0;
 
     public static void addEntity(Entity entity) {
         entities.put(entity.getId(), entity);
     }
 
-    public static void removeEntity(Entity entity) {
-        entities.remove(entity.getId());
-    }
-
     public static int nextEntityId() {
-        return nextEntityId.getAndIncrement();
+        return nextEntityId++;
     }
 
-    public static Optional<Entity> getEntity(int id) {
-        return Optional.ofNullable(entities.get(id));
+    @Nullable
+    public static Entity getEntity(int id) {
+        return entities.get(id);
     }
 
-    public static Optional<Player> get(Predicate<Player> predicate) {
+    @Nullable
+    public static Player get(Predicate<Player> predicate) {
         for (Entity e : entities.values())
             if (e instanceof Player player)
                 if (predicate.test(player))
-                    return Optional.of(player);
+                    return player;
 
-        return Optional.empty();
+        return null;
     }
 
-    public static Optional<Player> get(Connection connection) {
-        return get(connection.getEntityId()).map(p -> (Player) p);
+    @Nullable
+    public static Player get(Connection connection) {
+        return get(player -> player.getConnection() == connection);
     }
 
-    public static Optional<Entity> get(int entityId) {
-        return Optional.ofNullable(entities.get(entityId));
+    @Nullable
+    public static Entity get(int entityId) {
+        return entities.get(entityId);
     }
 
-    public static Optional<Player> getPlayer(int entityId) {
-        return get(entityId).map(p -> (Player) p);
+    @Nullable
+    public static Player getPlayer(int entityId) {
+        val entity = get(entityId);
+
+        if (entity instanceof Player player)
+            return player;
+
+        return null;
     }
 
     public static Player create(Connection connection) {
         World spawnWorld = WorldManager.getWorld((byte) 0);
         Player player = new Player(connection, EntityManager.nextEntityId(), spawnWorld);
-        connection.setEntityId(player.getId());
         EntityManager.addEntity(player);
         return player;
     }
 
     public static void iteratePlayers(Consumer<Player> consumer) {
-        for (Entity e : entities.values())
+        for (val e : entities.values())
             if (e instanceof Player player)
                 consumer.accept(player);
     }
 
     public static void remove(int id) {
         entities.remove(id);
+    }
+
+    public static void remove(Connection connection) {
+        val player = get(connection);
+        if (player != null)
+            remove(player.getId());
     }
 }

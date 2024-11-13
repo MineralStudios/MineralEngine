@@ -6,21 +6,19 @@ import java.util.Arrays;
 import java.util.zip.DeflaterOutputStream;
 
 import gg.mineral.server.network.packet.play.clientbound.ChunkDataPacket;
-import gg.mineral.server.util.collection.ConcurrentHashSet;
 import gg.mineral.server.util.collection.NibbleArray;
+import gg.mineral.server.world.IWorld.Environment;
 import gg.mineral.server.world.World;
 import gg.mineral.server.world.block.Block;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import lombok.Getter;
+import lombok.val;
 
-/**
- * Represents a chunk of the map.
- * 
- * @author Graham Edgecombe
- */
-public abstract class Chunk {
+public class Chunk {
 
     @Getter
-    ConcurrentHashSet<Integer> entities = new ConcurrentHashSet<>();
+    private final IntSet entities = new IntOpenHashSet();
 
     private static final ChunkSection EMPTY_SECTION = new ChunkSection();
 
@@ -90,12 +88,6 @@ public abstract class Chunk {
     }
 
     /**
-     * The world of this chunk.
-     */
-    @Getter
-    private final World world;
-
-    /**
      * The coordinates of this chunk.
      */
     @Getter
@@ -105,6 +97,9 @@ public abstract class Chunk {
      * The array of chunk sections this chunk contains, or null if it is unloaded.
      */
     private ChunkSection[] sections = new ChunkSection[DEPTH / SEC_DEPTH];
+
+    @Getter
+    private Environment environment;
 
     /**
      * The array of biomes this chunk contains, or null if it is unloaded.
@@ -117,18 +112,49 @@ public abstract class Chunk {
      * @param x The X coordinate.
      * @param z The Z coordinate.
      */
-    public Chunk(World world, byte x, byte z) {
-        this.world = world;
+    public Chunk(Environment environment, byte x, byte z) {
+        this.environment = environment;
         this.x = x;
         this.z = z;
-        load();
     }
 
-    public abstract void load();
+    private ChunkDataPacket[] cache = new ChunkDataPacket[4];
 
-    @Override
-    public String toString() {
-        return "Chunk{world=" + world.getName() + ",x=" + x + ",z=" + z + '}';
+    public void resetCache() {
+        cache = new ChunkDataPacket[4];
+    }
+
+    public ChunkDataPacket getCache(boolean skylight, boolean compress) {
+        int index;
+        if (skylight && compress)
+            index = 3;
+        else if (skylight)
+            index = 2;
+        else if (compress)
+            index = 1;
+        else
+            index = 0;
+        return cache[index];
+    }
+
+    public void setCache(boolean skylight, boolean compress, ChunkDataPacket packet) {
+        int index;
+        if (skylight && compress)
+            index = 3;
+        else if (skylight)
+            index = 2;
+        else if (compress)
+            index = 1;
+        else
+            index = 0;
+        cache[index] = packet;
+    }
+
+    public void generateCache() {
+        toPacket(true, true);
+        toPacket(true, false);
+        toPacket(false, true);
+        toPacket(false, false);
     }
 
     // ======== Basic stuff ========
@@ -179,6 +205,8 @@ public abstract class Chunk {
         if (type < 0 || type > 0xfff)
             throw new IllegalArgumentException("Block type out of range: " + type);
 
+        resetCache();
+
         ChunkSection section = getSection(y);
         if (section == null) {
             if (type == 0) {
@@ -198,13 +226,13 @@ public abstract class Chunk {
         // update the air count and height map
         int index = section.index(x, y, z);
         if (type == 0) {
-            if (section.types[index] != 0) {
+            if (section.types[index] != 0)
                 section.count--;
-            }
+
         } else {
-            if (section.types[index] == 0) {
+            if (section.types[index] == 0)
                 section.count++;
-            }
+
         }
         // update the type - also sets metadata to 0
         section.types[section.index(x, y, z)] = (byte) type;
@@ -240,6 +268,8 @@ public abstract class Chunk {
     public void setMetaData(int x, int z, int y, int metaData) {
         if (metaData < 0 || metaData >= 16)
             throw new IllegalArgumentException("Metadata out of range: " + metaData);
+
+        resetCache();
         ChunkSection section = getSection(y);
         if (section == null)
             return; // can't set metadata on an empty section
@@ -271,6 +301,7 @@ public abstract class Chunk {
         ChunkSection section = getSection(y);
         if (section == null)
             return; // can't set light on an empty section
+        resetCache();
         section.skyLight.set(section.index(x, y, z), (byte) skyLight);
     }
 
@@ -299,6 +330,7 @@ public abstract class Chunk {
         ChunkSection section = getSection(y);
         if (section == null)
             return; // can't set light on an empty section
+        resetCache();
         section.blockLight.set(section.index(x, y, z), (byte) blockLight);
     }
 
@@ -325,6 +357,7 @@ public abstract class Chunk {
     public void setBiome(int x, int z, int biome) {
         if (biomes == null)
             return;
+        resetCache();
         biomes[z * WIDTH + x] = (byte) biome;
     }
 
@@ -339,124 +372,29 @@ public abstract class Chunk {
 
         if (newBiomes.length != biomes.length)
             throw new IllegalArgumentException("Biomes array not of length " + biomes.length);
+        resetCache();
 
         System.arraycopy(newBiomes, 0, biomes, 0, biomes.length);
     }
 
-    public ChunkDataPacket toPacket() {
-        // this may need to be changed to "true" depending on resolution of
-        // some inconsistencies on the wiki
-        return toPacket(world.getEnvironment() == World.Environment.NORMAL);
+    public ChunkDataPacket toPacket(boolean compress) {
+        return toPacket(environment == World.Environment.NORMAL, compress);
     }
 
-    public ChunkDataPacket toPacket(boolean skylight) {
-        return toPacket(skylight, true);
-    }
+    public ChunkDataPacket toPacket(boolean skylight, boolean compress) {
 
-    public ChunkDataPacket toPacket(boolean skylight, boolean entireChunk) {
-        int primaryBitmap = 0;
-        int addBitmap = 0;
+        val cache = getCache(skylight, compress);
+        if (cache != null)
+            return cache;
+
+        boolean entireChunk = true;
+        int primaryBitmap = 0, addBitmap = 0;
 
         byte[] output = new byte[196864];
         int outputPos = 0;
 
         for (int i = 0; i < sections.length; i++) {
-            ChunkSection section = sections[i];
-
-            if (section == null)
-                continue;
-
-            boolean foundBlock = false;
-            boolean foundAdd = false;
-
-            for (int y = 0; y < 16; y++) {
-                for (int z = 0; z < 16; z++) {
-                    for (int x = 0; x < 16; x++) {
-                        int index = section.index(x, y, z);
-                        int type = section.types[index] & 0xff;
-                        int metaData = section.metaData[index] & 0xff;
-                        // int blockLight = section.blockLight[index] & 0xff;
-                        // int skyLight = section.skyLight[index] & 0xff;
-
-                        if (type != 0 || metaData != 0)
-                            foundBlock = true;
-
-                        if ((type & 0xf00) != 0)
-                            foundAdd = true;
-
-                    }
-                }
-            }
-
-            if (foundBlock) {
-                primaryBitmap |= 1 << i;
-            }
-            if (foundAdd) {
-                addBitmap |= 1 << i;
-            }
-        }
-
-        int mask = primaryBitmap | addBitmap;
-        // int fullSectionsCount = Integer.bitCount(mask);
-
-        for (int i = 0; i < 16; i++) {
-            if ((mask & (1 << i)) == 0)
-                continue;
-
-            ChunkSection section = sections[i];
-            if (section == null)
-                section = EMPTY_SECTION;
-            System.arraycopy(section.types, 0, output, outputPos, 4096);
-            outputPos += 4096;
-        }
-
-        for (int i = 0; i < 16; i++) {
-            if ((primaryBitmap & (1 << i)) == 0)
-                continue;
-
-            ChunkSection section = sections[i];
-
-            if (section == null)
-                section = EMPTY_SECTION;
-
-            for (int j = 0; j < 2048; j++)
-                output[outputPos++] = (byte) ((section.metaData[j << 1] << 4) | (section.metaData[(j << 1) + 1] & 0xf));
-
-            System.arraycopy(section.blockLight.toByteArray(), 0, output, outputPos, 2048);
-            outputPos += 2048;
-
-            if (skylight) {
-                System.arraycopy(section.skyLight.toByteArray(), 0, output, outputPos, 2048);
-                outputPos += 2048;
-            }
-        }
-
-        if (entireChunk) {
-            if (biomes == null)
-                biomes = new byte[256];
-
-            System.arraycopy(biomes, 0, output, outputPos, 256);
-            outputPos += 256;
-        }
-
-        byte[] compressedData = compress(output, outputPos);
-
-        return new ChunkDataPacket(x, z, primaryBitmap, addBitmap, entireChunk, compressedData);
-    }
-
-    public ChunkDataPacket toDecompressedPacket(boolean skylight) {
-        return toDecompressedPacket(skylight, true);
-    }
-
-    public ChunkDataPacket toDecompressedPacket(boolean skylight, boolean entireChunk) {
-        int primaryBitmap = 0;
-        int addBitmap = 0;
-
-        byte[] output = new byte[196864];
-        int outputPos = 0;
-
-        for (int i = 0; i < sections.length; i++) {
-            ChunkSection section = sections[i];
+            val section = sections[i];
 
             if (section == null)
                 continue;
@@ -488,7 +426,6 @@ public abstract class Chunk {
 
             if (foundAdd)
                 addBitmap |= 1 << i;
-
         }
 
         int mask = primaryBitmap | addBitmap;
@@ -510,8 +447,10 @@ public abstract class Chunk {
                 continue;
 
             ChunkSection section = sections[i];
+
             if (section == null)
                 section = EMPTY_SECTION;
+
             for (int j = 0; j < 2048; j++)
                 output[outputPos++] = (byte) ((section.metaData[j << 1] << 4) | (section.metaData[(j << 1) + 1] & 0xf));
 
@@ -532,9 +471,13 @@ public abstract class Chunk {
             outputPos += 256;
         }
 
-        byte[] data = Arrays.copyOf(output, outputPos);
+        byte[] compressedData = compress ? compress(output, outputPos) : Arrays.copyOf(output, outputPos);
 
-        return new ChunkDataPacket(x, z, primaryBitmap, addBitmap, entireChunk, data);
+        ChunkDataPacket packet = new ChunkDataPacket(x, z, primaryBitmap, addBitmap, entireChunk, compressedData);
+
+        setCache(skylight, compress, packet);
+
+        return packet;
     }
 
     public static byte[] compress(byte[] data, int length) {

@@ -9,6 +9,7 @@ import gg.mineral.server.network.packet.play.clientbound.EntityStatusPacket;
 import gg.mineral.server.network.packet.play.clientbound.EntityVelocityPacket;
 import gg.mineral.server.network.packet.play.clientbound.SoundEffectPacket;
 import io.netty.buffer.ByteBuf;
+import lombok.val;
 
 public class UseEntityPacket implements Packet.INCOMING {
 
@@ -19,63 +20,65 @@ public class UseEntityPacket implements Packet.INCOMING {
     public void received(Connection connection) {
         if (mouse == 1) { // left click
             if (target != -1) {
-                EntityManager.getEntity(target).ifPresent(entity -> {
-                    if (entity instanceof Player p && p.getCurrentTick() - p.getLastDamaged() >= 10) {
-                        p.setLastDamaged(p.getCurrentTick());
-                        // connection.sendPacket(new AnimationPacket(p.getId(), (short) 1));
-                        EntityStatusPacket statusPacket = new EntityStatusPacket(p.getId(), (byte) 2);
-                        p.getConnection().queuePacket(statusPacket);
-                        connection.queuePacket(statusPacket);
-                        connection.queuePacket(new SoundEffectPacket("game.player.hurt",
-                                p.getX(), p.getY(),
-                                p.getZ(), 1.0f, (entity.getRandom().nextFloat()
-                                        - entity.getRandom().nextFloat()) * 0.2F + 1.0F));
+                val entity = EntityManager.getEntity(target);
+                if (entity instanceof Player p && p.getCurrentTick() - p.getLastDamaged() >= 10) {
+                    p.setLastDamaged(p.getCurrentTick());
+                    // connection.sendPacket(new AnimationPacket(p.getId(), (short) 1));
+                    EntityStatusPacket statusPacket = new EntityStatusPacket(p.getId(), (byte) 2);
+                    p.getConnection().queuePacket(statusPacket);
+                    connection.queuePacket(statusPacket);
+                    connection.queuePacket(new SoundEffectPacket("game.player.hurt",
+                            p.getX(), p.getY(),
+                            p.getZ(), 1.0f, (entity.getRandom().nextFloat()
+                                    - entity.getRandom().nextFloat()) * 0.2F + 1.0F));
 
-                        EntityManager.get(connection).ifPresent(attacker -> {
-                            double motX = p.getMotX();
-                            double motY = p.getMotY();
-                            double motZ = p.getMotZ();
-                            double x = KnockbackCommand.x;
-                            double y = KnockbackCommand.y;
-                            double z = KnockbackCommand.z;
+                    val attacker = EntityManager.get(connection);
 
-                            double extraX = KnockbackCommand.extraX;
-                            double extraY = KnockbackCommand.extraY;
-                            double extraZ = KnockbackCommand.extraZ;
+                    if (attacker == null)
+                        return;
 
-                            double yLimit = KnockbackCommand.yLimit;
+                    double motX = p.getMotX();
+                    double motY = p.getMotY();
+                    double motZ = p.getMotZ();
+                    double x = KnockbackCommand.x;
+                    double y = KnockbackCommand.y;
+                    double z = KnockbackCommand.z;
 
-                            double friction = KnockbackCommand.friction;
+                    double extraX = KnockbackCommand.extraX;
+                    double extraY = KnockbackCommand.extraY;
+                    double extraZ = KnockbackCommand.extraZ;
 
-                            motX /= friction;
-                            motY /= friction;
-                            motZ /= friction;
+                    double yLimit = KnockbackCommand.yLimit;
 
-                            float angle = (float) Math.toRadians(attacker.getYaw());
-                            double sin = -Math.sin(angle);
-                            double cos = Math.cos(angle);
+                    double friction = KnockbackCommand.friction;
 
-                            motX += x * sin;
-                            motY += y;
-                            motZ += z * cos;
+                    motX /= friction;
+                    motY /= friction;
+                    motZ /= friction;
 
-                            if (motY > yLimit) {
-                                motY = yLimit;
-                            }
+                    float angle = (float) Math.toRadians(attacker.getYaw());
+                    double sin = -Math.sin(angle);
+                    double cos = Math.cos(angle);
 
-                            if (attacker.isExtraKnockback()) {
-                                motX += extraX * sin;
-                                motY += extraY;
-                                motZ += extraZ * cos;
-                                attacker.setMotX(attacker.getMotX() * 0.6);
-                                attacker.setMotZ(attacker.getMotZ() * 0.6);
-                                attacker.setExtraKnockback(false);
-                            }
-                            p.getConnection().queuePacket(new EntityVelocityPacket(target, motX, motY, motZ));
-                        });
+                    motX += x * sin;
+                    motY += y;
+                    motZ += z * cos;
 
+                    if (motY > yLimit) {
+                        motY = yLimit;
                     }
-                });
+
+                    if (attacker.isExtraKnockback()) {
+                        motX += extraX * sin;
+                        motY += extraY;
+                        motZ += extraZ * cos;
+                        attacker.setMotX(attacker.getMotX() * 0.6);
+                        attacker.setMotZ(attacker.getMotZ() * 0.6);
+                        attacker.setExtraKnockback(false);
+                    }
+                    p.getConnection().queuePacket(new EntityVelocityPacket(target, motX, motY, motZ));
+
+                }
             }
         }
     }

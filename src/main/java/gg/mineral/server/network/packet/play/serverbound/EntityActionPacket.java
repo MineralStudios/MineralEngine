@@ -4,6 +4,7 @@ import gg.mineral.server.entity.manager.EntityManager;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
+import lombok.val;
 
 public class EntityActionPacket implements Packet.INCOMING {
     int entityId, jumpBoost;
@@ -11,6 +12,10 @@ public class EntityActionPacket implements Packet.INCOMING {
 
     @Override
     public void received(Connection connection) {
+        val player = EntityManager.getPlayer(entityId);
+
+        if (player == null)
+            return;
         switch (actionId) {
             case 0:
                 break;
@@ -22,18 +27,12 @@ public class EntityActionPacket implements Packet.INCOMING {
 
                 break;
             case 4:
-                EntityManager.getPlayer(entityId)
-                        .ifPresent(player -> {
-                            player.setSprinting(true);
-                            player.setExtraKnockback(true);
-                        });
+                player.setSprinting(true);
+                player.setExtraKnockback(true);
                 break;
             case 5:
-                EntityManager.getPlayer(entityId)
-                        .ifPresent(player -> {
-                            player.setSprinting(false);
-                            player.setExtraKnockback(false);
-                        });
+                player.setSprinting(false);
+                player.setExtraKnockback(false);
                 break;
             case 6:
                 break;

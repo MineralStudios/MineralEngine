@@ -8,4 +8,8 @@ public class ItemFrame extends Entity {
         super(id);
     }
 
+    @Override
+    public void tickAsync() {
+    }
+
 }

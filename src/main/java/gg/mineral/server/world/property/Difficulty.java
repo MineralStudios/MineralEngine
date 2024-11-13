@@ -1,21 +1,21 @@
 package gg.mineral.server.world.property;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.val;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public enum Difficulty {
     PEACEFUL((byte) 0), EASY((byte) 1), NORMAL((byte) 2), HARD((byte) 3);
 
     @Getter
-    byte id;
+    private final byte id;
 
     public static Difficulty fromId(byte id) {
-        for (Difficulty difficulty : Difficulty.values()) {
-            if (difficulty.getId() == id) {
+        for (val difficulty : Difficulty.values())
+            if (difficulty.getId() == id)
                 return difficulty;
-            }
-        }
+
         return null;
     }
 }

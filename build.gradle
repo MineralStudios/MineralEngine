@@ -1,6 +1,5 @@
 plugins {
     id 'java'
-    id 'org.graalvm.buildtools.native' version '0.10.1' // Add the GraalVM native plugin
 }
 
 group = 'gg.mineral'
@@ -37,15 +36,5 @@ jar {
         attributes(
             'Main-Class': 'gg.mineral.server.MinecraftServer'
         )
-    }
-}
-
-graalvmNative {
-    binaries {
-        main {
-            imageName = "MineralEngine"
-            mainClass = "gg.mineral.server.MinecraftServer"
-            buildArgs = ['--enable-url-protocols=https', '--gc=G1', '-march=native']
-        }
     }
 }

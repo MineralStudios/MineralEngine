@@ -5,21 +5,21 @@ import java.security.PublicKey;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.val;
 
+@Data
+@AllArgsConstructor
 public class EncryptionRequestPacket implements Packet.OUTGOING {
-    String serverId;
-    byte[] publicKeyBytes, verifyToken;
-
-    public EncryptionRequestPacket(String serverId,
-            PublicKey publicKey, byte[] verifyToken) {
-        this.serverId = serverId;
-        this.publicKeyBytes = publicKey.getEncoded();
-        this.verifyToken = verifyToken;
-    }
+    private String serverId;
+    private PublicKey publicKey;
+    private byte[] verifyToken;
 
     @Override
     public void serialize(ByteBuf os) {
         ByteBufUtil.writeString(os, serverId);
+        val publicKeyBytes = publicKey.getEncoded();
         os.writeShort(publicKeyBytes.length);
         os.writeBytes(publicKeyBytes);
         os.writeShort(verifyToken.length);

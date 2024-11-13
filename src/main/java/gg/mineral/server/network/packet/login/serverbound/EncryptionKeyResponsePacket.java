@@ -4,13 +4,18 @@ import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.messages.Messages;
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class EncryptionKeyResponsePacket implements Packet.INCOMING {
-    byte[] sharedSecretBytes, verifyToken;
+    private byte[] sharedSecretBytes, verifyToken;
 
     @Override
     public void received(Connection connection) {
-
         boolean success = connection.authenticate(sharedSecretBytes, verifyToken);
 
         if (success) {

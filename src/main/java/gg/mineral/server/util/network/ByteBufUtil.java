@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import gg.mineral.server.entity.attribute.Modifier;
 import gg.mineral.server.entity.attribute.Property;
 import gg.mineral.server.entity.metadata.EntityMetadata;
 import gg.mineral.server.entity.metadata.EntityMetadataIndex;
@@ -25,6 +24,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
+import lombok.val;
 
 public class ByteBufUtil {
     private static final Charset UTF_8 = Charset.forName("UTF-8");
@@ -64,11 +64,9 @@ public class ByteBufUtil {
     }
 
     public static int getVarIntSize(int value) {
-        for (int position = 1; position < 5; ++position) {
-            if ((value & -1 << position * 7) == 0) {
+        for (int position = 1; position < 5; ++position)
+            if ((value & -1 << position * 7) == 0)
                 return position;
-            }
-        }
 
         return 5;
     }
@@ -83,14 +81,14 @@ public class ByteBufUtil {
         // Peel the one and two byte count cases explicitly as they are the most common
         // VarInt sizes
         // that the proxy will write, to improve inlining.
-        if ((value & (0xFFFFFFFF << 7)) == 0) {
+        if ((value & (0xFFFFFFFF << 7)) == 0)
             buf.writeByte(value);
-        } else if ((value & (0xFFFFFFFF << 14)) == 0) {
+        else if ((value & (0xFFFFFFFF << 14)) == 0) {
             int w = (value & 0x7F | 0x80) << 8 | (value >>> 7);
             buf.writeShort(w);
-        } else {
+        } else
             writeVarIntFull(buf, value);
-        }
+
     }
 
     private static void writeVarIntFull(ByteBuf buf, int value) {
@@ -116,11 +114,10 @@ public class ByteBufUtil {
     }
 
     public static void writeString(ByteBuf buf, String string) {
-        byte[] stringBytes = string.getBytes(UTF_8);
+        val stringBytes = string.getBytes(UTF_8);
 
-        if (stringBytes.length > 32767) {
+        if (stringBytes.length > 32767)
             throw new EncoderException("String too big (was " + string.length() + " bytes encoded, max " + 32767 + ")");
-        }
 
         writeVarInt(buf, stringBytes.length);
         buf.writeBytes(stringBytes);
@@ -129,11 +126,10 @@ public class ByteBufUtil {
     public static String readString(ByteBuf buf) {
         int length = readVarInt(buf);
 
-        if (length < 0) {
+        if (length < 0)
             throw new DecoderException("The received encoded string buffer length is less than zero! Weird string!");
-        }
 
-        byte[] array = new byte[length];
+        val array = new byte[length];
         buf.readBytes(array);
 
         return new String(array, UTF_8);
@@ -162,7 +158,7 @@ public class ByteBufUtil {
     }
 
     public static int[] readIntArray(ByteBuf buf, int length) {
-        int[] ints = new int[length];
+        val ints = new int[length];
 
         for (int i = 0; i < ints.length; i++)
             ints[i] = buf.readInt();
@@ -182,12 +178,11 @@ public class ByteBufUtil {
 
     private static CompoundTag readCompound(ByteBuf buf, boolean network) {
         int idx = buf.readerIndex();
-        if (buf.readByte() == 0) {
+        if (buf.readByte() == 0)
             return null;
-        }
 
         buf.readerIndex(idx);
-        try (NBTInputStream str = new NBTInputStream(new ByteBufInputStream(buf), false)) {
+        try (val str = new NBTInputStream(new ByteBufInputStream(buf), false)) {
             return str.readCompound(
                     network ? new NBTReadLimiter(2097152L) : NBTReadLimiter.UNLIMITED);
         } catch (IOException e) {
@@ -208,8 +203,8 @@ public class ByteBufUtil {
             return;
         }
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try (NBTOutputStream str = new NBTOutputStream(out)) {
+        val out = new ByteArrayOutputStream();
+        try (val str = new NBTOutputStream(out)) {
             str.writeTag(data);
         } catch (IOException e) {
             e.printStackTrace();
@@ -244,8 +239,8 @@ public class ByteBufUtil {
         short amount = buf.readUnsignedByte();
         short durability = buf.readShort();
 
-        CompoundTag tag = readCompound(buf, network);
-        ItemStack stack = new ItemStack(type, amount, durability);
+        val tag = readCompound(buf, network);
+        val stack = new ItemStack(type, amount, durability);
         stack.readNbt(tag);
         return stack;
     }
@@ -265,7 +260,7 @@ public class ByteBufUtil {
         buf.writeShort(stack.getTypeId());
         buf.writeByte(stack.getAmount());
         buf.writeShort(stack.getDurability());
-        CompoundTag result = new CompoundTag();
+        val result = new CompoundTag();
         stack.writeNbt(result);
         writeCompound(buf, result.isEmpty() ? null : result);
     }
@@ -277,12 +272,12 @@ public class ByteBufUtil {
      * @return The metadata.
      */
     public static List<EntityMetadata.Entry> readMetadata(ByteBuf buf) {
-        List<EntityMetadata.Entry> entries = new ArrayList<>();
+        val entries = new ArrayList<EntityMetadata.Entry>();
         byte item;
         while ((item = buf.readByte()) != 0x7F) {
-            EntityMetadataType type = EntityMetadataType.byId(item >> 5);
+            val type = EntityMetadataType.byId(item >> 5);
             int id = item & 0x1f;
-            EntityMetadataIndex index = EntityMetadataIndex.getIndex(id, type);
+            val index = EntityMetadataIndex.getIndex(id, type);
 
             switch (type) {
                 case BYTE:
@@ -329,9 +324,9 @@ public class ByteBufUtil {
      * @param entries The metadata.
      */
     public static void writeMetadata(ByteBuf buf, List<EntityMetadata.Entry> entries) {
-        for (EntityMetadata.Entry entry : entries) {
-            EntityMetadataIndex index = entry.index;
-            Object value = entry.value;
+        for (val entry : entries) {
+            val index = entry.index;
+            val value = entry.value;
 
             if (value == null)
                 continue;
@@ -380,18 +375,18 @@ public class ByteBufUtil {
     }
 
     public static void writeProperties(ByteBuf buf, Map<String, Property> props) {
-        for (Map.Entry<String, Property> property : props.entrySet()) {
+        for (val property : props.entrySet()) {
             writeString(buf, property.getKey());
             buf.writeDouble(property.getValue().getValue());
 
-            List<Modifier> modifiers = property.getValue().getModifiers();
+            val modifiers = property.getValue().getModifiers();
             if (modifiers == null) {
                 buf.writeShort(0);
                 continue;
             }
 
             buf.writeShort(modifiers.size());
-            for (Modifier modifier : modifiers) {
+            for (val modifier : modifiers) {
                 writeUuid(buf, modifier.getUuid());
                 buf.writeDouble(modifier.getAmount());
                 buf.writeByte(modifier.getOperation());

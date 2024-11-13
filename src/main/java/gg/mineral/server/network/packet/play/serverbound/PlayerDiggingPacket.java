@@ -6,6 +6,7 @@ import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.network.packet.play.clientbound.BlockChangePacket;
 import io.netty.buffer.ByteBuf;
+import lombok.val;
 
 public class PlayerDiggingPacket implements Packet.INCOMING {
     byte status, face;
@@ -14,13 +15,17 @@ public class PlayerDiggingPacket implements Packet.INCOMING {
 
     @Override
     public void received(Connection connection) {
-        EntityManager.get(connection).ifPresent(player -> {
-            if (status == 2 || (status == 0 && player.getGamemode() == Gamemode.CREATIVE)) { // done digging
-                int type = player.getWorld().getType(x, y, z);
-                int meta = player.getWorld().getMetaData(x, y, z);
-                connection.queuePacket(new BlockChangePacket(x, y, z, type, (short) meta));
-            }
-        });
+        val player = EntityManager.get(connection);
+
+        if (player == null)
+            return;
+
+        if (status == 2 || (status == 0 && player.getGamemode() == Gamemode.CREATIVE)) { // done digging
+            val world = player.getWorld();
+            int type = world.getType(x, y, z);
+            int meta = world.getMetaData(x, y, z);
+            connection.queuePacket(new BlockChangePacket(x, y, z, type, (short) meta));
+        }
     }
 
     @Override

@@ -2,14 +2,14 @@ package gg.mineral.server.entity.attribute;
 
 import java.util.UUID;
 
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 @RequiredArgsConstructor
-@Data
+@Value
 public class Modifier {
-    final String name;
-    final UUID uuid;
-    final double amount;
-    final byte operation;
+    String name;
+    UUID uuid;
+    double amount;
+    byte operation;
 }

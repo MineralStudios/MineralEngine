@@ -8,4 +8,8 @@ public class Firework extends Entity {
         super(id);
     }
 
+    @Override
+    public void tickAsync() {
+    }
+
 }

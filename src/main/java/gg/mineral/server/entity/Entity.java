@@ -4,22 +4,26 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import java.util.Random;
+import java.util.concurrent.Callable;
 
 @RequiredArgsConstructor
 @Getter
-public class Entity {
+public abstract class Entity implements Callable<Entity> {
     @Setter
-    double x, y, z, motX, motY, motZ;
+    private double x, y, z, motX, motY, motZ;
     @Setter
-    double headY;
-    float yaw, pitch, lastYaw, lastPitch;
+    private double headY;
+    private float yaw, pitch, lastYaw, lastPitch;
     @Setter
-    boolean onGround = false;
+    private boolean onGround = false;
     protected final int id;
     @Getter
-    int currentTick;
+    private int currentTick;
     @Getter
-    final Random random = new Random(); // TODO: better random implementation
+    @Setter
+    private boolean firstTick = true, firstAsyncTick = true;
+    @Getter
+    private final Random random = new Random(); // TODO: better random implementation
 
     public void setYaw(float yaw) {
         lastYaw = this.yaw;
@@ -33,5 +37,13 @@ public class Entity {
 
     public void tick() {
         currentTick++;
+    }
+
+    public abstract void tickAsync();
+
+    @Override
+    public Entity call() {
+        tickAsync();
+        return this;
     }
 }

@@ -8,4 +8,8 @@ public class Rabbit extends LivingEntity {
         super(id);
     }
 
+    @Override
+    public void tickAsync() {
+    }
+
 }

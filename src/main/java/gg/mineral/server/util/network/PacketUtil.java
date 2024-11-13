@@ -11,6 +11,7 @@ import gg.mineral.server.util.collection.GlueList;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer;
+import lombok.val;
 
 public class PacketUtil {
 
@@ -22,12 +23,17 @@ public class PacketUtil {
                 byte id = packetBuf.readByte();
 
                 Callable<INCOMING> packetBuilder = incomingPacketRegistry.get(id);
+
+                if (packetBuilder == null)
+                    return;
+
                 Packet.INCOMING packet = packetBuilder.call();
                 packet.deserialize(packetBuf);
                 packets.add(packet);
-                packetBuf.release();
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                packetBuf.release();
             }
         });
 
@@ -36,12 +42,12 @@ public class PacketUtil {
     }
 
     public static ByteBuf serialize(Packet.OUTGOING packet) {
-        ByteBuf data = Unpooled.buffer();
+        val data = Unpooled.buffer();
         ByteBufUtil.writeVarInt(data, packet.getId());
         packet.serialize(data);
         int length = data.writerIndex();
         int lengthSize = ByteBufUtil.getVarIntSize(length);
-        ByteBuf os = Unpooled.buffer(lengthSize + length);
+        val os = Unpooled.buffer(lengthSize + length);
         ByteBufUtil.writeVarInt(os, length);
         os.writeBytes(data);
         return os;
@@ -62,7 +68,7 @@ public class PacketUtil {
             if (lengthBytes[position] < 0)
                 continue;
 
-            ByteBuffer byteBuf = ByteBuffer.wrap(lengthBytes);
+            val byteBuf = ByteBuffer.wrap(lengthBytes);
 
             try {
                 int length = ByteBufUtil.readVarInt(byteBuf);
@@ -70,7 +76,7 @@ public class PacketUtil {
                     buf.resetReaderIndex();
                     return;
                 }
-                ByteBuf splitBuf = buf.readBytes(length);
+                val splitBuf = buf.readBytes(length);
                 consumer.accept(splitBuf);
             } finally {
                 byteBuf.clear();

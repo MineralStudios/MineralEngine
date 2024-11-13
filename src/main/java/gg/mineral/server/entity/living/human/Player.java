@@ -1,14 +1,14 @@
 package gg.mineral.server.entity.living.human;
 
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+
 import java.util.UUID;
+
+import org.jetbrains.annotations.Nullable;
 
 import dev.zerite.craftlib.chat.component.BaseChatComponent;
 import dev.zerite.craftlib.chat.component.StringChatComponent;
+import gg.mineral.server.MinecraftServer;
 import gg.mineral.server.command.CommandExecutor;
 import gg.mineral.server.entity.attribute.Property;
 import gg.mineral.server.entity.living.HumanEntity;
@@ -37,7 +37,6 @@ import gg.mineral.server.network.packet.play.clientbound.PlayerPositionAndLookPa
 import gg.mineral.server.network.packet.play.clientbound.SetSlotPacket;
 import gg.mineral.server.network.packet.play.clientbound.SpawnPlayerPacket;
 import gg.mineral.server.network.packet.play.clientbound.SpawnPositionPacket;
-import gg.mineral.server.util.collection.ConcurrentHashSet;
 import gg.mineral.server.util.collection.GlueList;
 import gg.mineral.server.util.math.MathUtil;
 import gg.mineral.server.world.World;
@@ -49,49 +48,42 @@ import gg.mineral.server.world.property.LevelType;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.shorts.Short2IntLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.shorts.Short2IntMap.Entry;
 import it.unimi.dsi.fastutil.shorts.ShortArrayList;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.val;
 
 public class Player extends HumanEntity implements CommandExecutor {
 
     @Getter
-    final Short2IntLinkedOpenHashMap loadedChunks = new Short2IntLinkedOpenHashMap();
+    private final Short2IntLinkedOpenHashMap loadedChunks = new Short2IntLinkedOpenHashMap();
     @Getter
-    final ShortArrayList visibleChunks = new ShortArrayList();
+    private final ShortArrayList visibleChunks = new ShortArrayList();
     @Getter
-    final Int2ObjectOpenHashMap<int[]> visibleEntities = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectOpenHashMap<int[]> visibleEntities = new Int2ObjectOpenHashMap<>();
     @Getter
     private byte chunkX, chunkZ, oldChunkX, oldChunkZ;
-    @Getter
-    @Setter
-    private boolean firstTick = true;
     @Getter
     @Setter
     private int lastDamaged;
     @Getter
     private final byte viewDistance = (byte) 10;
     @Getter
-    @Setter
-    private long tickNanoTime;
-    @Getter
-    boolean sprinting;
+    private boolean sprinting;
     @Getter
     @Setter
-    boolean extraKnockback;
+    private boolean extraKnockback;
 
     @Getter
-    final Connection connection;
+    private final Connection connection;
     @Setter
     @Getter
-    World world;
+    private World world;
     @Getter
-    final IntList entityRemoveIds = new IntArrayList();
-
-    final Object lock = new Object();
+    private final IntList entityRemoveIds = new IntArrayList();
+    private final MinecraftServer server;
 
     @Getter
     @Setter
@@ -103,6 +95,7 @@ public class Player extends HumanEntity implements CommandExecutor {
         super(id);
         this.connection = connection;
         this.world = world;
+        this.server = connection.getServer();
     }
 
     public String getName() {
@@ -111,6 +104,17 @@ public class Player extends HumanEntity implements CommandExecutor {
 
     public UUID getUuid() {
         return connection.getUuid();
+    }
+
+    public void swingArm() {
+        for (int id : visibleEntities.keySet()) {
+            val player = EntityManager.getPlayer(id);
+
+            if (player == null)
+                continue;
+
+            player.updateArm(this);
+        }
     }
 
     public void setSprinting(boolean sprint) {
@@ -139,9 +143,12 @@ public class Player extends HumanEntity implements CommandExecutor {
         this.chunkX = (byte) Math.floor(getX() / 16);
         this.chunkZ = (byte) Math.floor(getZ() / 16);
 
+        val lastChunk = getLastChunk();
+        val chunk = getChunk();
+
         if (oldChunkX != chunkX || oldChunkZ != chunkZ)
-            getLastChunk().getEntities().remove(this.getId());
-        getChunk().getEntities().add(this.getId());
+            lastChunk.getEntities().remove(this.getId());
+        chunk.getEntities().add(this.getId());
     }
 
     public Chunk getChunk() {
@@ -152,127 +159,126 @@ public class Player extends HumanEntity implements CommandExecutor {
         return getWorld().getChunk(key);
     }
 
+    @Nullable
     public Chunk getLastChunk() {
         return getChunk(Chunk.toKey(oldChunkX, oldChunkZ));
     }
 
     @Override
+    public void tickAsync() {
+        if (oldChunkX != chunkX || oldChunkZ != chunkZ || isFirstAsyncTick())
+            sendUpdates();
+
+        setFirstAsyncTick(false);
+    }
+
+    @Override
     public void tick() {
-        synchronized (lock) {
-            super.tick();
-            updateChunkPosition();
+        super.tick();
 
-            if (oldChunkX != chunkX || oldChunkZ != chunkZ || isFirstTick())
-                sendUpdates();
+        updateChunkPosition();
 
-            updateVisibleEntities();
+        updateVisibleEntities();
 
-            tickArm();
+        tickArm();
 
-            updateProperties();
+        updateProperties();
 
-            setFirstTick(false);
-        }
+        setFirstTick(false);
     }
 
     public void updateVisibleEntities() {
 
-        if (isFirstTick())
-            return;
-
         for (short key : visibleChunks) {
 
-            ConcurrentHashSet<Integer> newlyVisible = getChunk(key).getEntities();
+            val newlyVisible = getChunk(key).getEntities();
 
             if (newlyVisible == null)
                 continue;
 
-            Iterator<Integer> iterator = newlyVisible.iterator();
+            val iterator = newlyVisible.iterator();
 
             while (iterator.hasNext()) {
-                int playerId = iterator.next();
+                int entityId = iterator.nextInt();
 
-                if (playerId == this.getId())
+                if (entityId == this.getId())
                     continue;
 
-                Optional<Player> playerOptional = EntityManager.getPlayer(playerId);
+                val player = EntityManager.getPlayer(entityId);
 
-                if (visibleEntities.containsKey(playerId)) {
-
-                    if (!playerOptional.isPresent() || !playerOptional.get().getWorld().equals(getWorld())) {
-                        visibleEntities.remove(playerId);
-                        getEntityRemoveIds().add(playerId);
+                if (visibleEntities.containsKey(entityId)) {
+                    if (player == null || !player.getWorld().equals(getWorld())) {
+                        visibleEntities.remove(entityId);
+                        getEntityRemoveIds().add(entityId);
                         iterator.remove();
                     }
 
                     continue;
                 }
 
-                playerOptional.ifPresent(player -> {
-                    if (player.isFirstTick())
-                        return;
-                    int x = MathUtil.toFixedPointInt(player.getX()),
-                            y = MathUtil.toFixedPointInt(player.getY()),
-                            z = MathUtil.toFixedPointInt(player.getZ()),
-                            yaw = MathUtil.angleToByte(player.getYaw()),
-                            pitch = MathUtil.angleToByte(player.getPitch());
-                    visibleEntities.put(player.getId(), new int[] { x, y, z, yaw, pitch });
-                    getConnection().sendPacket(new SpawnPlayerPacket(player.getId(), // TODO: Reduce packet flushing
-                            x, y, z, player.getYaw(),
-                            player.getPitch(), player.getUuid().toString(),
-                            player.getName(), new GlueList<>() /* TODO: player property */, (short) 0 /*
-                                                                                                       * TODO:
-                                                                                                       * held
-                                                                                                       * item
-                                                                                                       */,
-                            new EntityMetadata(Player.class).getEntryList()/* TODO: entity metadata */));
-                });
+                if (player == null)
+                    continue;
+
+                int x = MathUtil.toFixedPointInt(player.getX()),
+                        y = MathUtil.toFixedPointInt(player.getY()),
+                        z = MathUtil.toFixedPointInt(player.getZ()),
+                        yaw = MathUtil.angleToByte(player.getYaw()),
+                        pitch = MathUtil.angleToByte(player.getPitch());
+                visibleEntities.put(player.getId(), new int[] { x, y, z, yaw, pitch });
+                getConnection().sendPacket(new SpawnPlayerPacket(player.getId(), // TODO: Reduce packet flushing
+                        x, y, z, player.getYaw(),
+                        player.getPitch(), player.getUuid().toString(),
+                        player.getName(), new GlueList<>() /* TODO: player property */, (short) 0 /*
+                                                                                                   * TODO:
+                                                                                                   * held
+                                                                                                   * item
+                                                                                                   */,
+                        new EntityMetadata(Player.class).getEntryList()/* TODO: entity metadata */));
 
             }
         }
 
-        for (it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry<int[]> e : visibleEntities.int2ObjectEntrySet()) {
+        for (val e : visibleEntities.int2ObjectEntrySet()) {
 
-            EntityManager.getEntity(e.getIntKey()).ifPresent(key -> {
-                if (key instanceof Player player) {
+            val entity = EntityManager.getEntity(e.getIntKey());
 
-                    int[] prevLoc = e.getValue();
-                    int x = MathUtil.toFixedPointInt(player.getX()), y = MathUtil.toFixedPointInt(player.getY()),
-                            z = MathUtil.toFixedPointInt(player.getZ());
-                    byte yaw = MathUtil.angleToByte(player.getYaw()),
-                            pitch = MathUtil.angleToByte(player.getPitch());
-                    byte deltaX = (byte) (x - prevLoc[0]), deltaY = (byte) (y - prevLoc[1]),
-                            deltaZ = (byte) (z - prevLoc[2]), deltaYaw = (byte) (yaw - prevLoc[3]),
-                            deltaPitch = (byte) (pitch - prevLoc[4]);
+            if (entity == null)
+                continue;
 
-                    boolean moved = deltaX != 0 || deltaY != 0 || deltaZ != 0,
-                            rotated = Math.abs(deltaYaw) >= 1 || Math.abs(deltaPitch) >= 1;
-                    if (moved && rotated)
-                        getConnection().queuePacket(new EntityLookAndRelativeMovePacket(player.getId(),
-                                deltaX,
-                                deltaY, deltaZ,
-                                yaw, pitch),
-                                new EntityHeadLookPacket(player.getId(), yaw));
-                    else if (moved)
-                        getConnection().queuePacket(new EntityRelativeMovePacket(player.getId(),
-                                deltaX,
-                                deltaY, deltaZ));
-                    else if (rotated)
-                        getConnection().queuePacket(new EntityLookPacket(player.getId(),
-                                yaw, pitch),
-                                new EntityHeadLookPacket(player.getId(), yaw));
+            val prevLoc = e.getValue();
+            int x = MathUtil.toFixedPointInt(entity.getX()), y = MathUtil.toFixedPointInt(entity.getY()),
+                    z = MathUtil.toFixedPointInt(entity.getZ());
+            byte yaw = MathUtil.angleToByte(entity.getYaw()),
+                    pitch = MathUtil.angleToByte(entity.getPitch());
+            byte deltaX = (byte) (x - prevLoc[0]), deltaY = (byte) (y - prevLoc[1]),
+                    deltaZ = (byte) (z - prevLoc[2]), deltaYaw = (byte) (yaw - prevLoc[3]),
+                    deltaPitch = (byte) (pitch - prevLoc[4]);
 
-                    if (moved || rotated)
-                        e.setValue(new int[] { x, y, z, yaw, pitch });
+            boolean moved = deltaX != 0 || deltaY != 0 || deltaZ != 0,
+                    rotated = Math.abs(deltaYaw) >= 1 || Math.abs(deltaPitch) >= 1;
+            if (moved && rotated)
+                getConnection().queuePacket(new EntityLookAndRelativeMovePacket(entity.getId(),
+                        deltaX,
+                        deltaY, deltaZ,
+                        yaw, pitch),
+                        new EntityHeadLookPacket(entity.getId(), yaw));
+            else if (moved)
+                getConnection().queuePacket(new EntityRelativeMovePacket(entity.getId(),
+                        deltaX,
+                        deltaY, deltaZ));
+            else if (rotated)
+                getConnection().queuePacket(new EntityLookPacket(entity.getId(),
+                        yaw, pitch),
+                        new EntityHeadLookPacket(entity.getId(), yaw));
 
-                }
-            });
+            if (moved || rotated)
+                e.setValue(new int[] { x, y, z, yaw, pitch });
         }
 
-        if (getEntityRemoveIds().isEmpty())
+        if (entityRemoveIds.isEmpty())
             return;
-        int[] ids = getEntityRemoveIds().toIntArray();
-        getEntityRemoveIds().clear();
+        val ids = entityRemoveIds.toIntArray();
+        entityRemoveIds.clear();
 
         getConnection().queuePacket(new DestroyEntitiesPacket(ids));
     }
@@ -281,13 +287,13 @@ public class Player extends HumanEntity implements CommandExecutor {
         byte viewDistance = getViewDistance();
         int chunkX = getChunkX();
         int chunkZ = getChunkZ();
-        List<Chunk> chunks = new GlueList<>();
+        val chunks = new GlueList<Chunk>();
 
         for (int xOffset = -viewDistance; xOffset <= viewDistance; xOffset++) {
             byte cX = (byte) (chunkX + xOffset);
             for (int zOffset = -viewDistance; zOffset <= viewDistance; zOffset++) {
                 short key = Chunk.toKey(cX, (byte) (chunkZ + zOffset));
-                Chunk chunk = createChunkUpdate(key);
+                val chunk = createChunkUpdate(key);
                 if (chunk != null)
                     chunks.add(chunk);
             }
@@ -335,40 +341,38 @@ public class Player extends HumanEntity implements CommandExecutor {
         // this.az = (float) this.as / (float) i;
     }
 
+    @Nullable
     public Chunk createChunkUpdate(short key) {
         loadedChunks.put(key, getCurrentTick());
-        ShortArrayList visibleChunks = getVisibleChunks();
         if (visibleChunks.contains(key))
             return null;
 
-        Chunk chunk = getWorld().getChunk(key);
+        val chunk = getWorld().getChunk(key);
         visibleChunks.add(key);
         return chunk;
     }
 
     public void sendUpdates() {
-        List<Chunk> chunks = getChunkLoadUpdates();
+        val chunks = getChunkLoadUpdates();
 
-        ObjectIterator<Entry> iterator = loadedChunks.short2IntEntrySet().fastIterator();
-        World world = getWorld();
+        val iterator = loadedChunks.short2IntEntrySet().fastIterator();
 
         int currentTick = getCurrentTick();
-        ShortArrayList visibleChunks = getVisibleChunks();
 
         while (iterator.hasNext()) {
-            Entry entry = iterator.next();
+            val entry = iterator.next();
             if (currentTick - entry.getIntValue() > 100) { // linked hashmap to order by eldest entry
                 short key = entry.getShortKey();
                 if (visibleChunks.rem(key)) {
-                    chunks.add(new EmptyChunk(world, Chunk.xFromKey(key), Chunk.zFromKey(key)));
-                    ConcurrentHashSet<Integer> newlyInvisible = getChunk(key).getEntities();
+                    chunks.add(new EmptyChunk(world.getEnvironment(), Chunk.xFromKey(key), Chunk.zFromKey(key)));
+                    val newlyInvisible = getChunk(key).getEntities();
 
                     if (newlyInvisible != null) {
                         for (int playerId : newlyInvisible) {
                             if (playerId == this.getId())
                                 continue;
 
-                            getEntityRemoveIds().add(playerId);
+                            entityRemoveIds.add(playerId);
                             visibleEntities.remove(playerId);
                         }
                     }
@@ -381,16 +385,14 @@ public class Player extends HumanEntity implements CommandExecutor {
             break;
         }
 
-        if (chunks.isEmpty()) {
+        if (chunks.isEmpty())
             return;
-        }
 
-        Connection connection = getConnection();
-        if (chunks.size() == 1) {
-            connection.queuePacket(chunks.get(0).toPacket());
-        } else {
+        if (chunks.size() == 1)
+            connection.queuePacket(chunks.get(0).toPacket(true));
+        else
             connection.queuePacket(new MapChunkBulkPacket(world.getEnvironment() == World.Environment.NORMAL, chunks));
-        }
+
     }
 
     public void onJoin() {
@@ -414,7 +416,7 @@ public class Player extends HumanEntity implements CommandExecutor {
 
     public void updateProperties() {
         if (movementSpeed.getValue() != movementSpeed.getLastValue()) {
-            Map<String, Property> properties = new HashMap<>();
+            val properties = new Object2ObjectOpenHashMap<String, Property>();
             properties.put("generic.movementSpeed", movementSpeed);
             connection.queuePacket(new EntityPropertiesPacket(id, properties));
         }
@@ -422,12 +424,10 @@ public class Player extends HumanEntity implements CommandExecutor {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Player))
-            return false;
+        if (obj instanceof Player player)
+            return player.getConnection().equals(getConnection());
 
-        Player player = (Player) obj;
-
-        return player.getConnection().equals(getConnection());
+        return false;
     }
 
     @Override
@@ -439,4 +439,10 @@ public class Player extends HumanEntity implements CommandExecutor {
     public void msg(String message) {
         connection.queuePacket(new ChatMessagePacket(new StringChatComponent(message)));
     }
+
+    @Override
+    public MinecraftServer getServer() {
+        return server;
+    }
+
 }

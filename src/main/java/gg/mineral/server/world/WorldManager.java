@@ -4,6 +4,7 @@ import gg.mineral.server.world.IWorld.Environment;
 import gg.mineral.server.world.IWorld.Generator;
 import gg.mineral.server.world.chunk.Chunk;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap;
+import lombok.val;
 
 public class WorldManager {
     static final Byte2ObjectOpenHashMap<World> worlds = new Byte2ObjectOpenHashMap<>();
@@ -11,22 +12,13 @@ public class WorldManager {
     static {
         createWorld("Spawn", World.Environment.NORMAL, new World.Generator() {
             @Override
-            public Chunk generate(World world, byte chunkX, byte chunkZ) {
-                return new Chunk(world, chunkX, chunkZ) {
+            public Chunk generate(Environment environment, byte chunkX, byte chunkZ) {
+                val chunk = new Chunk(environment, chunkX, chunkZ);
 
-                    @Override
-                    public void load() {
-                        for (int x1 = 0; x1 < 16; x1++)
-                            for (int z1 = 0; z1 < 16; z1++)
-                                setType(x1, z1, 50, 1);
-                    }
-
-                };
-            }
-
-            @Override
-            public boolean pregenerate() {
-                return true;
+                for (int x = 0; x < 16; x++)
+                    for (int z = 0; z < 16; z++)
+                        chunk.setType(x, z, 50, 1);
+                return chunk;
             }
 
         });
@@ -42,11 +34,7 @@ public class WorldManager {
 
     public static World createWorld(String name, Environment environment, Generator generator) {
         byte id = (byte) worlds.size();
-        World world = new World(id, name, environment, generator);
-        if (generator.pregenerate())
-            for (byte x = World.MIN_CHUNK_COORD; x < World.MAX_CHUNK_COORD; x++)
-                for (byte z = World.MIN_CHUNK_COORD; z < World.MAX_CHUNK_COORD; z++)
-                    world.getChunk(Chunk.toKey(x, z));
+        val world = new World(id, name, environment, generator);
         worlds.put(id, world);
         return world;
     }

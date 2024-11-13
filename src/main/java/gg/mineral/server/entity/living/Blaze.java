@@ -8,4 +8,8 @@ public class Blaze extends LivingEntity {
         super(id);
     }
 
+    @Override
+    public void tickAsync() {
+    }
+
 }

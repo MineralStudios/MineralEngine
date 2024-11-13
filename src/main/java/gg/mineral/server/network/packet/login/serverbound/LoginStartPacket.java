@@ -4,10 +4,15 @@ import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class LoginStartPacket implements Packet.INCOMING {
-
-    String name;
+    private String name;
 
     @Override
     public void received(Connection connection) {
@@ -16,6 +21,6 @@ public class LoginStartPacket implements Packet.INCOMING {
 
     @Override
     public void deserialize(ByteBuf is) {
-        name = ByteBufUtil.readString(is);
+        this.name = ByteBufUtil.readString(is);
     }
 }

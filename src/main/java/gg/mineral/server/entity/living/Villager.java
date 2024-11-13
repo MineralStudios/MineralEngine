@@ -8,4 +8,8 @@ public class Villager extends LivingEntity {
         super(id);
     }
 
+    @Override
+    public void tickAsync() {
+    }
+
 }

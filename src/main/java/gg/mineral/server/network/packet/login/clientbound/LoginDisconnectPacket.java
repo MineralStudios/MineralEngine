@@ -5,13 +5,13 @@ import dev.zerite.craftlib.chat.component.ChatComponentUtil;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
+@Data
+@AllArgsConstructor
 public class LoginDisconnectPacket implements Packet.OUTGOING {
-    BaseChatComponent baseChatComponent;
-
-    public LoginDisconnectPacket(BaseChatComponent baseChatComponent) {
-        this.baseChatComponent = baseChatComponent;
-    }
+    private BaseChatComponent baseChatComponent;
 
     @Override
     public void serialize(ByteBuf os) {

@@ -8,4 +8,8 @@ public class Sheep extends LivingEntity {
         super(id);
     }
 
+    @Override
+    public void tickAsync() {
+    }
+
 }

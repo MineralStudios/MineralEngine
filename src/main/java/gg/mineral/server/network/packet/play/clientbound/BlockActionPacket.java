@@ -3,21 +3,16 @@ package gg.mineral.server.network.packet.play.clientbound;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
+import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
+@Value
+@RequiredArgsConstructor
 public class BlockActionPacket implements Packet.OUTGOING {
-
-    int x, z, blockType;
+    int x;
     short y;
+    int z, blockType;
     short byte1, byte2;
-
-    public BlockActionPacket(int x, short y, int z, int blockType, short byte1, short byte2) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.blockType = blockType;
-        this.byte1 = byte1;
-        this.byte2 = byte2;
-    }
 
     @Override
     public void serialize(ByteBuf os) {

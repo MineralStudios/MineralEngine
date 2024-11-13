@@ -10,6 +10,7 @@ import gg.mineral.server.util.nbt.TagType;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.val;
 
 public class ItemStack {
 
@@ -43,7 +44,7 @@ public class ItemStack {
     }
 
     public void writeNbt(CompoundTag tag) {
-        CompoundTag displayTags = new CompoundTag();
+        val displayTags = new CompoundTag();
         if (hasDisplayName())
             displayTags.putString("Name", getDisplayName());
 

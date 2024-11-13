@@ -1,11 +1,10 @@
 package gg.mineral.server.world;
 
-import gg.mineral.server.util.collection.ShortNonBlockingArrayMap;
+import gg.mineral.server.util.math.MathUtil;
 import gg.mineral.server.world.chunk.Chunk;
+import gg.mineral.server.world.chunk.EmptyChunk;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 public class World implements IWorld {
     public static final byte MIN_CHUNK_COORD = -127, MAX_CHUNK_COORD = (byte) 128;
     @Getter
@@ -16,11 +15,32 @@ public class World implements IWorld {
     final Environment environment;
     @Getter
     final Generator generator;
-    // use concurrent map to ensure everything is done atomically
-    ShortNonBlockingArrayMap<Chunk> chunkCache = new ShortNonBlockingArrayMap<>();
+    private Chunk[] chunkCache;
+
+    public World(byte id, String name, Environment environment, Generator generator) {
+        this.id = id;
+        this.name = name;
+        this.environment = environment == null ? Environment.NORMAL : environment;
+        this.generator = generator;
+        this.chunkCache = new Chunk[65536];
+    }
+
+    public World(byte id, String name, Environment environment) {
+        this(id, name, environment, null);
+    }
+
+    public World(byte id, String name) {
+        this(id, name, null, null);
+    }
 
     public Chunk getChunk(short key) {
-        return chunkCache.computeIfAbsent(key, k -> generator.generate(this, Chunk.xFromKey(k), Chunk.zFromKey(k)));
+        var chunk = chunkCache[MathUtil.unsigned(key)];
+        byte x = Chunk.xFromKey(key), z = Chunk.zFromKey(key);
+
+        if (chunk == null)
+            chunk = chunkCache[MathUtil.unsigned(key)] = generator != null ? generator.generate(environment, x, z)
+                    : new EmptyChunk(environment, x, z);
+        return chunk;
     }
 
     public int getType(int x, int y, int z) {

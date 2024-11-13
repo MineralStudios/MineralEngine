@@ -8,6 +8,7 @@ import gg.mineral.server.command.impl.VersionCommand;
 import gg.mineral.server.util.collection.GlueList;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.val;
 
 @AllArgsConstructor
 public abstract class Command {
@@ -19,13 +20,13 @@ public abstract class Command {
         LIST.add(new KnockbackCommand());
     }
 
-    @Getter 
+    @Getter
     String permission, name;
 
     public abstract void execute(CommandExecutor commandExecutor, String[] arguments);
 
     public static Command byName(String name) {
-        for (Command command : LIST)
+        for (val command : LIST)
             if (command.getName().equalsIgnoreCase(name))
                 return command;
 

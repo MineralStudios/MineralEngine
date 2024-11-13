@@ -43,7 +43,6 @@ public final class NBTInputStream implements Closeable {
      * @param compressed A flag indicating if the stream is compressed.
      * @throws IOException if an I/O error occurs.
      */
-    @SuppressWarnings("resource")
     public NBTInputStream(InputStream is, boolean compressed) throws IOException {
         this.is = new DataInputStream(compressed ? new GZIPInputStream(is) : is);
     }
@@ -94,7 +93,7 @@ public final class NBTInputStream implements Closeable {
             readLimiter.read(28 + 2 * name.length());
 
             // read tag
-            Tag tag = readTagPayload(type, depth + 1, readLimiter);
+            Tag<?> tag = readTagPayload(type, depth + 1, readLimiter);
             readLimiter.read(36);
             result.put(name, tag);
         }
@@ -110,8 +109,8 @@ public final class NBTInputStream implements Closeable {
      * @return The tag.
      * @throws IOException if an I/O error occurs.
      */
-    @SuppressWarnings("unchecked")
-    private Tag readTagPayload(TagType type, int depth, NBTReadLimiter readLimiter) throws IOException {
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private Tag<?> readTagPayload(TagType type, int depth, NBTReadLimiter readLimiter) throws IOException {
 
         if (depth > 512) {
             throw new IllegalStateException("Tried to read NBT tag with too high complexity, depth > 512");
@@ -162,7 +161,7 @@ public final class NBTInputStream implements Closeable {
                 length = is.readInt();
                 readLimiter.read(4 * length);
 
-                List<Tag> tagList = new ArrayList<>(length);
+                List<Tag<?>> tagList = new ArrayList<>(length);
                 for (int i = 0; i < length; i++) {
                     tagList.add(readTagPayload(childType, depth + 1, readLimiter));
                 }

@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
+import lombok.val;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -56,7 +57,7 @@ public final class EncryptionHandler extends MessageToMessageCodec<ByteBuf, Byte
         }
 
         public void crypt(ByteBuf msg, List<Object> out) {
-            ByteBuffer outBuffer = ByteBuffer.allocate(msg.readableBytes());
+            val outBuffer = ByteBuffer.allocate(msg.readableBytes());
 
             try {
                 cipher.update(msg.nioBuffer(), outBuffer);

@@ -1,38 +1,26 @@
 package gg.mineral.server.util.nbt;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 /**
  * Represents a single NBT tag.
  */
+@RequiredArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+@Getter
 public abstract class Tag<T> {
-
     /**
      * The type of this tag.
      */
     private final TagType type;
 
     /**
-     * Creates the tag with the specified type.
-     *
-     * @param type The type.
-     */
-    protected Tag(TagType type) {
-        this.type = type;
-    }
-
-    /**
-     * Gets the type of this tag.
-     *
-     * @return The type of this tag.
-     */
-    public final TagType getType() {
-        return type;
-    }
-
-    /**
      * Gets the value of this tag.
      *
      * @return The value of this tag.
      */
+    @NonNull
     public abstract T getValue();
 
     @Override
@@ -50,7 +38,7 @@ public abstract class Tag<T> {
         if (o == null || getClass() != o.getClass())
             return false;
 
-        Tag tag = (Tag) o;
+        Tag<?> tag = (Tag<?>) o;
 
         return type == tag.type && getValue().equals(tag.getValue());
     }

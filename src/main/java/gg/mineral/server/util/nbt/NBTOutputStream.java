@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import lombok.NonNull;
+
 /**
  * This class writes NBT, or Named Binary Tag, {@link Tag} objects to an
  * underlying {@link OutputStream}.
@@ -56,7 +59,7 @@ public final class NBTOutputStream implements Closeable {
      * @param tag The tag to write.
      * @throws IOException if an I/O error occurs.
      */
-    public void writeTag(Tag tag) throws IOException {
+    public void writeTag(Tag<?> tag) throws IOException {
         writeTag("", tag);
     }
 
@@ -67,7 +70,7 @@ public final class NBTOutputStream implements Closeable {
      * @param tag  The tag to write.
      * @throws IOException if an I/O error occurs.
      */
-    private void writeTag(String name, Tag tag) throws IOException {
+    private void writeTag(String name, Tag<?> tag) throws IOException {
         TagType type = tag.getType();
         byte[] nameBytes = name.getBytes(StandardCharsets.UTF_8);
 
@@ -89,7 +92,7 @@ public final class NBTOutputStream implements Closeable {
      * @throws IOException if an I/O error occurs.
      */
     @SuppressWarnings("unchecked")
-    private void writeTagPayload(Tag tag) throws IOException {
+    private void writeTagPayload(@NonNull Tag<?> tag) throws IOException {
         TagType type = tag.getType();
         byte[] bytes;
 
@@ -131,21 +134,21 @@ public final class NBTOutputStream implements Closeable {
                 break;
 
             case LIST:
-                ListTag<Tag> listTag = (ListTag<Tag>) tag;
-                List<Tag> tags = listTag.getValue();
+                ListTag<Tag<?>> listTag = (ListTag<Tag<?>>) tag;
+                List<Tag<?>> tags = listTag.getValue();
 
                 os.writeByte(listTag.getChildType().getId());
                 os.writeInt(tags.size());
-                for (Tag child : tags) {
+                for (Tag<?> child : tags) {
                     writeTagPayload(child);
                 }
                 break;
 
             case COMPOUND:
-                Map<String, Tag> map = ((CompoundTag) tag).getValue();
-                for (Map.Entry<String, Tag> entry : map.entrySet()) {
+                Object2ObjectLinkedOpenHashMap<String, Tag<?>> map = ((CompoundTag) tag).getValue();
+                for (Map.Entry<String, Tag<?>> entry : map.entrySet())
                     writeTag(entry.getKey(), entry.getValue());
-                }
+
                 os.writeByte((byte) 0); // end tag
                 break;
 

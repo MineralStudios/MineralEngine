@@ -8,4 +8,8 @@ public class EnderCrystal extends Entity {
         super(id);
     }
 
+    @Override
+    public void tickAsync() {
+    }
+
 }

@@ -13,9 +13,7 @@ public interface IWorld {
     Generator getGenerator();
 
     public static interface Generator {
-        boolean pregenerate();
-
-        Chunk generate(World world, byte chunkX, byte chunkZ);
+        Chunk generate(Environment environment, byte chunkX, byte chunkZ);
     }
 
     public static enum Environment {

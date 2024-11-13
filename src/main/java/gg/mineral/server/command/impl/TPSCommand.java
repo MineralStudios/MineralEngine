@@ -4,7 +4,6 @@ import java.lang.management.ManagementFactory;
 import com.sun.management.OperatingSystemMXBean;
 
 import dev.zerite.craftlib.chat.type.ChatColor;
-import gg.mineral.server.MinecraftServer;
 import gg.mineral.server.command.Command;
 import gg.mineral.server.command.CommandExecutor;
 import gg.mineral.server.tick.TickLoop;
@@ -19,17 +18,15 @@ public class TPSCommand extends Command {
     public void execute(CommandExecutor commandExecutor, String[] arguments) {
         commandExecutor.msg(
                 ChatColor.GRAY.toString() + ChatColor.STRIKETHROUGH.toString() + "-------------------------------");
-        TickLoop tickLoop = MinecraftServer.getTickLoop();
+        TickLoop tickLoop = commandExecutor.getServer().getTickLoop();
         commandExecutor.msg(ChatColor.UNDERLINE.toString() + "Performance" + ChatColor.GRAY.toString()
                 + " (1m, 5m, 15m)");
         commandExecutor.msg(" ");
-        for (int t = 0; t < MinecraftServer.getTickThreadCount(); t++)
-            commandExecutor
-                    .msg(ChatColor.WHITE.toString() + "Thread " + t
-                            + ": "
-                            + getTpsStr(tickLoop.tps1[t].getAverage()) + ChatColor.WHITE.toString() + ", "
-                            + getTpsStr(tickLoop.tps5[t].getAverage()) + ChatColor.WHITE.toString() + ", "
-                            + getTpsStr(tickLoop.tps15[t].getAverage()));
+        commandExecutor
+                .msg(ChatColor.WHITE.toString() + "TPS: "
+                        + getTpsStr(tickLoop.tps1.getAverage()) + ChatColor.WHITE.toString() + ", "
+                        + getTpsStr(tickLoop.tps5.getAverage()) + ChatColor.WHITE.toString() + ", "
+                        + getTpsStr(tickLoop.tps15.getAverage()));
 
         commandExecutor.msg(" ");
         OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);

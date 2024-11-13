@@ -4,17 +4,16 @@ import java.security.KeyPair;
 import java.util.Random;
 
 import gg.mineral.server.util.login.LoginUtil;
-import lombok.Getter;
+import lombok.Value;
 
+@Value
 public class LoginAuthData {
-    @Getter
+    private static final Random RANDOM = new Random();
     KeyPair keyPair;
-    @Getter
     byte[] verifyToken = new byte[4];
 
     public LoginAuthData() {
-        keyPair = LoginUtil.createKeyPair();
-        new Random().nextBytes(verifyToken);
+        this.keyPair = LoginUtil.createKeyPair();
+        RANDOM.nextBytes(verifyToken);
     }
-
 }

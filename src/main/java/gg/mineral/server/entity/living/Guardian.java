@@ -8,4 +8,8 @@ public class Guardian extends LivingEntity {
         super(id);
     }
 
+    @Override
+    public void tickAsync() {
+    }
+
 }

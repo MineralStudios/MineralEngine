@@ -3,11 +3,12 @@ package gg.mineral.server.util.nbt;
 import java.util.List;
 
 import gg.mineral.server.util.collection.GlueList;
+import lombok.NonNull;
 
 /**
  * The {@code TAG_List} tag.
  */
-final class ListTag<T extends Tag> extends Tag<List<T>> {
+final class ListTag<T extends Tag<?>> extends Tag<List<T>> {
 
     /**
      * The type of entries within this list.
@@ -31,8 +32,8 @@ final class ListTag<T extends Tag> extends Tag<List<T>> {
         this.value = new GlueList<>(value); // modifying list should not modify tag
 
         // ensure type of objects in list matches tag type
-        for (Tag elem : value) {
-            if (type != elem.getType()) {
+        for (Tag<?> elem : value) {
+            if (elem != null && type != elem.getType()) {
                 throw new IllegalArgumentException("ListTag(" + type + ") cannot hold tags of type " + elem.getType());
             }
         }
@@ -48,6 +49,7 @@ final class ListTag<T extends Tag> extends Tag<List<T>> {
     }
 
     @Override
+    @NonNull
     public List<T> getValue() {
         return value;
     }
@@ -56,6 +58,10 @@ final class ListTag<T extends Tag> extends Tag<List<T>> {
     protected void valueToString(StringBuilder bldr) {
         bldr.append(value.size()).append(" entries of type ").append(type.getName()).append("\n{\n");
         for (T elem : value) {
+            if (elem == null) {
+                bldr.append("    null\n");
+                continue;
+            }
             bldr.append("    ").append(elem.toString().replaceAll("\n", "\n    ")).append("\n");
         }
         bldr.append("}");

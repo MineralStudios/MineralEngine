@@ -7,11 +7,10 @@ import java.util.UUID;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.json.JSONObject;
+import org.jetbrains.annotations.Nullable;
 
 import dev.zerite.craftlib.chat.component.BaseChatComponent;
 import gg.mineral.server.MinecraftServer;
-import gg.mineral.server.entity.Entity;
 import gg.mineral.server.entity.living.human.Player;
 import gg.mineral.server.entity.manager.EntityManager;
 import gg.mineral.server.network.login.LoginAuthData;
@@ -34,8 +33,11 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.val;
 
+@RequiredArgsConstructor
 public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
     public static List<Connection> LIST = new GlueList<>();
     @Getter
@@ -48,16 +50,16 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
     String name;
     @Getter
     @Setter
+    @Nullable
     UUID uuid;
-    @Getter
-    @Setter
-    int entityId;
     boolean packetsQueued;
+    @Getter
+    private final MinecraftServer server;
 
     public void attemptLogin(String name) {
         this.name = name;
 
-        for (Entity entity : EntityManager.getEntities().values())
+        for (val entity : EntityManager.getEntities().values())
             if (entity instanceof Player player)
                 if (player.getName().equalsIgnoreCase(name)) {
                     disconnect(Messages.DISCONNECT_ALREADY_LOGGED_IN);
@@ -75,10 +77,10 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
     }
 
     public void sendPacket(Packet.OUTGOING... packets) {
-        for (Packet.OUTGOING packet : packets) {
+        for (val packet : packets) {
             channel.write(PacketUtil.serialize(packet));
 
-            if (MinecraftServer.DEBUG_MESSAGES)
+            if (server.debugMessages)
                 System.out.println("[Mineral] Packet sent: " + packet.getClass().getSimpleName());
         }
 
@@ -86,11 +88,11 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
     }
 
     public void queuePacket(Packet.OUTGOING... packets) {
-        for (Packet.OUTGOING packet : packets) {
+        for (val packet : packets) {
             channel.write(PacketUtil.serialize(packet));
             packetsQueued = true;
 
-            if (MinecraftServer.DEBUG_MESSAGES)
+            if (server.debugMessages)
                 System.out.println("[Mineral] Packet queued: " + packet.getClass().getSimpleName());
         }
     }
@@ -107,32 +109,32 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
                 LoginUtil.decryptRsa(this.loginAuthData.getKeyPair(), encryptedVerifyToken)))
             return false;
 
-        byte[] decryptedSharedSecret = LoginUtil.decryptRsa(this.loginAuthData.getKeyPair(),
+        val decryptedSharedSecret = LoginUtil.decryptRsa(this.loginAuthData.getKeyPair(),
                 encryptedSharedSecret);
 
-        String serverId = LoginUtil.hashSharedSecret(this.loginAuthData.getKeyPair().getPublic(),
+        val serverId = LoginUtil.hashSharedSecret(this.loginAuthData.getKeyPair().getPublic(),
                 decryptedSharedSecret);
 
-        String url = "https://sessionserver.mojang.com/session/minecraft/hasJoined?username=" +
+        val url = "https://sessionserver.mojang.com/session/minecraft/hasJoined?username=" +
                 this.getName()
                 + "&serverId="
                 + serverId;
 
-        JSONObject json = JsonUtil.getJsonObject(url);
+        val json = JsonUtil.getJsonObject(url);
 
         if (json == null)
             return false;
 
-        String id = json.getString("id");
+        val id = json.getString("id");
 
         if (id == null)
             return false;
 
-        UUID uuid = UUIDUtil.fromString(id);
+        val uuid = UUIDUtil.fromString(id);
 
         this.setUuid(uuid);
 
-        SecretKey secretKey = new SecretKeySpec(decryptedSharedSecret, "AES");
+        val secretKey = new SecretKeySpec(decryptedSharedSecret, "AES");
 
         enableEncryption(secretKey);
 
@@ -149,7 +151,7 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        EntityManager.remove(this.entityId);
+        EntityManager.remove(this);
         setProtocolState(ProtocolState.HANDSHAKE);
         LIST.remove(this);
         super.channelInactive(ctx);
@@ -183,7 +185,7 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Packet.INCOMING received) throws Exception {
-        if (MinecraftServer.DEBUG_MESSAGES)
+        if (server.debugMessages)
             System.out.println("[Mineral] Packet received: " + received.getClass().getSimpleName());
         received.received(this);
     }
