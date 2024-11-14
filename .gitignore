@@ -30,3 +30,5 @@ taco.yml
 usercache.json
 whitelist.json
 eula.txt
+.classpath
+.factorypath
