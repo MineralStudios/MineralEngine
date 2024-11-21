@@ -3,14 +3,7 @@ package gg.mineral.server.network.packet.play.clientbound;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 
-public class TimeUpdatePacket implements Packet.OUTGOING {
-    long ageOfWorld, timeOfDay;
-
-    public TimeUpdatePacket(long ageOfWorld, long timeOfDay) {
-        this.ageOfWorld = ageOfWorld;
-        this.timeOfDay = timeOfDay;
-    }
-
+public record TimeUpdatePacket(long ageOfWorld, long timeOfDay) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeLong(ageOfWorld);
@@ -21,5 +14,4 @@ public class TimeUpdatePacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x03;
     }
-
 }

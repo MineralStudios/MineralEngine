@@ -10,7 +10,7 @@ import java.util.concurrent.Callable;
 @Getter
 public abstract class Entity implements Callable<Entity> {
     @Setter
-    private double x, y, z, motX, motY, motZ;
+    protected double x, y, z, motX, motY, motZ;
     @Setter
     private double headY;
     private float yaw, pitch, lastYaw, lastPitch;
@@ -22,6 +22,9 @@ public abstract class Entity implements Callable<Entity> {
     @Getter
     @Setter
     private boolean firstTick = true, firstAsyncTick = true;
+    @Getter
+    @Setter
+    protected boolean velocityChanged = false;
     @Getter
     private final Random random = new Random(); // TODO: better random implementation
 
@@ -37,6 +40,33 @@ public abstract class Entity implements Callable<Entity> {
 
     public void tick() {
         currentTick++;
+
+        if (motY < 0.005)
+            motY = 0;
+
+        if (motX < 0.005)
+            motX = 0;
+
+        if (motZ < 0.005)
+            motZ = 0;
+
+        if (motY > 0) {
+            motY -= 0.08;
+            motY *= 0.98;
+        }
+
+        if (motX > 0) {
+            motX *= 0.91;
+            if (onGround)
+                motX *= 0.6;
+        }
+
+        if (motZ > 0) {
+            motZ *= 0.91;
+            if (onGround)
+                motZ *= 0.6;
+        }
+
     }
 
     public abstract void tickAsync();

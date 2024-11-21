@@ -4,17 +4,8 @@ import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 
-public class UpdateScorePacket implements Packet.OUTGOING {
-    String itemName, scoreName;
-    byte updateOrRemove;
-    int value;
-
-    public UpdateScorePacket(String itemName, String scoreName, byte updateOrRemove, int value) {
-        this.itemName = itemName;
-        this.scoreName = scoreName;
-        this.updateOrRemove = updateOrRemove;
-        this.value = value;
-    }
+public record UpdateScorePacket(String itemName, String scoreName, byte updateOrRemove, int value)
+        implements Packet.OUTGOING {
 
     @Override
     public void serialize(ByteBuf os) {
@@ -28,5 +19,4 @@ public class UpdateScorePacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x3C;
     }
-
 }

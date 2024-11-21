@@ -10,21 +10,22 @@ import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.base64.Base64;
 import kotlin.text.Charsets;
+import lombok.val;
 
 public class IconUtil {
 
     public static String ICON;
 
     static {
-        File file = new File("server-icon.png");
+        val file = new File("server-icon.png");
 
         if (file.isFile()) {
 
-            ByteBuf buf = Unpooled.buffer();
+            val buf = Unpooled.buffer();
             ByteBuf imageBuf = null;
 
             try {
-                java.awt.image.BufferedImage bufferedimage = ImageIO.read(file);
+                val bufferedimage = ImageIO.read(file);
 
                 if (bufferedimage.getWidth() == 64 || bufferedimage.getHeight() == 64) {
                     ImageIO.write(bufferedimage, "PNG", new ByteBufOutputStream(buf));
@@ -35,11 +36,11 @@ public class IconUtil {
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
-                buf.release();
+                if (buf != null && buf.refCnt() > 0)
+                    buf.release();
 
-                if (imageBuf != null) {
+                if (imageBuf != null)
                     imageBuf.release();
-                }
             }
         }
     }

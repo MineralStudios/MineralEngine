@@ -4,23 +4,20 @@ import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 @NoArgsConstructor
+@AllArgsConstructor
+@Data
+@Accessors(fluent = true)
 public class UpdateSignPacket implements Packet.INCOMING, Packet.OUTGOING {
-    int x, z;
-    short y;
-    String line1, line2, line3, line4;
-
-    public UpdateSignPacket(int x, short y, int z, String line1, String line2, String line3, String line4) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.line1 = line1;
-        this.line2 = line2;
-        this.line3 = line3;
-        this.line4 = line4;
-    }
+    private int x;
+    private short y;
+    private int z;
+    private String line1, line2, line3, line4;
 
     @Override
     public void serialize(ByteBuf os) {
@@ -54,5 +51,4 @@ public class UpdateSignPacket implements Packet.INCOMING, Packet.OUTGOING {
     public byte getId() {
         return 0x33;
     }
-
 }

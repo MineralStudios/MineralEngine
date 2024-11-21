@@ -3,6 +3,7 @@ package gg.mineral.server.util.nbt;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.val;
 
 /**
  * Represents a single NBT tag.
@@ -25,7 +26,7 @@ public abstract class Tag<T> {
 
     @Override
     public final String toString() {
-        StringBuilder builder = new StringBuilder("TAG_");
+        val builder = new StringBuilder("TAG_");
         builder.append(type.getName()).append(": ");
         valueToString(builder);
         return builder.toString();
@@ -38,7 +39,7 @@ public abstract class Tag<T> {
         if (o == null || getClass() != o.getClass())
             return false;
 
-        Tag<?> tag = (Tag<?>) o;
+        val tag = (Tag<?>) o;
 
         return type == tag.type && getValue().equals(tag.getValue());
     }

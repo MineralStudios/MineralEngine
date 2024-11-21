@@ -8,17 +8,19 @@ import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Accessors(fluent = true)
 public class HandshakePacket implements Packet.INCOMING {
     private int protocol, port, nextState;
     private String serverAddress;
 
     @Override
     public void received(Connection connection) {
-        connection.PROTOCOL_VERSION = (byte) protocol;
+        connection.setProtocolVersion((byte) protocol);
         connection.setProtocolState(ProtocolState.getState(nextState));
     }
 
@@ -29,5 +31,4 @@ public class HandshakePacket implements Packet.INCOMING {
         port = is.readUnsignedShort();
         nextState = ByteBufUtil.readVarInt(is);
     }
-
 }

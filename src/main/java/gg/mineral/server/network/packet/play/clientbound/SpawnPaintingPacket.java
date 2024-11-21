@@ -4,18 +4,8 @@ import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 
-public class SpawnPaintingPacket implements Packet.OUTGOING {
-    int entityId, x, y, z, direction;
-    String title;
-
-    public SpawnPaintingPacket(int entityId, int x, int y, int z, int direction, String title) {
-        this.entityId = entityId;
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.direction = direction;
-        this.title = title;
-    }
+public record SpawnPaintingPacket(int entityId, String title, int x, int y, int z, int direction)
+        implements Packet.OUTGOING {
 
     @Override
     public void serialize(ByteBuf os) {
@@ -31,5 +21,4 @@ public class SpawnPaintingPacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x10;
     }
-
 }

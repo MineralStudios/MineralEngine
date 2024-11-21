@@ -7,16 +7,7 @@ import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 
-public class EntityMetadataPacket implements Packet.OUTGOING {
-
-    int entityId;
-    List<EntityMetadata.Entry> entries;
-
-    public EntityMetadataPacket(int entityId, List<EntityMetadata.Entry> entries) {
-        this.entityId = entityId;
-        this.entries = entries;
-    }
-
+public record EntityMetadataPacket(int entityId, List<EntityMetadata.Entry> entries) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeInt(entityId);
@@ -27,5 +18,4 @@ public class EntityMetadataPacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x1C;
     }
-
 }

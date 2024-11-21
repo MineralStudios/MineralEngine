@@ -4,17 +4,7 @@ import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 
-public class PlayerListItemPacket implements Packet.OUTGOING {
-    String playerName;
-    boolean online;
-    short ping;
-
-    public PlayerListItemPacket(String playerName, boolean online, short ping) {
-        this.playerName = playerName;
-        this.online = online;
-        this.ping = ping;
-    }
-
+public record PlayerListItemPacket(String playerName, boolean online, short ping) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         ByteBufUtil.writeString(os, playerName);
@@ -26,5 +16,4 @@ public class PlayerListItemPacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x38;
     }
-
 }

@@ -20,6 +20,8 @@ package gg.mineral.server.network.packet.handler;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.ReferenceCountUtil;
+import lombok.val;
+
 import java.util.ArrayDeque;
 import java.util.Queue;
 
@@ -74,9 +76,9 @@ public class AutoReadHolderHandler extends ChannelDuplexHandler {
 
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-        for (Object message : this.queuedMessages) {
+        for (val message : this.queuedMessages)
             ReferenceCountUtil.release(message);
-        }
+
         this.queuedMessages.clear();
     }
 }

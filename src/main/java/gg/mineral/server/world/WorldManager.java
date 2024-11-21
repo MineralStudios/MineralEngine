@@ -18,6 +18,7 @@ public class WorldManager {
                 for (int x = 0; x < 16; x++)
                     for (int z = 0; z < 16; z++)
                         chunk.setType(x, z, 50, 1);
+
                 return chunk;
             }
 

@@ -1,25 +1,20 @@
 package gg.mineral.server.network.packet.play.clientbound;
 
-import java.util.Map;
-
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import lombok.val;
 
-public class StatisticsPacket implements Packet.OUTGOING {
-    Map<String, Integer> statistics;
-
-    public StatisticsPacket(Map<String, Integer> statistics) {
-        this.statistics = statistics;
-    }
+public record StatisticsPacket(Object2IntMap<String> statistics) implements Packet.OUTGOING {
 
     @Override
     public void serialize(ByteBuf os) {
         ByteBufUtil.writeVarInt(os, statistics.size());
 
-        for (Map.Entry<String, Integer> entry : statistics.entrySet()) {
+        for (val entry : statistics.object2IntEntrySet()) {
             ByteBufUtil.writeString(os, entry.getKey());
-            ByteBufUtil.writeVarInt(os, entry.getValue());
+            ByteBufUtil.writeVarInt(os, entry.getIntValue());
         }
     }
 
@@ -27,5 +22,4 @@ public class StatisticsPacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x37;
     }
-
 }

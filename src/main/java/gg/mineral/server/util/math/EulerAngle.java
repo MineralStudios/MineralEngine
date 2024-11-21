@@ -1,9 +1,15 @@
 package gg.mineral.server.util.math;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.val;
+
 /**
  * EulerAngle is used to represent 3 angles, one for each
  * axis (x, y, z). The angles are in radians
  */
+@RequiredArgsConstructor
+@Getter
 public class EulerAngle {
 
     /**
@@ -11,50 +17,7 @@ public class EulerAngle {
      */
     public static final EulerAngle ZERO = new EulerAngle(0, 0, 0);
 
-    private final double x;
-    private final double y;
-    private final double z;
-
-    /**
-     * Creates a EularAngle with each axis set to the
-     * passed angle in radians
-     *
-     * @param x the angle for the x axis in radians
-     * @param y the angle for the y axis in radians
-     * @param z the angle for the z axis in radians
-     */
-    public EulerAngle(double x, double y, double z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
-    /**
-     * Returns the angle on the x axis in radians
-     *
-     * @return the angle in radians
-     */
-    public double getX() {
-        return x;
-    }
-
-    /**
-     * Returns the angle on the y axis in radians
-     *
-     * @return the angle in radians
-     */
-    public double getY() {
-        return y;
-    }
-
-    /**
-     * Returns the angle on the z axis in radians
-     *
-     * @return the angle in radians
-     */
-    public double getZ() {
-        return z;
-    }
+    private final double x, y, z;
 
     /**
      * Return a EulerAngle which is the result of changing
@@ -125,7 +88,7 @@ public class EulerAngle {
         if (o == null || getClass() != o.getClass())
             return false;
 
-        EulerAngle that = (EulerAngle) o;
+        val that = (EulerAngle) o;
 
         return Double.compare(that.x, x) == 0
                 && Double.compare(that.y, y) == 0

@@ -4,10 +4,8 @@ import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 
-public class SpawnObjectPacket implements Packet.OUTGOING {
-    int entityId, x, y, z, data;
-    byte yaw, pitch, type;
-
+public record SpawnObjectPacket(int entityId, byte type, int x, int y, int z, byte pitch, byte yaw, int data)
+        implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         ByteBufUtil.writeVarInt(os, entityId);
@@ -24,5 +22,4 @@ public class SpawnObjectPacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x0E;
     }
-
 }

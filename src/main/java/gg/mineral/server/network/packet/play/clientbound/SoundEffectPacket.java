@@ -4,21 +4,8 @@ import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 
-public class SoundEffectPacket implements Packet.OUTGOING {
-    String soundName;
-    int x, y, z;
-    float volume;
-    short pitch;
-
-    public SoundEffectPacket(String soundName, double x, double y, double z, float volume, float pitch) {
-        this.soundName = soundName;
-        this.x = (int) (x * 8);
-        this.y = (int) (y * 8);
-        this.z = (int) (z * 8);
-        this.volume = volume;
-        this.pitch = (short) (pitch * 63);
-    }
-
+public record SoundEffectPacket(String soundName, int x, int y, int z, float volume, short pitch)
+        implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         ByteBufUtil.writeString(os, soundName);
@@ -33,5 +20,4 @@ public class SoundEffectPacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x29;
     }
-
 }

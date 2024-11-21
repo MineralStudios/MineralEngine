@@ -3,22 +3,25 @@ package gg.mineral.server.tick;
 import java.util.concurrent.TimeUnit;
 
 import gg.mineral.server.MinecraftServer;
-import gg.mineral.server.entity.manager.EntityManager;
-import gg.mineral.server.network.connection.Connection;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.val;
 
+@RequiredArgsConstructor
 public class TickLoop {
 
     private int currentTicks;
 
-    public static final int TPS = 20;
+    private static final int TPS = 20;
     private static final long SEC_IN_NANO = 1000000000;
-    public static final long TICK_EVERY = SEC_IN_NANO / 20;
     private static final int SAMPLE_INTERVAL = 20;
 
-    long tickSection, curTime;
+    private long tickSection, curTime;
 
-    public RollingAverage tps1, tps5, tps15;
+    @Getter
+    private RollingAverage tps1, tps5, tps15;
+
+    private final MinecraftServer server;
 
     public static class RollingAverage {
         private final int size;
@@ -67,17 +70,14 @@ public class TickLoop {
     }
 
     public void tick() {
-
         try {
-            val entities = EntityManager.getEntities().values();
+            val entities = server.getEntityManager().getEntities().values();
 
             for (val entity : entities)
                 entity.tick();
 
             MinecraftServer.getAsyncExecutor().invokeAll(entities);
-
-            for (val connection : Connection.LIST)
-                connection.tick();
+            MinecraftServer.getAsyncExecutor().invokeAll(server.getConnections());
 
             curTime = System.nanoTime();
             if (++currentTicks % SAMPLE_INTERVAL == 0) {

@@ -2,18 +2,11 @@ package gg.mineral.server.network.packet.play.clientbound;
 
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
-@Getter
-@RequiredArgsConstructor
-public class ChunkDataPacket implements Packet.OUTGOING {
-    final int chunkX, chunkZ, primaryBitMap, addBitMap;
-    final boolean groundUpContinuous;
-    final byte[] compressedData;
-
+public record ChunkDataPacket(int chunkX, int chunkZ, boolean groundUpContinuous, int primaryBitMap, int addBitMap,
+        byte[] compressedData) implements Packet.OUTGOING {
     public ChunkDataPacket(int chunkX, int chunkZ) {
-        this(chunkX, chunkZ, 0, 0, true, new byte[0]);
+        this(chunkX, chunkZ, true, 0, 0, new byte[0]);
     }
 
     @Override

@@ -5,12 +5,21 @@ import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import gg.mineral.server.world.property.Difficulty;
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Accessors(fluent = true)
 public class ClientSettingsPacket implements Packet.INCOMING {
-    String locale;
-    byte viewDistance, chatFlags;
-    Difficulty difficulty;
-    boolean chatColors, showCape;
+    private String locale;
+    private byte viewDistance, chatFlags;
+    private boolean chatColors;
+    private Difficulty difficulty;
+    private boolean showCape;
 
     @Override
     public void received(Connection connection) {

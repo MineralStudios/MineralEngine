@@ -3,15 +3,7 @@ package gg.mineral.server.network.packet.play.clientbound;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 
-public class SpawnPositionPacket implements Packet.OUTGOING {
-    int x, y, z;
-
-    public SpawnPositionPacket(int x, int y, int z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
+public record SpawnPositionPacket(int x, int y, int z) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeInt(x);
@@ -23,5 +15,4 @@ public class SpawnPositionPacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x05;
     }
-
 }

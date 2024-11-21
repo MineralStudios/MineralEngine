@@ -5,55 +5,42 @@ import java.util.List;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.world.chunk.Chunk;
 import io.netty.buffer.ByteBuf;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.val;
 
-public class MapChunkBulkPacket implements Packet.OUTGOING {
-
-    private final Chunk[] columns;
-    private final boolean skyLight;
-
-    public MapChunkBulkPacket(boolean skyLight, List<Chunk> chunks) {
-        this.skyLight = skyLight;
-        this.columns = chunks.toArray(new Chunk[0]);
-    }
-
+public record MapChunkBulkPacket(boolean skyLight, List<Chunk> chunks) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
-        byte[] bytes = new byte[196864 * columns.length];
+        int amount = this.chunks.size();
+        val bytes = new byte[196864 * amount];
         int bytesPosition = 0;
 
-        Pair[] output = new Pair[this.columns.length];
-        for (int i = 0; i < this.columns.length; i++) {
-            Chunk column = this.columns[i];
-            ChunkDataPacket out = column.toPacket(skyLight, false);
-            System.arraycopy(out.getCompressedData(), 0, bytes, bytesPosition, out.getCompressedData().length);
-            bytesPosition += out.getCompressedData().length;
-            output[i] = new Pair(column, out);
+        val output = new Pair[amount];
+        for (int i = 0; i < amount; i++) {
+            val chunk = this.chunks.get(i);
+            val out = chunk.toPacket(skyLight, false);
+            System.arraycopy(out.compressedData(), 0, bytes, bytesPosition, out.compressedData().length);
+            bytesPosition += out.compressedData().length;
+            output[i] = new Pair(chunk, out);
         }
 
-        byte[] compressed = Chunk.compress(bytes, bytesPosition);
+        val compressed = Chunk.compress(bytes, bytesPosition);
 
-        os.writeShort(columns.length);
+        os.writeShort(amount);
         os.writeInt(compressed.length);
         os.writeBoolean(skyLight);
         os.writeBytes(compressed);
 
-        for (Pair pair : output) {
-            Chunk col = pair.getChunk();
-            ChunkDataPacket out = pair.getPacket();
+        for (val pair : output) {
+            val col = pair.chunk();
+            val out = pair.packet();
             os.writeInt(col.getX());
             os.writeInt(col.getZ());
-            os.writeShort(out.getPrimaryBitMap());
-            os.writeShort(out.getAddBitMap());
+            os.writeShort(out.primaryBitMap());
+            os.writeShort(out.addBitMap());
         }
     }
 
-    @Getter
-    @RequiredArgsConstructor
-    private class Pair {
-        private final Chunk chunk;
-        private final ChunkDataPacket packet;
+    private record Pair(Chunk chunk, ChunkDataPacket packet) {
     }
 
     @Override

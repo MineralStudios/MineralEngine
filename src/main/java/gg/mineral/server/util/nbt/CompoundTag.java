@@ -3,13 +3,13 @@ package gg.mineral.server.util.nbt;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import lombok.NonNull;
+import lombok.val;
 
 /**
  * The {@code TAG_Compound} tag.
@@ -37,10 +37,10 @@ public final class CompoundTag extends Tag<Object2ObjectLinkedOpenHashMap<String
     @Override
     protected void valueToString(StringBuilder bldr) {
         bldr.append(value.size()).append(" entries\n{\n");
-        for (Map.Entry<String, Tag<?>> entry : value.entrySet()) {
+        for (val entry : value.entrySet())
             bldr.append("    ").append(entry.getKey()).append(": ")
                     .append(entry.getValue().toString().replaceAll("\n", "\n    ")).append("\n");
-        }
+
         bldr.append("}");
     }
 
@@ -73,32 +73,32 @@ public final class CompoundTag extends Tag<Object2ObjectLinkedOpenHashMap<String
     }
 
     public byte getByte(String key) {
-        Byte tag = get(key, ByteTag.class);
+        val tag = get(key, ByteTag.class);
         return tag == null ? 0 : tag;
     }
 
     public short getShort(String key) {
-        Short tag = get(key, ShortTag.class);
+        val tag = get(key, ShortTag.class);
         return tag == null ? 0 : tag;
     }
 
     public int getInt(String key) {
-        Integer tag = get(key, IntTag.class);
+        val tag = get(key, IntTag.class);
         return tag == null ? 0 : tag;
     }
 
     public long getLong(String key) {
-        Long tag = get(key, LongTag.class);
+        val tag = get(key, LongTag.class);
         return tag == null ? 0 : tag;
     }
 
     public float getFloat(String key) {
-        Float tag = get(key, FloatTag.class);
+        val tag = get(key, FloatTag.class);
         return tag == null ? 0 : tag;
     }
 
     public double getDouble(String key) {
-        Double tag = get(key, DoubleTag.class);
+        val tag = get(key, DoubleTag.class);
         return tag == null ? 0 : tag;
     }
 
@@ -272,10 +272,10 @@ public final class CompoundTag extends Tag<Object2ObjectLinkedOpenHashMap<String
 
     @SuppressWarnings("unchecked")
     public <T extends Tag<?>> T getTag(String key, Class<T> clazz) {
-        if (!is(key, clazz)) {
+        if (!is(key, clazz))
             throw new IllegalArgumentException(
                     "Compound does not contain " + clazz.getSimpleName() + " \"" + key + "\"");
-        }
+
         return (T) value.get(key);
     }
 

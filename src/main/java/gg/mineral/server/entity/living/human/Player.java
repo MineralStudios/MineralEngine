@@ -1,20 +1,25 @@
 package gg.mineral.server.entity.living.human;
 
 import java.util.List;
-
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import dev.zerite.craftlib.chat.component.BaseChatComponent;
 import dev.zerite.craftlib.chat.component.StringChatComponent;
 import gg.mineral.server.MinecraftServer;
 import gg.mineral.server.command.CommandExecutor;
+import gg.mineral.server.command.impl.KnockbackCommand;
+import gg.mineral.server.entity.attribute.Attribute;
+import gg.mineral.server.entity.attribute.AttributeInstance;
 import gg.mineral.server.entity.attribute.Property;
+import gg.mineral.server.entity.effect.PotionEffect;
 import gg.mineral.server.entity.living.HumanEntity;
 import gg.mineral.server.entity.living.human.property.Gamemode;
 import gg.mineral.server.entity.living.human.property.PlayerAbilities;
-import gg.mineral.server.entity.manager.EntityManager;
 import gg.mineral.server.entity.metadata.EntityMetadata;
 import gg.mineral.server.inventory.item.ItemStack;
 import gg.mineral.server.inventory.item.Material;
@@ -31,10 +36,13 @@ import gg.mineral.server.network.packet.play.clientbound.EntityLookAndRelativeMo
 import gg.mineral.server.network.packet.play.clientbound.EntityLookPacket;
 import gg.mineral.server.network.packet.play.clientbound.EntityPropertiesPacket;
 import gg.mineral.server.network.packet.play.clientbound.EntityRelativeMovePacket;
+import gg.mineral.server.network.packet.play.clientbound.EntityStatusPacket;
+import gg.mineral.server.network.packet.play.clientbound.EntityVelocityPacket;
 import gg.mineral.server.network.packet.play.clientbound.JoinGamePacket;
 import gg.mineral.server.network.packet.play.clientbound.MapChunkBulkPacket;
 import gg.mineral.server.network.packet.play.clientbound.PlayerPositionAndLookPacket;
 import gg.mineral.server.network.packet.play.clientbound.SetSlotPacket;
+import gg.mineral.server.network.packet.play.clientbound.SoundEffectPacket;
 import gg.mineral.server.network.packet.play.clientbound.SpawnPlayerPacket;
 import gg.mineral.server.network.packet.play.clientbound.SpawnPositionPacket;
 import gg.mineral.server.util.collection.GlueList;
@@ -87,9 +95,7 @@ public class Player extends HumanEntity implements CommandExecutor {
 
     @Getter
     @Setter
-    Gamemode gamemode = Gamemode.SURVIVAL;
-
-    final Property movementSpeed = new Property(0.1, 0.1, null);
+    private Gamemode gamemode = Gamemode.SURVIVAL;
 
     public Player(Connection connection, int id, World world) {
         super(id);
@@ -108,7 +114,7 @@ public class Player extends HumanEntity implements CommandExecutor {
 
     public void swingArm() {
         for (int id : visibleEntities.keySet()) {
-            val player = EntityManager.getPlayer(id);
+            val player = server.getEntityManager().getPlayer(id);
 
             if (player == null)
                 continue;
@@ -120,17 +126,19 @@ public class Player extends HumanEntity implements CommandExecutor {
     public void setSprinting(boolean sprint) {
 
         if (sprint && !sprinting) {
-            movementSpeed.setValue(movementSpeed.getValue() * 1.3);
+            // movementSpeed.value(movementSpeed.value() * 1.3);
         } else if (!sprint && sprinting) {
-            movementSpeed.setValue(movementSpeed.getValue() / 1.3);
+            // movementSpeed.value(movementSpeed.value() / 1.3);
         }
 
         this.sprinting = sprint;
     }
 
     public void effectSpeed() {
-        movementSpeed.setValue(movementSpeed.getValue() * 1.4);
-        connection.queuePacket(new EntityEffectPacket(id, (byte) 1, (byte) 1, (short) 32767));
+        byte amplifier = 1;
+        getAttribute(Attribute.MOVEMENT_SPEED)
+                .addModifier(PotionEffect.SPEED.getModifier(amplifier));
+        connection.queuePacket(new EntityEffectPacket(id, PotionEffect.SPEED.getId(), amplifier, (short) 32767));
     }
 
     public void disconnect(BaseChatComponent chatComponent) {
@@ -176,13 +184,17 @@ public class Player extends HumanEntity implements CommandExecutor {
     public void tick() {
         super.tick();
 
+        if (isFirstTick()) {
+            setupAttributes();
+            effectSpeed();
+        }
+
         updateChunkPosition();
 
-        updateVisibleEntities();
+        if (getCurrentTick() % 2 == 0)
+            updateVisibleEntities();
 
         tickArm();
-
-        updateProperties();
 
         setFirstTick(false);
     }
@@ -204,7 +216,7 @@ public class Player extends HumanEntity implements CommandExecutor {
                 if (entityId == this.getId())
                     continue;
 
-                val player = EntityManager.getPlayer(entityId);
+                val player = server.getEntityManager().getPlayer(entityId);
 
                 if (visibleEntities.containsKey(entityId)) {
                     if (player == null || !player.getWorld().equals(getWorld())) {
@@ -219,15 +231,15 @@ public class Player extends HumanEntity implements CommandExecutor {
                 if (player == null)
                     continue;
 
-                int x = MathUtil.toFixedPointInt(player.getX()),
+                final int x = MathUtil.toFixedPointInt(player.getX()),
                         y = MathUtil.toFixedPointInt(player.getY()),
                         z = MathUtil.toFixedPointInt(player.getZ()),
                         yaw = MathUtil.angleToByte(player.getYaw()),
                         pitch = MathUtil.angleToByte(player.getPitch());
                 visibleEntities.put(player.getId(), new int[] { x, y, z, yaw, pitch });
                 getConnection().sendPacket(new SpawnPlayerPacket(player.getId(), // TODO: Reduce packet flushing
-                        x, y, z, player.getYaw(),
-                        player.getPitch(), player.getUuid().toString(),
+                        x, y, z, MathUtil.angleToByte(player.getYaw()),
+                        MathUtil.angleToByte(player.getPitch()), player.getUuid().toString(),
                         player.getName(), new GlueList<>() /* TODO: player property */, (short) 0 /*
                                                                                                    * TODO:
                                                                                                    * held
@@ -240,7 +252,7 @@ public class Player extends HumanEntity implements CommandExecutor {
 
         for (val e : visibleEntities.int2ObjectEntrySet()) {
 
-            val entity = EntityManager.getEntity(e.getIntKey());
+            val entity = server.getEntityManager().getEntity(e.getIntKey());
 
             if (entity == null)
                 continue;
@@ -396,10 +408,11 @@ public class Player extends HumanEntity implements CommandExecutor {
     }
 
     public void onJoin() {
+        // TODO: make queue packet
         connection.sendPacket(
                 new LoginSuccessPacket(connection.getUuid(), connection.getName()),
                 new JoinGamePacket(this.getId(), gamemode, Dimension.OVERWORLD, Difficulty.PEACEFUL,
-                        LevelType.FLAT, (short) 1000));
+                        (short) 1000, LevelType.FLAT));
 
         connection.queuePacket(
                 new SpawnPositionPacket(0, 70, 0),
@@ -408,18 +421,64 @@ public class Player extends HumanEntity implements CommandExecutor {
                 new HeldItemChangePacket((short) 0),
                 new PlayerPositionAndLookPacket(0, 70, 0, 0f, 0f, false));
 
-        effectSpeed();
-
         connection.sendPacket(
                 new SetSlotPacket((byte) 0, (short) 36, new ItemStack(Material.DIAMOND_SWORD, (short) 1, (short) 1)));
     }
 
-    public void updateProperties() {
-        if (movementSpeed.getValue() != movementSpeed.getLastValue()) {
-            val properties = new Object2ObjectOpenHashMap<String, Property>();
-            properties.put("generic.movementSpeed", movementSpeed);
-            connection.queuePacket(new EntityPropertiesPacket(id, properties));
+    private static final Attribute[] BASE_ATTRIBUTES = new Attribute[] {
+            Attribute.MAX_HEALTH,
+            Attribute.KNOCKBACK_RESISTANCE,
+            Attribute.MOVEMENT_SPEED,
+            Attribute.ATTACK_DAMAGE
+    };
+
+    @NotNull
+    public AttributeInstance getAttribute(@NotNull Attribute attribute) {
+        return attributeModifiers.computeIfAbsent(attribute.getKey(),
+                s -> new AttributeInstance(attribute, this::onAttributeChanged));
+    }
+
+    private final Map<String, AttributeInstance> attributeModifiers = new ConcurrentHashMap<>();
+
+    protected void onAttributeChanged(@NotNull AttributeInstance attributeInstance) {
+        if (attributeInstance.getAttribute().isShared()) {
+            boolean self = true; // TODO: is the self player or other players
+
+            if (self) {
+                connection.queuePacket(getPropertiesPacket());
+                // sendPacketToViewersAndSelf(getPropertiesPacket());
+            } else {
+                // sendPacketToViewers(getPropertiesPacket());
+            }
         }
+    }
+
+    protected void setupAttributes() {
+        for (Attribute attribute : BASE_ATTRIBUTES) {
+            final AttributeInstance attributeInstance = new AttributeInstance(attribute, this::onAttributeChanged);
+            this.attributeModifiers.put(attribute.getKey(), attributeInstance);
+        }
+    }
+
+    @NotNull
+    // TODO: send properties packet to viewers
+    protected EntityPropertiesPacket getPropertiesPacket() {
+        // Get all the attributes which should be sent to the client
+        val instances = attributeModifiers.values().stream()
+                .filter(i -> i.getAttribute().isShared())
+                .toArray(AttributeInstance[]::new);
+
+        val properties = new Object2ObjectOpenHashMap<String, Property>(instances.length);
+        for (int i = 0; i < instances.length; ++i) {
+            val property = new Property(instances[i].getBaseValue(), instances[i].getModifiers());
+            properties.put(instances[i].getAttribute().getKey(), property);
+        }
+        return new EntityPropertiesPacket(getId(), properties);
+    }
+
+    public float getAttributeValue(@NotNull Attribute attribute) {
+        val instance = attributeModifiers.get(attribute.getKey());
+        return (instance != null) ? instance.getValue() : attribute.getDefaultValue();
     }
 
     @Override
@@ -443,6 +502,65 @@ public class Player extends HumanEntity implements CommandExecutor {
     @Override
     public MinecraftServer getServer() {
         return server;
+    }
+
+    public void attack(int target) {
+        val entityManager = server.getEntityManager();
+        val entity = entityManager.getEntity(target);
+        if (entity instanceof Player player && player.getCurrentTick() - player.getLastDamaged() >= 10) {
+            player.setLastDamaged(player.getCurrentTick());
+            val statusPacket = new EntityStatusPacket(player.getId(), (byte) 2);
+
+            double motX = player.getMotX();
+            double motY = player.getMotY();
+            double motZ = player.getMotZ();
+            double x = KnockbackCommand.x;
+            double y = KnockbackCommand.y;
+            double z = KnockbackCommand.z;
+
+            double extraX = KnockbackCommand.extraX;
+            double extraY = KnockbackCommand.extraY;
+            double extraZ = KnockbackCommand.extraZ;
+
+            double yLimit = KnockbackCommand.yLimit;
+
+            double friction = KnockbackCommand.friction;
+
+            motX /= friction;
+            motY /= friction;
+            motZ /= friction;
+
+            float angle = (float) Math.toRadians(this.getYaw());
+            double sin = -Math.sin(angle);
+            double cos = Math.cos(angle);
+
+            motX += x * sin;
+            motY += y;
+            motZ += z * cos;
+
+            if (motY > yLimit)
+                motY = yLimit;
+
+            if (this.isExtraKnockback()) {
+                motX += extraX * sin;
+                motY += extraY;
+                motZ += extraZ * cos;
+                this.setMotX(this.getMotX() * 0.6);
+                this.setMotZ(this.getMotZ() * 0.6);
+                this.setExtraKnockback(false);
+            }
+            val velocityPacket = new EntityVelocityPacket(target, MathUtil.toVelocityUnits(motX),
+                    MathUtil.toVelocityUnits(motY), MathUtil.toVelocityUnits(motZ));
+            player.getConnection().queuePacket(statusPacket, velocityPacket);
+            connection.queuePacket(statusPacket, new SoundEffectPacket("game.player.hurt",
+                    MathUtil.toSoundUnits(player.getX()), MathUtil.toSoundUnits(player.getY()),
+                    MathUtil.toSoundUnits(player.getZ()), 1.0f, MathUtil.toPitchUnits((this.getRandom().nextFloat()
+                            - this.getRandom().nextFloat()) * 0.2F + 1.0F)),
+                    velocityPacket);
+            player.setMotX(motX);
+            player.setMotY(motY);
+            player.setMotZ(motZ);
+        }
     }
 
 }

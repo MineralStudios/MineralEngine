@@ -1,18 +1,6 @@
 package gg.mineral.server.entity.attribute;
 
-import java.util.List;
+import java.util.Collection;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
-@AllArgsConstructor
-@Data
-public class Property {
-    private double value, lastValue;
-    private List<Modifier> modifiers;
-
-    public void setValue(double value) {
-        lastValue = this.value;
-        this.value = value;
-    }
+public record Property(double value, Collection<AttributeModifier> modifiers) {
 }

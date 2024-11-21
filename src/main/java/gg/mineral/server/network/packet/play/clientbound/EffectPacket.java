@@ -3,20 +3,8 @@ package gg.mineral.server.network.packet.play.clientbound;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 
-public class EffectPacket implements Packet.OUTGOING {
-    int effectId, x, z, data;
-    byte y;
-    boolean disableRelativeVolume;
-
-    public EffectPacket(int effectId, int x, byte y, int z, int data, boolean disableRelativeVolume) {
-        this.effectId = effectId;
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.data = data;
-        this.disableRelativeVolume = disableRelativeVolume;
-    }
-
+public record EffectPacket(int effectId, int x, short y, int z, int data, boolean disableRelativeVolume)
+        implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeInt(effectId);
@@ -31,5 +19,4 @@ public class EffectPacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x28;
     }
-
 }

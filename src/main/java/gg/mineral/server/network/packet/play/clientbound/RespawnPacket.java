@@ -8,19 +8,8 @@ import gg.mineral.server.world.property.Dimension;
 import gg.mineral.server.world.property.LevelType;
 import io.netty.buffer.ByteBuf;
 
-public class RespawnPacket implements Packet.OUTGOING {
-    Dimension dimension;
-    Difficulty difficulty;
-    Gamemode gamemode;
-    LevelType levelType;
-
-    public RespawnPacket(Dimension dimension, Difficulty difficulty, Gamemode gamemode, LevelType levelType) {
-        this.dimension = dimension;
-        this.difficulty = difficulty;
-        this.gamemode = gamemode;
-        this.levelType = levelType;
-    }
-
+public record RespawnPacket(Dimension dimension, Difficulty difficulty, Gamemode gamemode, LevelType levelType)
+        implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeInt(dimension.getId());
@@ -33,5 +22,4 @@ public class RespawnPacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x07;
     }
-
 }

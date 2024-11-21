@@ -5,18 +5,7 @@ import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 
-public class EntityEquipmentPacket implements Packet.OUTGOING {
-
-    int entityId;
-    short slot;
-    ItemStack itemStack;
-
-    public EntityEquipmentPacket(int entityId, short slot, ItemStack itemStack) {
-        this.entityId = entityId;
-        this.slot = slot;
-        this.itemStack = itemStack;
-    }
-
+public record EntityEquipmentPacket(int entityId, short slot, ItemStack itemStack) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeInt(entityId);
@@ -28,5 +17,4 @@ public class EntityEquipmentPacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x04;
     }
-
 }

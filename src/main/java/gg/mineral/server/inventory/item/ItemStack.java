@@ -13,17 +13,16 @@ import lombok.Setter;
 import lombok.val;
 
 public class ItemStack {
-
     @Getter
     @Setter
-    String displayName;
+    private String displayName;
     @Getter
     @Setter
-    List<String> lore;
-    Object2IntOpenHashMap<Enchantment> enchants;
-    int hideFlag;
+    private List<String> lore;
+    private Object2IntOpenHashMap<Enchantment> enchants;
+    private int hideFlag;
     @Getter
-    short durability, typeId, amount;
+    private short durability, typeId, amount;
 
     public ItemStack(short typeId, short amount, short durability) {
         this.typeId = typeId;

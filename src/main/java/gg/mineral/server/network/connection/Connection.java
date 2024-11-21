@@ -1,8 +1,10 @@
 package gg.mineral.server.network.connection;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -12,18 +14,17 @@ import org.jetbrains.annotations.Nullable;
 import dev.zerite.craftlib.chat.component.BaseChatComponent;
 import gg.mineral.server.MinecraftServer;
 import gg.mineral.server.entity.living.human.Player;
-import gg.mineral.server.entity.manager.EntityManager;
 import gg.mineral.server.network.login.LoginAuthData;
 import gg.mineral.server.network.packet.Packet;
+import gg.mineral.server.network.packet.Packet.INCOMING;
 import gg.mineral.server.network.packet.handler.EncryptionHandler;
 import gg.mineral.server.network.packet.login.clientbound.EncryptionRequestPacket;
 import gg.mineral.server.network.packet.login.clientbound.LoginDisconnectPacket;
 import gg.mineral.server.network.packet.play.bidirectional.KeepAlivePacket;
 import gg.mineral.server.network.packet.play.clientbound.DisconnectPacket;
-import gg.mineral.server.network.packet.registry.IncomingPacketRegistry;
+import gg.mineral.server.network.packet.registry.PacketRegistry;
 import gg.mineral.server.network.protocol.ProtocolState;
 import gg.mineral.server.network.protocol.ProtocolVersion;
-import gg.mineral.server.util.collection.GlueList;
 import gg.mineral.server.util.datatypes.UUIDUtil;
 import gg.mineral.server.util.json.JsonUtil;
 import gg.mineral.server.util.login.LoginUtil;
@@ -38,28 +39,30 @@ import lombok.Setter;
 import lombok.val;
 
 @RequiredArgsConstructor
-public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
-    public static List<Connection> LIST = new GlueList<>();
+public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> implements Callable<Void> {
     @Getter
-    IncomingPacketRegistry protocolState = ProtocolState.HANDSHAKE;
-    public byte PROTOCOL_VERSION = ProtocolVersion.V1_7_6;
-    Channel channel;
-    long lastKeepAlive = System.currentTimeMillis();
-    LoginAuthData loginAuthData;
+    private PacketRegistry<INCOMING> protocolState = ProtocolState.HANDSHAKE;
+    @Setter
     @Getter
-    String name;
+    private byte protocolVersion = ProtocolVersion.V1_7_6;
+    private Channel channel;
+    private long lastKeepAlive = System.currentTimeMillis();
+    private LoginAuthData loginAuthData;
+    @Getter
+    private String name;
     @Getter
     @Setter
     @Nullable
-    UUID uuid;
-    boolean packetsQueued;
+    private UUID uuid;
+    private boolean packetsQueued;
     @Getter
     private final MinecraftServer server;
+    private final Queue<Runnable> packetQueue = new ConcurrentLinkedQueue<>();
 
     public void attemptLogin(String name) {
         this.name = name;
 
-        for (val entity : EntityManager.getEntities().values())
+        for (val entity : server.getEntityManager().getEntities().values())
             if (entity instanceof Player player)
                 if (player.getName().equalsIgnoreCase(name)) {
                     disconnect(Messages.DISCONNECT_ALREADY_LOGGED_IN);
@@ -72,8 +75,9 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
     }
 
     public void loggedIn() {
+        this.loginAuthData = null;
         setProtocolState(ProtocolState.PLAY);
-        EntityManager.create(this).onJoin();
+        server.getEntityManager().create(this).onJoin();
     }
 
     public void sendPacket(Packet.OUTGOING... packets) {
@@ -151,9 +155,9 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        EntityManager.remove(this);
+        server.getEntityManager().remove(this);
         setProtocolState(ProtocolState.HANDSHAKE);
-        LIST.remove(this);
+        server.getConnections().remove(this);
         super.channelInactive(ctx);
     }
 
@@ -162,6 +166,10 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
     }
 
     public void tick() {
+
+        while (!packetQueue.isEmpty())
+            packetQueue.poll().run();
+
         if (getProtocolState() == ProtocolState.PLAY && System.currentTimeMillis() - lastKeepAlive > 17500) {
             queuePacket(new KeepAlivePacket(0));
             lastKeepAlive = System.currentTimeMillis();
@@ -178,7 +186,7 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
                 new EncryptionHandler(secretkey));
     }
 
-    public void setProtocolState(IncomingPacketRegistry protocolState) {
+    public void setProtocolState(PacketRegistry<INCOMING> protocolState) {
         this.protocolState = protocolState;
         this.channel.attr(ProtocolState.ATTRIBUTE_KEY).set(protocolState);
     }
@@ -187,7 +195,10 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
     protected void channelRead0(ChannelHandlerContext ctx, Packet.INCOMING received) throws Exception {
         if (server.debugMessages)
             System.out.println("[Mineral] Packet received: " + received.getClass().getSimpleName());
-        received.received(this);
+        if (protocolState == ProtocolState.PLAY)
+            packetQueue.add(() -> received.received(this));
+        else
+            received.received(this);
     }
 
     @Override
@@ -195,7 +206,7 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
         if (!(obj instanceof Connection) || obj == null)
             return false;
 
-        Connection connection = (Connection) obj;
+        val connection = (Connection) obj;
 
         if (connection.getUuid() == null || getUuid() == null)
             return false;
@@ -206,5 +217,11 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> {
     @Override
     public int hashCode() {
         return getUuid().hashCode();
+    }
+
+    @Override
+    public Void call() {
+        tick();
+        return null;
     }
 }

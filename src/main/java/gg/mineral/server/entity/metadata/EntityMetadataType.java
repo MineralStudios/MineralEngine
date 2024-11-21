@@ -4,10 +4,13 @@ import gg.mineral.server.inventory.item.ItemStack;
 import gg.mineral.server.util.math.EulerAngle;
 import gg.mineral.server.util.math.Vector;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * The types of values that entity metadata can contain.
  */
+@RequiredArgsConstructor
+@Getter
 public enum EntityMetadataType {
     BYTE(Byte.class),
     SHORT(Short.class),
@@ -18,12 +21,7 @@ public enum EntityMetadataType {
     VECTOR(Vector.class),
     EULER_ANGLE(EulerAngle.class);
 
-    @Getter
     private final Class<?> dataType;
-
-    EntityMetadataType(Class<?> dataType) {
-        this.dataType = dataType;
-    }
 
     public static EntityMetadataType byId(int id) {
         return values()[id];

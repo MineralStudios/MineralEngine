@@ -1,8 +1,5 @@
 package gg.mineral.server.entity.living.human.property;
 
-import lombok.Data;
+public record PlayerProperty(String name, String value, String signature) {
 
-@Data
-public class PlayerProperty {
-    String name, value, signature;
 }

@@ -3,15 +3,7 @@ package gg.mineral.server.network.packet.play.clientbound;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 
-public class CollectItemPacket implements Packet.OUTGOING {
-
-    int collectorEntityId, collectedEntityId;
-
-    public CollectItemPacket(int collectorEntityId, int collectedEntityId) {
-        this.collectorEntityId = collectorEntityId;
-        this.collectedEntityId = collectedEntityId;
-    }
-
+public record CollectItemPacket(int collectorEntityId, int collectedEntityId) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeInt(collectedEntityId);
@@ -22,5 +14,4 @@ public class CollectItemPacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x0D;
     }
-
 }

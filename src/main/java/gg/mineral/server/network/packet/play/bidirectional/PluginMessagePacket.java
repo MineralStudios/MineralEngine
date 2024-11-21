@@ -5,13 +5,17 @@ import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 @NoArgsConstructor
 @AllArgsConstructor
+@Data
+@Accessors(fluent = true)
 public class PluginMessagePacket implements Packet.INCOMING, Packet.OUTGOING {
-    String channel;
-    byte[] data;
+    private String channel;
+    private byte[] data;
 
     @Override
     public void serialize(ByteBuf os) {

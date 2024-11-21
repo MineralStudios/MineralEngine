@@ -4,12 +4,16 @@ import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 @NoArgsConstructor
 @AllArgsConstructor
+@Data
+@Accessors(fluent = true)
 public class CloseWindowPacket implements Packet.INCOMING, Packet.OUTGOING {
-    short windowId;
+    private short windowId;
 
     @Override
     public void serialize(ByteBuf os) {

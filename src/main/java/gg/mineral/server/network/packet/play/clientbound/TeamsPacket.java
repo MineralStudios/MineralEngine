@@ -5,23 +5,10 @@ import java.util.List;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
+import lombok.val;
 
-public class TeamsPacket implements Packet.OUTGOING {
-    String teamName, teamDisplayName, teamPrefix, teamSuffix;
-    byte mode, friendlyFire;
-    List<String> players;
-
-    public TeamsPacket(String teamName, String teamDisplayName, String teamPrefix, String teamSuffix, byte mode,
-            byte friendlyFire, List<String> players) {
-        this.teamName = teamName;
-        this.teamDisplayName = teamDisplayName;
-        this.teamPrefix = teamPrefix;
-        this.teamSuffix = teamSuffix;
-        this.friendlyFire = friendlyFire;
-        this.players = players;
-        this.mode = mode;
-    }
-
+public record TeamsPacket(String teamName, String teamDisplayName, String teamPrefix, String teamSuffix, byte mode,
+        byte friendlyFire, List<String> players) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         ByteBufUtil.writeString(os, teamName);
@@ -32,14 +19,12 @@ public class TeamsPacket implements Packet.OUTGOING {
         os.writeByte(friendlyFire);
         os.writeShort(players.size());
 
-        for (String player : players) {
+        for (val player : players)
             ByteBufUtil.writeString(os, player);
-        }
     }
 
     @Override
     public byte getId() {
         return 0x3E;
     }
-
 }

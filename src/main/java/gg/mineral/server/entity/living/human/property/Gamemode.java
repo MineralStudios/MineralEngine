@@ -4,9 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @AllArgsConstructor
+@Getter
 public enum Gamemode {
-    SURVIVAL((short) 0), CREATIVE((short) 1), ADVENTURE((short) 2), HARDCORE((short) 0x8);
+    SURVIVAL((byte) 0), CREATIVE((byte) 1), ADVENTURE((byte) 2), HARDCORE((byte) 0x8);
 
-    @Getter
-    short id;
+    private final byte id;
 }

@@ -113,6 +113,11 @@ public class ByteBufUtil {
         }
     }
 
+    public static void writeString(ByteBuf buf, String... strings) {
+        for (val string : strings)
+            writeString(buf, string);
+    }
+
     public static void writeString(ByteBuf buf, String string) {
         val stringBytes = string.getBytes(UTF_8);
 
@@ -377,19 +382,19 @@ public class ByteBufUtil {
     public static void writeProperties(ByteBuf buf, Map<String, Property> props) {
         for (val property : props.entrySet()) {
             writeString(buf, property.getKey());
-            buf.writeDouble(property.getValue().getValue());
+            buf.writeDouble(property.getValue().value());
 
-            val modifiers = property.getValue().getModifiers();
-            if (modifiers == null) {
+            val modifiers = property.getValue().modifiers();
+            if (modifiers == null || modifiers.isEmpty()) {
                 buf.writeShort(0);
                 continue;
             }
 
             buf.writeShort(modifiers.size());
             for (val modifier : modifiers) {
-                writeUuid(buf, modifier.getUuid());
+                writeUuid(buf, modifier.getId());
                 buf.writeDouble(modifier.getAmount());
-                buf.writeByte(modifier.getOperation());
+                buf.writeByte(modifier.getOperation().getId());
             }
         }
     }

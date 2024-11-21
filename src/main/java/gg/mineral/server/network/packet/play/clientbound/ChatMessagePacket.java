@@ -6,14 +6,7 @@ import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 
-public class ChatMessagePacket implements Packet.OUTGOING {
-
-    BaseChatComponent baseChatComponent;
-
-    public ChatMessagePacket(BaseChatComponent baseChatComponent) {
-        this.baseChatComponent = baseChatComponent;
-    }
-
+public record ChatMessagePacket(BaseChatComponent baseChatComponent) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         ByteBufUtil.writeString(os, ChatComponentUtil.toJson(baseChatComponent));
@@ -23,5 +16,4 @@ public class ChatMessagePacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x02;
     }
-
 }

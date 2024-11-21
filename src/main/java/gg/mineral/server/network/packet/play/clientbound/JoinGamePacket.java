@@ -8,25 +8,8 @@ import gg.mineral.server.world.property.Dimension;
 import gg.mineral.server.world.property.LevelType;
 import io.netty.buffer.ByteBuf;
 
-public class JoinGamePacket implements Packet.OUTGOING {
-
-    int entityId;
-    Gamemode gamemode;
-    Difficulty difficulty;
-    Dimension dimension;
-    LevelType levelType;
-    short maxPlayers;
-
-    public JoinGamePacket(int entityId, Gamemode gamemode, Dimension dimension, Difficulty difficulty,
-            LevelType levelType, short maxPlayers) {
-        this.entityId = entityId;
-        this.gamemode = gamemode;
-        this.dimension = dimension;
-        this.levelType = levelType;
-        this.difficulty = difficulty;
-        this.maxPlayers = maxPlayers;
-    }
-
+public record JoinGamePacket(int entityId, Gamemode gamemode, Dimension dimension, Difficulty difficulty,
+        short maxPlayers, LevelType levelType) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeInt(entityId);
@@ -41,5 +24,4 @@ public class JoinGamePacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x01;
     }
-
 }

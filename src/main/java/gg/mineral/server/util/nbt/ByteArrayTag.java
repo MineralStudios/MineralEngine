@@ -1,5 +1,7 @@
 package gg.mineral.server.util.nbt;
 
+import lombok.val;
+
 /**
  * The {@code TAG_Byte_Array} tag.
  */
@@ -28,10 +30,10 @@ final class ByteArrayTag extends Tag<byte[]> {
     @Override
     protected void valueToString(StringBuilder hex) {
         for (byte b : value) {
-            String hexDigits = Integer.toHexString(b & 0xff);
-            if (hexDigits.length() == 1) {
+            val hexDigits = Integer.toHexString(b & 0xff);
+            if (hexDigits.length() == 1)
                 hex.append("0");
-            }
+
             hex.append(hexDigits).append(" ");
         }
     }

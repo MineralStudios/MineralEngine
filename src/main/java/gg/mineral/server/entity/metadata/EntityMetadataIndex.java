@@ -34,6 +34,7 @@ import gg.mineral.server.entity.objects.ItemFrame;
 import gg.mineral.server.entity.objects.Minecart;
 import gg.mineral.server.entity.objects.PoweredMinecart;
 import lombok.Getter;
+import lombok.val;
 
 /**
  * Index constants for entity metadata.
@@ -167,12 +168,12 @@ public enum EntityMetadataIndex {
 
     public static EntityMetadataIndex getIndex(int index, EntityMetadataType type) {
         EntityMetadataIndex output = null;
-        for (EntityMetadataIndex entry : values()) {
+        for (val entry : values())
             if (entry.getIndex() == index && entry.getType().equals(type)) {
                 output = entry;
                 break;
             }
-        }
+
         return output;
     }
 

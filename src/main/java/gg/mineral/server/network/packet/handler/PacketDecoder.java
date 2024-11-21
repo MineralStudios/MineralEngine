@@ -14,7 +14,8 @@ public class PacketDecoder extends ByteToMessageDecoder {
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf buf, List<Object> packets)
             throws Exception {
         if (!channelHandlerContext.channel().isActive() || !buf.isReadable()) {
-            buf.release();
+            if (buf.refCnt() > 0)
+                buf.release();
             return;
         }
 

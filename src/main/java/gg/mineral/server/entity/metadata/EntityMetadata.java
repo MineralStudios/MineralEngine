@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 import gg.mineral.server.entity.Entity;
 import gg.mineral.server.inventory.item.ItemStack;
 import gg.mineral.server.util.collection.GlueList;
+import lombok.RequiredArgsConstructor;
+import lombok.val;
 
 /**
  * A map for entity metadata.
@@ -52,20 +54,17 @@ public class EntityMetadata {
             }
         }
 
-        if (!index.getType().getDataType().isAssignableFrom(value.getClass())) {
+        if (!index.getType().getDataType().isAssignableFrom(value.getClass()))
             throw new IllegalArgumentException(
                     "Cannot assign " + value + " to " + index + ", expects " + index.getType());
-        }
 
-        if (!index.appliesTo(entityClass)) {
+        if (!index.appliesTo(entityClass))
             throw new IllegalArgumentException("Index " + index + " does not apply to " + entityClass.getSimpleName()
                     + ", only " + index.getAppliesTo().getSimpleName());
-        }
 
-        Object prev = map.put(index, value);
-        if (!Objects.equals(prev, value)) {
+        val prev = map.put(index, value);
+        if (!Objects.equals(prev, value))
             changes.add(new Entry(index, value));
-        }
     }
 
     public Object get(EntityMetadataIndex index) {
@@ -77,21 +76,20 @@ public class EntityMetadata {
     }
 
     public void setBit(EntityMetadataIndex index, int bit, boolean status) {
-        if (status) {
+        if (status)
             set(index, getNumber(index).intValue() | bit);
-        } else {
+        else
             set(index, getNumber(index).intValue() & ~bit);
-        }
     }
 
     public Number getNumber(EntityMetadataIndex index) {
-        if (!containsKey(index)) {
+        if (!containsKey(index))
             return 0;
-        }
-        Object o = get(index);
-        if (!(o instanceof Number)) {
+
+        val o = get(index);
+        if (!(o instanceof Number))
             throw new IllegalArgumentException("Index " + index + " is of non-number type " + index.getType());
-        }
+
         return (Number) o;
     }
 
@@ -121,18 +119,15 @@ public class EntityMetadata {
 
     @SuppressWarnings("unchecked")
     private <T> T get(EntityMetadataIndex index, EntityMetadataType expected, T def) {
-        if (index.getType() != expected) {
+        if (index.getType() != expected)
             throw new IllegalArgumentException("Cannot get " + index + ": is " + index.getType() + ", not " + expected);
-        }
-        T t = (T) map.get(index);
-        if (t == null) {
-            return def;
-        }
-        return t;
+
+        val t = (T) map.get(index);
+        return t == null ? def : t;
     }
 
     public List<Entry> getEntryList() {
-        List<Entry> result = new ArrayList<>(map.size());
+        val result = new ArrayList<Entry>(map.size());
         result.addAll(map.entrySet().stream().map(entry -> new Entry(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList()));
         Collections.sort(result);
@@ -148,14 +143,10 @@ public class EntityMetadata {
         changes.clear();
     }
 
+    @RequiredArgsConstructor
     public static final class Entry implements Comparable<Entry> {
         public final EntityMetadataIndex index;
         public final Object value;
-
-        public Entry(EntityMetadataIndex index, Object value) {
-            this.index = index;
-            this.value = value;
-        }
 
         @Override
         public int compareTo(Entry o) {

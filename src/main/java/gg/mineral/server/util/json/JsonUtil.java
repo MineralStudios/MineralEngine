@@ -7,17 +7,14 @@ import org.json.JSONObject;
 
 import gg.mineral.server.network.http.HttpsClient;
 import gg.mineral.server.network.http.MimeType;
+import lombok.SneakyThrows;
+import lombok.val;
 
 public class JsonUtil {
 
+    @SneakyThrows
     public static JSONObject getJsonObject(String url) {
-        String response;
-        try {
-            response = doGetCall(url);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+        val response = doGetCall(url);
         return response == null ? null : new JSONObject(response);
     }
 

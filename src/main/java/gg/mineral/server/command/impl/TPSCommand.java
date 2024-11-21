@@ -7,7 +7,9 @@ import dev.zerite.craftlib.chat.type.ChatColor;
 import gg.mineral.server.command.Command;
 import gg.mineral.server.command.CommandExecutor;
 import gg.mineral.server.tick.TickLoop;
+import lombok.val;
 
+// TODO: add number of players, cached chunks etc....
 public class TPSCommand extends Command {
 
     public TPSCommand() {
@@ -24,12 +26,12 @@ public class TPSCommand extends Command {
         commandExecutor.msg(" ");
         commandExecutor
                 .msg(ChatColor.WHITE.toString() + "TPS: "
-                        + getTpsStr(tickLoop.tps1.getAverage()) + ChatColor.WHITE.toString() + ", "
-                        + getTpsStr(tickLoop.tps5.getAverage()) + ChatColor.WHITE.toString() + ", "
-                        + getTpsStr(tickLoop.tps15.getAverage()));
+                        + getTpsStr(tickLoop.getTps1().getAverage()) + ChatColor.WHITE.toString() + ", "
+                        + getTpsStr(tickLoop.getTps5().getAverage()) + ChatColor.WHITE.toString() + ", "
+                        + getTpsStr(tickLoop.getTps15().getAverage()));
 
         commandExecutor.msg(" ");
-        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+        val osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
         commandExecutor.msg(ChatColor.UNDERLINE.toString() + "System Information");
         commandExecutor.msg(" ");
         commandExecutor.msg(ChatColor.WHITE.toString() + "Operating System: " + ChatColor.AQUA.toString()

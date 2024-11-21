@@ -21,7 +21,7 @@ public class MineralChannelInitializer extends ChannelInitializer<SocketChannel>
                 .addLast("flow_handler", new AutoReadHolderHandler());
 
         val connection = new Connection(server);
-        Connection.LIST.add(connection);
+        server.getConnections().add(connection);
         pipeline.addLast("packet_handler", connection);
     }
 

@@ -35,9 +35,8 @@ public class UUIDUtil {
      * @return a UUID
      */
     public static UUID fromIntArray(int[] arr) {
-        if (arr.length != 4) {
+        if (arr.length != 4)
             return null;
-        }
 
         long mostSigBits = (long) arr[0] << 32 | arr[1] & 0xFFFFFFFFL;
         long leastSigBits = (long) arr[2] << 32 | arr[2] & 0xFFFFFFFFL;

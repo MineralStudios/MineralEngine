@@ -2,6 +2,8 @@ package gg.mineral.server.util.math;
 
 import java.util.Map;
 
+import lombok.val;
+
 /**
  * A vector with a hash function that floors the X, Y, Z components, a la
  * BlockVector in WorldEdit. BlockVectors can be used in hash sets and
@@ -77,10 +79,10 @@ public class BlockVector extends Vector {
      */
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof BlockVector)) {
+        if (!(obj instanceof BlockVector))
             return false;
-        }
-        BlockVector other = (BlockVector) obj;
+
+        val other = (BlockVector) obj;
 
         return (int) other.getX() == (int) this.x && (int) other.getY() == (int) this.y
                 && (int) other.getZ() == (int) this.z;
@@ -113,15 +115,14 @@ public class BlockVector extends Vector {
         double y = 0;
         double z = 0;
 
-        if (args.containsKey("x")) {
+        if (args.containsKey("x"))
             x = (Double) args.get("x");
-        }
-        if (args.containsKey("y")) {
+
+        if (args.containsKey("y"))
             y = (Double) args.get("y");
-        }
-        if (args.containsKey("z")) {
+
+        if (args.containsKey("z"))
             z = (Double) args.get("z");
-        }
 
         return new BlockVector(x, y, z);
     }

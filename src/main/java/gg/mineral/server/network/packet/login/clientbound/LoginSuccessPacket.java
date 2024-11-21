@@ -7,15 +7,8 @@ import com.eatthepath.uuid.FastUUID;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 
-@Data
-@AllArgsConstructor
-public class LoginSuccessPacket implements Packet.OUTGOING {
-    private UUID uuid;
-    private String username;
-
+public record LoginSuccessPacket(UUID uuid, String username) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         ByteBufUtil.writeString(os, FastUUID.toString(uuid));
@@ -26,5 +19,4 @@ public class LoginSuccessPacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x02;
     }
-
 }

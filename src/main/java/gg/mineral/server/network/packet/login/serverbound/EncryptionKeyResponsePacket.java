@@ -7,10 +7,12 @@ import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Accessors(fluent = true)
 public class EncryptionKeyResponsePacket implements Packet.INCOMING {
     private byte[] sharedSecretBytes, verifyToken;
 
@@ -18,12 +20,10 @@ public class EncryptionKeyResponsePacket implements Packet.INCOMING {
     public void received(Connection connection) {
         boolean success = connection.authenticate(sharedSecretBytes, verifyToken);
 
-        if (success) {
+        if (success)
             connection.loggedIn();
-            return;
-        }
-
-        connection.disconnect(Messages.DISCONNECT_CAN_NOT_AUTHENTICATE);
+        else
+            connection.disconnect(Messages.DISCONNECT_CAN_NOT_AUTHENTICATE);
     }
 
     @Override

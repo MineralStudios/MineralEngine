@@ -4,17 +4,10 @@ import java.util.List;
 
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
+import lombok.val;
 
-public class MultiBlockChangePacket implements Packet.OUTGOING {
-    int chunkX, chunkZ;
-    List<BlockChangePacket> records;
-
-    public MultiBlockChangePacket(int chunkX, int chunkZ, List<BlockChangePacket> records) {
-        this.chunkX = chunkX;
-        this.chunkZ = chunkZ;
-        this.records = records;
-    }
-
+public record MultiBlockChangePacket(int chunkX, int chunkZ, List<BlockChangePacket> records)
+        implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeInt(chunkX);
@@ -22,13 +15,13 @@ public class MultiBlockChangePacket implements Packet.OUTGOING {
         os.writeShort(records.size());
         os.writeInt(records.size() * 4);
 
-        for (BlockChangePacket record : records) {
+        for (val record : records) {
             // XZYYTTTM
-            int value = (record.getMetadata() & 0xF) |
-                    ((record.getType() & 0xFFF) << 4) |
-                    ((record.getY() & 0xFF) << 16) |
-                    ((record.getZ() & 0xF) << 24) |
-                    ((record.getX() & 0xF) << 28);
+            int value = (record.blockMetadata() & 0xF) |
+                    ((record.blockId() & 0xFFF) << 4) |
+                    ((record.y() & 0xFF) << 16) |
+                    ((record.z() & 0xF) << 24) |
+                    ((record.x() & 0xF) << 28);
             os.writeInt(value);
         }
     }
@@ -37,5 +30,4 @@ public class MultiBlockChangePacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x22;
     }
-
 }

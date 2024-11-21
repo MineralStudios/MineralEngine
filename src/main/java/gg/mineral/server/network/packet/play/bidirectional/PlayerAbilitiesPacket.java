@@ -4,19 +4,25 @@ import gg.mineral.server.entity.living.human.property.PlayerAbilities;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 @NoArgsConstructor
+@AllArgsConstructor
+@Data
+@Accessors(fluent = true)
 public class PlayerAbilitiesPacket implements Packet.INCOMING, Packet.OUTGOING {
-    byte flags;
-    float flyingSpeed, walkingSpeed;
+    private byte flags;
+    private float flyingSpeed, walkingSpeed;
 
     public PlayerAbilitiesPacket(PlayerAbilities playerAbilities) {
         this.flags = 0;
 
         if (playerAbilities.isInvulnerable())
             flags = (byte) (flags | 0x1);
-        if (playerAbilities.isFlying())
+        if (playerAbilities.flying())
             flags = (byte) (flags | 0x2);
         if (playerAbilities.canFly())
             flags = (byte) (flags | 0x4);

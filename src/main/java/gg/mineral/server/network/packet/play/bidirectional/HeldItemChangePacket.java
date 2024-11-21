@@ -4,13 +4,16 @@ import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 @NoArgsConstructor
 @AllArgsConstructor
+@Data
+@Accessors(fluent = true)
 public class HeldItemChangePacket implements Packet.INCOMING, Packet.OUTGOING {
-
-    short slot;
+    private short slot;
 
     @Override
     public void serialize(ByteBuf os) {

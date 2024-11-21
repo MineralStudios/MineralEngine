@@ -2,11 +2,10 @@ package gg.mineral.server.util.network;
 
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.network.packet.Packet.INCOMING;
-import gg.mineral.server.network.packet.registry.IncomingPacketRegistry;
+import gg.mineral.server.network.packet.registry.PacketRegistry;
 import gg.mineral.server.util.collection.GlueList;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -15,25 +14,20 @@ import lombok.val;
 
 public class PacketUtil {
 
-    public static List<Packet.INCOMING> deserialize(ByteBuf data, IncomingPacketRegistry incomingPacketRegistry) {
-        List<Packet.INCOMING> packets = new GlueList<>();
+    public static List<Packet.INCOMING> deserialize(ByteBuf data, PacketRegistry<INCOMING> packetRegistry) {
+        val packets = new GlueList<INCOMING>();
 
         processPackets(data, packetBuf -> {
             try {
                 byte id = packetBuf.readByte();
-
-                Callable<INCOMING> packetBuilder = incomingPacketRegistry.get(id);
-
-                if (packetBuilder == null)
-                    return;
-
-                Packet.INCOMING packet = packetBuilder.call();
+                val packet = packetRegistry.create(id);
                 packet.deserialize(packetBuf);
                 packets.add(packet);
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
-                packetBuf.release();
+                if (packetBuf.refCnt() > 0)
+                    packetBuf.release();
             }
         });
 
@@ -55,7 +49,7 @@ public class PacketUtil {
 
     public static void processPackets(ByteBuf buf, Consumer<ByteBuf> consumer) {
         buf.markReaderIndex();
-        byte[] lengthBytes = new byte[3];
+        val lengthBytes = new byte[3];
 
         for (int position = 0; position < lengthBytes.length; ++position) {
             if (!buf.isReadable()) {
@@ -83,6 +77,5 @@ public class PacketUtil {
             }
             return;
         }
-        return;
     }
 }

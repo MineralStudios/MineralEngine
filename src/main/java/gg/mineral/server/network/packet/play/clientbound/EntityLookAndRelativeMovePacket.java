@@ -3,21 +3,8 @@ package gg.mineral.server.network.packet.play.clientbound;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 
-public class EntityLookAndRelativeMovePacket implements Packet.OUTGOING {
-
-    int entityId;
-    byte deltaX, deltaY, deltaZ, yaw, pitch;
-
-    public EntityLookAndRelativeMovePacket(int entityId, byte deltaX, byte deltaY, byte deltaZ, byte yaw,
-            byte pitch) {
-        this.entityId = entityId;
-        this.deltaX = deltaX;
-        this.deltaY = deltaY;
-        this.deltaZ = deltaZ;
-        this.yaw = yaw;
-        this.pitch = pitch;
-    }
-
+public record EntityLookAndRelativeMovePacket(int entityId, byte deltaX, byte deltaY, byte deltaZ, byte yaw, byte pitch)
+        implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeInt(entityId);
@@ -32,5 +19,4 @@ public class EntityLookAndRelativeMovePacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x17;
     }
-
 }

@@ -4,24 +4,8 @@ import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 
-public class ParticlePacket implements Packet.OUTGOING {
-    String particleName;
-    float x, y, z, offsetX, offsetY, offsetZ, particleData;
-    int numberOfParticles;
-
-    public ParticlePacket(String particleName, float x, float y, float z, float offsetX, float offsetY, float offsetZ,
-            float particleData, int numberOfParticles) {
-        this.particleName = particleName;
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.offsetX = offsetX;
-        this.offsetY = offsetY;
-        this.offsetZ = offsetZ;
-        this.particleData = particleData;
-        this.numberOfParticles = numberOfParticles;
-    }
-
+public record ParticlePacket(String particleName, float x, float y, float z, float offsetX, float offsetY,
+        float offsetZ, float particleData, int numberOfParticles) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         ByteBufUtil.writeString(os, particleName);
@@ -39,5 +23,4 @@ public class ParticlePacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x2A;
     }
-
 }

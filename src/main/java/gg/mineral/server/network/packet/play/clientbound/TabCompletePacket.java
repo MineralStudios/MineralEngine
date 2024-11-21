@@ -5,26 +5,19 @@ import java.util.List;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
+import lombok.val;
 
-public class TabCompletePacket implements Packet.OUTGOING {
-    List<String> completions;
-
-    public TabCompletePacket(List<String> completions) {
-        this.completions = completions;
-    }
-
+public record TabCompletePacket(List<String> completions) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         ByteBufUtil.writeVarInt(os, completions.size());
 
-        for (String completion : completions) {
+        for (val completion : completions)
             ByteBufUtil.writeString(os, completion);
-        }
     }
 
     @Override
     public byte getId() {
         return 0x3A;
     }
-
 }

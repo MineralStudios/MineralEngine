@@ -1,18 +1,26 @@
 package gg.mineral.server.network.packet.play.serverbound;
 
-import gg.mineral.server.entity.manager.EntityManager;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.val;
+import lombok.experimental.Accessors;
 
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Accessors(fluent = true)
 public class EntityActionPacket implements Packet.INCOMING {
-    int entityId, jumpBoost;
-    byte actionId;
+    private int entityId;
+    private byte actionId;
+    private int jumpBoost;
 
     @Override
     public void received(Connection connection) {
-        val player = EntityManager.getPlayer(entityId);
+        val player = connection.getServer().getEntityManager().getPlayer(entityId);
 
         if (player == null)
             return;

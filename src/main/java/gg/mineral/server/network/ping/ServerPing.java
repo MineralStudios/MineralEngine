@@ -16,7 +16,7 @@ import lombok.val;
 @RequiredArgsConstructor
 public class ServerPing {
     private final String motd;
-    private final int maxPlayers, onlinePlayers, protocol;
+    private final int onlinePlayers, maxPlayers, protocol;
     private final String name;
     private final Map<UUID, String> playerSampleMap = new Object2ObjectOpenHashMap<>();
 

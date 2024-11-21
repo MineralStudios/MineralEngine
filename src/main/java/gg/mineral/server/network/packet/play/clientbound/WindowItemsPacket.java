@@ -4,29 +4,20 @@ import gg.mineral.server.inventory.item.ItemStack;
 import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
+import lombok.val;
 
-public class WindowItemsPacket implements Packet.OUTGOING {
-    short windowId;
-    ItemStack[] itemstacks;
-
-    public WindowItemsPacket(short windowId, ItemStack[] itemstacks) {
-        this.windowId = windowId;
-        this.itemstacks = itemstacks;
-    }
-
+public record WindowItemsPacket(short windowId, ItemStack[] itemstacks) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeByte(windowId);
         os.writeShort(itemstacks.length);
 
-        for (ItemStack itemstack : itemstacks) {
+        for (val itemstack : itemstacks)
             ByteBufUtil.writeSlot(os, itemstack);
-        }
     }
 
     @Override
     public byte getId() {
         return 0x30;
     }
-
 }

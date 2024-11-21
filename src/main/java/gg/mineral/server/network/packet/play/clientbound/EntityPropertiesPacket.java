@@ -7,16 +7,7 @@ import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 
-public class EntityPropertiesPacket implements Packet.OUTGOING {
-
-    int entityId;
-    Map<String, Property> properties;
-
-    public EntityPropertiesPacket(int entityId, Map<String, Property> properties) {
-        this.entityId = entityId;
-        this.properties = properties;
-    }
-
+public record EntityPropertiesPacket(int entityId, Map<String, Property> properties) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeInt(entityId);

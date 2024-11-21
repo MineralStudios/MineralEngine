@@ -3,25 +3,13 @@ package gg.mineral.server.network.packet.play.clientbound;
 import java.util.List;
 
 import gg.mineral.server.network.packet.Packet;
-import gg.mineral.server.world.explosion.Record;
+import gg.mineral.server.world.explosion.ExplosionRecord;
 import io.netty.buffer.ByteBuf;
+import lombok.val;
 
-public class ExplosionPacket implements Packet.OUTGOING {
-    float x, y, z, radius, playerMotionX, playerMotionY, playerMotionZ;
-    List<Record> records;
-
-    public ExplosionPacket(float x, float y, float z, float radius, List<Record> records, float playerMotionX,
-            float playerMotionY, float playerMotionZ) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.radius = radius;
-        this.records = records;
-        this.playerMotionX = playerMotionX;
-        this.playerMotionY = playerMotionY;
-        this.playerMotionZ = playerMotionZ;
-    }
-
+public record ExplosionPacket(float x, float y, float z, float radius, List<ExplosionRecord> records,
+        float playerMotionX,
+        float playerMotionY, float playerMotionZ) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeFloat(x);
@@ -30,16 +18,15 @@ public class ExplosionPacket implements Packet.OUTGOING {
         os.writeFloat(radius);
         os.writeInt(records.size());
 
-        for (Record record : records) {
-            os.writeByte(record.getX());
-            os.writeByte(record.getY());
-            os.writeByte(record.getZ());
+        for (val record : records) {
+            os.writeByte(record.x());
+            os.writeByte(record.y());
+            os.writeByte(record.z());
         }
 
         os.writeFloat(playerMotionX);
         os.writeFloat(playerMotionY);
         os.writeFloat(playerMotionZ);
-
     }
 
     @Override

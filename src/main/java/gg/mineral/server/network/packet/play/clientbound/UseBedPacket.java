@@ -3,17 +3,7 @@ package gg.mineral.server.network.packet.play.clientbound;
 import gg.mineral.server.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 
-public class UseBedPacket implements Packet.OUTGOING {
-    int entityId, x, z;
-    short y;
-
-    public UseBedPacket(int entityId, int x, short y, int z) {
-        this.entityId = entityId;
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
+public record UseBedPacket(int entityId, int x, short y, int z) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeInt(entityId);
@@ -26,5 +16,4 @@ public class UseBedPacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x0A;
     }
-
 }

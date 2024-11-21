@@ -117,6 +117,22 @@ public class MathUtil {
         return value / 8000D;
     }
 
+    public static int toSoundUnits(double value) {
+        return (int) (value * 8);
+    }
+
+    public static double fromSoundUnits(int value) {
+        return value / 8D;
+    }
+
+    public static short toPitchUnits(double value) {
+        return (short) (value * 63);
+    }
+
+    public static double fromPitchUnits(short value) {
+        return value / 63D;
+    }
+
     public static int unsigned(short s) {
         return s & 0xFFFF;
     }

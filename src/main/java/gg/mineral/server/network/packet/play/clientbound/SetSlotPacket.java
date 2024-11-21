@@ -5,17 +5,7 @@ import gg.mineral.server.network.packet.Packet;
 import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 
-public class SetSlotPacket implements Packet.OUTGOING {
-    byte windowId;
-    short slot;
-    ItemStack itemStack;
-
-    public SetSlotPacket(byte windowId, short slot, ItemStack itemStack) {
-        this.windowId = windowId;
-        this.slot = slot;
-        this.itemStack = itemStack;
-    }
-
+public record SetSlotPacket(byte windowId, short slot, ItemStack itemStack) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeByte(windowId);
@@ -27,5 +17,4 @@ public class SetSlotPacket implements Packet.OUTGOING {
     public byte getId() {
         return 0x2F;
     }
-
 }
