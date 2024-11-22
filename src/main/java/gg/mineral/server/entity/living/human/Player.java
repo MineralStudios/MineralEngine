@@ -107,6 +107,8 @@ public class Player extends HumanEntity implements CommandExecutor {
         this.setWorld(world);
         this.connection = connection;
         this.server = connection.getServer();
+        this.width = 0.6f;
+        this.height = 1.8f;
     }
 
     public String getName() {
@@ -239,7 +241,7 @@ public class Player extends HumanEntity implements CommandExecutor {
                 val player = world.getPlayer(entityId);
 
                 if (player == null)
-                    throw new IllegalStateException("Entity with id " + entityId + " is not a player");
+                    continue;
 
                 if (visibleEntities.containsKey(entityId))
                     continue;
@@ -279,10 +281,10 @@ public class Player extends HumanEntity implements CommandExecutor {
 
     private int swingSpeed() {
         /*
-         * return this.hasEffect(MobEffectList.FASTER_DIG)
-         * ? 6 - (1 + this.getEffect(MobEffectList.FASTER_DIG).getAmplifier()) * 1
-         * : (this.hasEffect(MobEffectList.SLOWER_DIG)
-         * ? 6 + (1 + this.getEffect(MobEffectList.SLOWER_DIG).getAmplifier()) * 2
+         * return this.hasEffect(PotionEffect.HASTE)
+         * ? 6 - (1 + this.getEffect(PotionEffect.HASTE).getAmplifier()) * 1
+         * : (this.hasEffect(PotionEffect.MINING_FATIGUE)
+         * ? 6 + (1 + this.getEffect(PotionEffect.MINING_FATIGUE).getAmplifier()) * 2
          * : 6);
          */
         return 6;
@@ -297,23 +299,23 @@ public class Player extends HumanEntity implements CommandExecutor {
                 this.swingingTicks = 0;
                 this.swingingArm = false;
             }
-        } else {
+        } else
             this.swingingTicks = 0;
-        }
-
-        // this.az = (float) this.as / (float) i;
     }
 
     public void onJoin() {
-        this.setY(70);
+        this.setX(52);
+        this.setY(12);
+        this.setHeadY(12 + this.height);
+        this.setZ(14);
         connection.queuePacket(new LoginSuccessPacket(connection.getUuid(), connection.getName()),
                 new JoinGamePacket(this.getId(), gamemode, Dimension.OVERWORLD, Difficulty.PEACEFUL,
                         (short) 1000, LevelType.FLAT),
-                new SpawnPositionPacket(MathUtil.floor(x), MathUtil.floor(y), MathUtil.floor(z)),
+                new SpawnPositionPacket(MathUtil.floor(x), MathUtil.floor(headY), MathUtil.floor(z)),
                 new PlayerAbilitiesPacket(
-                        new PlayerAbilities(false, false, false, false, true, 0.05f, 0.1f)),
+                        new PlayerAbilities(false, false, true, false, true, 0.5f, 0.1f)),
                 new HeldItemChangePacket((short) 0),
-                new PlayerPositionAndLookPacket(x, y, z, yaw, pitch, onGround),
+                new PlayerPositionAndLookPacket(x, headY, z, yaw, pitch, onGround),
                 new SetSlotPacket((byte) 0, (short) 36, new ItemStack(Material.DIAMOND_SWORD, (short) 1, (short) 1)));
         setupAttributes();
         effect(PotionEffect.SPEED, (byte) 1, (short) 32767);
@@ -348,8 +350,8 @@ public class Player extends HumanEntity implements CommandExecutor {
     }
 
     protected void setupAttributes() {
-        for (Attribute attribute : BASE_ATTRIBUTES) {
-            final AttributeInstance attributeInstance = new AttributeInstance(attribute, this::onAttributeChanged);
+        for (val attribute : BASE_ATTRIBUTES) {
+            val attributeInstance = new AttributeInstance(attribute, this::onAttributeChanged);
             this.attributeModifiers.put(attribute.getKey(), attributeInstance);
         }
     }

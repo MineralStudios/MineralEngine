@@ -4,9 +4,6 @@ import lombok.Getter;
 
 import java.util.Arrays;
 
-import it.unimi.dsi.fastutil.bytes.Byte2BooleanFunction;
-import it.unimi.dsi.fastutil.bytes.ByteConsumer;
-
 /**
  * An array of nibbles (4-bit values) stored efficiently as a byte array of half
  * the size.
@@ -156,19 +153,4 @@ public final class NibbleArray {
         }
         return bytes;
     }
-
-    public void iterate(ByteConsumer consumer) {
-        for (byte b : rawData) {
-            consumer.accept((byte) (b & 0x0f));
-            consumer.accept((byte) ((b & 0xf0) >> 4));
-        }
-    }
-
-    public boolean iterate(Byte2BooleanFunction function) {
-        for (byte b : rawData)
-            if (function.apply((byte) (b & 0x0f)) || function.apply((byte) ((b & 0xf0) >> 4)))
-                return true;
-        return false;
-    }
-
 }

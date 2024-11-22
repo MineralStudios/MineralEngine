@@ -34,8 +34,7 @@ public class EntityMetadata {
 
     public void set(EntityMetadataIndex index, Object value) {
         // take numbers down to the correct precision
-        if (value instanceof Number) {
-            Number n = (Number) value;
+        if (value instanceof Number n) {
             switch (index.getType()) {
                 case BYTE:
                     value = n.byteValue();

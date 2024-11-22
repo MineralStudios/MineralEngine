@@ -3,7 +3,7 @@ package gg.mineral.server.util.nbt;
 /**
  * The {@code TAG_Short} tag.
  */
-final class ShortTag extends Tag<Short> {
+public final class ShortTag extends Tag<Short> {
 
     /**
      * The value.

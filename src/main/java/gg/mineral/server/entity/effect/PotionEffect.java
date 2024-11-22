@@ -155,33 +155,6 @@ public enum PotionEffect {
         @Override
         public void applyAttributes(Player player, int amplifier, double duration) {
         }
-    },
-    SLOW_FALLING((byte) 28) {
-        @Override
-        public void applyAttributes(Player player, int amplifier, double duration) {
-        }
-    },
-    CONDUIT_POWER((byte) 9) {
-        @Override
-        public void applyAttributes(Player player, int amplifier, double duration) {
-        }
-    },
-    DOLPHINS_GRACE((byte) 30) {
-        @Override
-        public void applyAttributes(Player player, int amplifier, double duration) {
-        }
-    },
-    BAD_OMEN((byte) 31) {
-        @Override
-        public void applyAttributes(Player player, int amplifier, double duration) {
-        }
-    },
-    HERO_OF_THE_VILLAGE((byte) 32) {
-
-        @Override
-        public void applyAttributes(Player player, int amplifier, double duration) {
-        }
-
     };
 
     private final byte id;

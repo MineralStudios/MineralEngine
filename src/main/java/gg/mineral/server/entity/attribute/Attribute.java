@@ -27,8 +27,7 @@ public class Attribute {
             1)).register();
 
     private final String key;
-    private final float defaultValue;
-    private final float maxValue;
+    private final float defaultValue, maxValue;
     private final boolean shareWithClient;
 
     /**

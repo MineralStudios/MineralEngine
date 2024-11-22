@@ -1,13 +1,11 @@
-package gg.mineral.server.world.block;
+package gg.mineral.server.world.schematic;
 
-import gg.mineral.server.world.chunk.Chunk;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 @RequiredArgsConstructor
 @Value
-public class Block {
-    Chunk chunk;
+public class SchematicBlock {
     int x, y, z, type;
     byte data;
 }

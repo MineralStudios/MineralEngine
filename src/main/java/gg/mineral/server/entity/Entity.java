@@ -10,9 +10,7 @@ import java.util.concurrent.Callable;
 @Getter
 public abstract class Entity implements Callable<Entity> {
     @Setter
-    protected double x, y, z, motX, motY, motZ;
-    @Setter
-    private double headY;
+    protected double x, y, z, motX, motY, motZ, headY;
     protected float yaw, pitch, lastYaw, lastPitch;
     @Setter
     protected boolean onGround = false;
@@ -26,6 +24,7 @@ public abstract class Entity implements Callable<Entity> {
     private boolean firstTick = true, firstAsyncTick = true, chunkUpdateNeeded = true;
     @Getter
     private final Random random = new Random(); // TODO: better random implementation
+    protected float width, height;
 
     public void setYaw(float yaw) {
         lastYaw = this.yaw;

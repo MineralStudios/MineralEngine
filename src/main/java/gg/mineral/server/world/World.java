@@ -47,8 +47,12 @@ public class World implements IWorld {
 
         if (chunk == null)
             chunk = chunkCache[MathUtil.unsigned(key)] = generator != null ? generator.generate(this, x, z)
-                    : new EmptyChunk(this, x, z);
+                    : new Chunk(this, x, z);
         return chunk;
+    }
+
+    public Chunk setChunk(short key, Chunk chunk) {
+        return chunkCache[MathUtil.unsigned(key)] = chunk;
     }
 
     @Override

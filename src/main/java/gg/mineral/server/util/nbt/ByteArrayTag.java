@@ -5,7 +5,7 @@ import lombok.val;
 /**
  * The {@code TAG_Byte_Array} tag.
  */
-final class ByteArrayTag extends Tag<byte[]> {
+public final class ByteArrayTag extends Tag<byte[]> {
 
     /**
      * The value.
