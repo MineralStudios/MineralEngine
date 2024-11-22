@@ -22,7 +22,6 @@ public class KeepAlivePacket implements Packet.INCOMING, Packet.OUTGOING {
 
     @Override
     public void received(Connection connection) {
-        // connection.sendPacket(this);
     }
 
     @Override

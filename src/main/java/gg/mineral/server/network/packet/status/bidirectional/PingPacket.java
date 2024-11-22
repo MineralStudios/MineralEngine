@@ -23,7 +23,7 @@ public class PingPacket implements Packet.INCOMING, Packet.OUTGOING {
 
     @Override
     public void received(Connection connection) {
-        connection.sendPacket(this);
+        connection.queuePacket(this);
     }
 
     @Override

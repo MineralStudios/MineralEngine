@@ -67,9 +67,15 @@ public class MinecraftServer {
         return null;
     }
 
-    private final TickLoop tickLoop = new TickLoop(this);
+    private final TickLoop tickLoop;
+    private final EntityManager entityManager;
+    private final WorldManager worldManager;
 
-    private final EntityManager entityManager = new EntityManager();
+    public MinecraftServer() {
+        this.tickLoop = new TickLoop(this);
+        this.worldManager = new WorldManager(this);
+        this.entityManager = new EntityManager(this);
+    }
 
     public static void main(String[] args) throws IOException, InterruptedException {
         new MinecraftServer().start(25565);
@@ -88,7 +94,7 @@ public class MinecraftServer {
 
     public void start(int port)
             throws IOException, InterruptedException {
-        WorldManager.init();
+        worldManager.init();
         if (Epoll.isAvailable())
             group = new EpollEventLoopGroup(NETWORK_THREADS);
         else if (KQueue.isAvailable())

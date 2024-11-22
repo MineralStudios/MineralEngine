@@ -13,18 +13,17 @@ public abstract class Entity implements Callable<Entity> {
     protected double x, y, z, motX, motY, motZ;
     @Setter
     private double headY;
-    private float yaw, pitch, lastYaw, lastPitch;
+    protected float yaw, pitch, lastYaw, lastPitch;
     @Setter
-    private boolean onGround = false;
+    protected boolean onGround = false;
+    @Getter
+    private final byte viewDistance = (byte) 10;
     protected final int id;
     @Getter
     private int currentTick;
     @Getter
     @Setter
-    private boolean firstTick = true, firstAsyncTick = true;
-    @Getter
-    @Setter
-    protected boolean velocityChanged = false;
+    private boolean firstTick = true, firstAsyncTick = true, chunkUpdateNeeded = true;
     @Getter
     private final Random random = new Random(); // TODO: better random implementation
 

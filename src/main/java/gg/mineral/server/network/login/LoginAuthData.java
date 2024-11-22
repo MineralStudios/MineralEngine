@@ -9,8 +9,8 @@ import lombok.Value;
 @Value
 public class LoginAuthData {
     private static final Random RANDOM = new Random();
-    KeyPair keyPair;
-    byte[] verifyToken = new byte[4];
+    private KeyPair keyPair;
+    private byte[] verifyToken = new byte[4];
 
     public LoginAuthData() {
         this.keyPair = LoginUtil.createKeyPair();

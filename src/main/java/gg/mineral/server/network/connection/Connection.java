@@ -58,6 +58,8 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> imp
     @Getter
     private final MinecraftServer server;
     private final Queue<Runnable> packetQueue = new ConcurrentLinkedQueue<>();
+    @Getter
+    private boolean connected = true;
 
     public void attemptLogin(String name) {
         this.name = name;
@@ -70,7 +72,7 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> imp
                 }
 
         this.loginAuthData = new LoginAuthData();
-        sendPacket(new EncryptionRequestPacket("",
+        queuePacket(new EncryptionRequestPacket("",
                 this.loginAuthData.getKeyPair().getPublic(), this.loginAuthData.getVerifyToken()));
     }
 
@@ -102,7 +104,7 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> imp
     }
 
     public void disconnect(BaseChatComponent chatComponent) {
-        sendPacket(
+        queuePacket(
                 getProtocolState() == ProtocolState.LOGIN ? new LoginDisconnectPacket(chatComponent)
                         : new DisconnectPacket(chatComponent));
         close();
@@ -149,7 +151,7 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> imp
     public void channelActive(ChannelHandlerContext channelhandlercontext) throws Exception {
         super.channelActive(channelhandlercontext);
         this.channel = channelhandlercontext.channel();
-
+        this.connected = true;
         setProtocolState(ProtocolState.HANDSHAKE);
     }
 
@@ -157,7 +159,7 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> imp
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         server.getEntityManager().remove(this);
         setProtocolState(ProtocolState.HANDSHAKE);
-        server.getConnections().remove(this);
+        this.connected = false;
         super.channelInactive(ctx);
     }
 
@@ -179,6 +181,9 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> imp
             channel.flush();
             packetsQueued = false;
         }
+
+        if (!connected)
+            server.getConnections().remove(this);
     }
 
     public void enableEncryption(SecretKey secretkey) {
@@ -195,7 +200,7 @@ public class Connection extends SimpleChannelInboundHandler<Packet.INCOMING> imp
     protected void channelRead0(ChannelHandlerContext ctx, Packet.INCOMING received) throws Exception {
         if (server.debugMessages)
             System.out.println("[Mineral] Packet received: " + received.getClass().getSimpleName());
-        if (protocolState == ProtocolState.PLAY)
+        if (protocolState == ProtocolState.PLAY || protocolState == ProtocolState.LOGIN)
             packetQueue.add(() -> received.received(this));
         else
             received.received(this);

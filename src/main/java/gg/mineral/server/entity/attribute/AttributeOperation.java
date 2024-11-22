@@ -2,6 +2,11 @@ package gg.mineral.server.entity.attribute;
 
 import org.jetbrains.annotations.Nullable;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+@Getter
 public enum AttributeOperation {
     ADDITION(0),
     MULTIPLY_BASE(1),
@@ -11,19 +16,11 @@ public enum AttributeOperation {
             MULTIPLY_TOTAL };
     private final int id;
 
-    AttributeOperation(int id) {
-        this.id = id;
-    }
-
-    public int getId() {
-        return this.id;
-    }
-
     @Nullable
     public static AttributeOperation fromId(int id) {
-        if (id >= 0 && id < VALUES.length) {
+        if (id >= 0 && id < VALUES.length)
             return VALUES[id];
-        }
+
         return null;
     }
 }

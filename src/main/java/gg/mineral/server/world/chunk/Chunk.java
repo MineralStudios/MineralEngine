@@ -6,14 +6,13 @@ import java.util.Arrays;
 import java.util.zip.DeflaterOutputStream;
 
 import gg.mineral.server.network.packet.play.clientbound.ChunkDataPacket;
-import gg.mineral.server.world.IWorld.Environment;
-import gg.mineral.server.world.World;
 import gg.mineral.server.world.block.Block;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import gg.mineral.server.world.IWorld;
 
 @RequiredArgsConstructor
 public class Chunk {
@@ -91,7 +90,7 @@ public class Chunk {
     }
 
     @Getter
-    private final Environment environment;
+    private final IWorld world;
     /**
      * The coordinates of this chunk.
      */
@@ -369,7 +368,7 @@ public class Chunk {
     }
 
     public ChunkDataPacket toPacket(boolean compress) {
-        return toPacket(environment == World.Environment.NORMAL, compress);
+        return toPacket(world.getEnvironment() == IWorld.Environment.NORMAL, compress);
     }
 
     private static byte[] output = new byte[196864];

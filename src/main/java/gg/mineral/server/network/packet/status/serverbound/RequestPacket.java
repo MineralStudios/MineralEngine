@@ -23,8 +23,7 @@ public class RequestPacket implements Packet.INCOMING {
                         .filter(e -> e instanceof Player).count(),
                 2024, 5,
                 "Mineral");
-        connection.sendPacket(new ResponsePacket(serverPing.toJsonString()));
-
+        connection.queuePacket(new ResponsePacket(serverPing.toJsonString()));
     }
 
     @Override

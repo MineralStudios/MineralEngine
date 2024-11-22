@@ -65,7 +65,7 @@ public class TickLoop {
         tps15 = new RollingAverage(60 * 15);
         tickSection = System.nanoTime();
 
-        MinecraftServer.getTickExecutor().scheduleAtFixedRate(() -> tick(), 0, 50,
+        MinecraftServer.getTickExecutor().scheduleAtFixedRate(() -> tick(), 50, 50,
                 TimeUnit.MILLISECONDS);
     }
 

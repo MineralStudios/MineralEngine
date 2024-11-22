@@ -8,14 +8,18 @@ import org.jetbrains.annotations.Nullable;
 import gg.mineral.server.entity.Entity;
 import gg.mineral.server.entity.living.human.Player;
 import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.world.WorldManager;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.val;
 
+import gg.mineral.server.MinecraftServer;
+
+@RequiredArgsConstructor
 public class EntityManager {
     @Getter
     private final Int2ObjectOpenHashMap<Entity> entities = new Int2ObjectOpenHashMap<>();
+    private final MinecraftServer server;
     private int nextEntityId = 0;
 
     public void addEntity(Entity entity) {
@@ -62,7 +66,7 @@ public class EntityManager {
     }
 
     public Player create(Connection connection) {
-        val spawnWorld = WorldManager.getWorld((byte) 0);
+        val spawnWorld = server.getWorldManager().getWorld((byte) 0);
         val player = new Player(connection, this.nextEntityId(), spawnWorld);
         this.addEntity(player);
         return player;
