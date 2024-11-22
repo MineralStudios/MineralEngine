@@ -2,6 +2,7 @@ package gg.mineral.server.entity.living.human;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -57,6 +58,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.shorts.Short2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.shorts.ShortArrayList;
 import lombok.Getter;
@@ -92,6 +94,8 @@ public class Player extends HumanEntity implements CommandExecutor {
     @Getter
     private final IntList entityRemoveIds = new IntArrayList();
     private final MinecraftServer server;
+    @Getter
+    private Set<String> permissions = new ObjectOpenHashSet<>();
 
     @Getter
     @Setter

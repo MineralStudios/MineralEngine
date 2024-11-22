@@ -3,21 +3,21 @@ package gg.mineral.server.command;
 import java.util.Set;
 
 import gg.mineral.server.MinecraftServer;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 public interface CommandExecutor {
-    Set<String> permissions = new ObjectOpenHashSet<String>();
+
+    Set<String> getPermissions();
 
     default boolean hasPermission(String permission) {
-        return permissions.contains(permission);
+        return getPermissions().contains(permission);
     }
 
     default void addPermission(String permission) {
-        permissions.add(permission);
+        getPermissions().add(permission);
     }
 
     default void removePermission(String permission) {
-        permissions.remove(permission);
+        getPermissions().remove(permission);
     }
 
     public void msg(String message);
