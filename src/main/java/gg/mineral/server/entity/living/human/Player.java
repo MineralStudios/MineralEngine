@@ -128,11 +128,9 @@ public class Player extends HumanEntity implements CommandExecutor {
         }
     }
 
-    public void effectSpeed() {
-        byte amplifier = 1;
-        getAttribute(Attribute.MOVEMENT_SPEED)
-                .addModifier(PotionEffect.SPEED.getModifier(amplifier));
-        connection.queuePacket(new EntityEffectPacket(id, PotionEffect.SPEED.getId(), amplifier, (short) 32767));
+    public void effect(PotionEffect effect, byte amplifier, short duration) {
+        effect.applyAttributes(this, amplifier, duration);
+        connection.queuePacket(new EntityEffectPacket(id, PotionEffect.SPEED.getId(), amplifier, duration));
     }
 
     public void disconnect(BaseChatComponent chatComponent) {
@@ -318,7 +316,7 @@ public class Player extends HumanEntity implements CommandExecutor {
                 new PlayerPositionAndLookPacket(x, y, z, yaw, pitch, onGround),
                 new SetSlotPacket((byte) 0, (short) 36, new ItemStack(Material.DIAMOND_SWORD, (short) 1, (short) 1)));
         setupAttributes();
-        effectSpeed();
+        effect(PotionEffect.SPEED, (byte) 1, (short) 32767);
     }
 
     private static final Attribute[] BASE_ATTRIBUTES = new Attribute[] {
