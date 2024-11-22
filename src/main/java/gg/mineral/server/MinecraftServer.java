@@ -17,6 +17,7 @@ import gg.mineral.server.entity.manager.EntityManager;
 import gg.mineral.server.network.channel.MineralChannelInitializer;
 import gg.mineral.server.network.connection.Connection;
 import gg.mineral.server.tick.TickLoop;
+import gg.mineral.server.tick.TickThreadFactory;
 import gg.mineral.server.util.collection.GlueList;
 import gg.mineral.server.world.WorldManager;
 import io.netty.bootstrap.ServerBootstrap;
@@ -41,7 +42,8 @@ public class MinecraftServer {
     @Getter
     private static final ExecutorService asyncExecutor = Executors.newWorkStealingPool();
     @Getter
-    private static final ScheduledExecutorService tickExecutor = Executors.newSingleThreadScheduledExecutor();
+    private static final ScheduledExecutorService tickExecutor = Executors
+            .newSingleThreadScheduledExecutor(TickThreadFactory.INSTANCE);
 
     @Setter
     public boolean debugMessages = false;
