@@ -21,7 +21,6 @@ public class WorldManager {
         if (!worldFolder.exists())
             worldFolder.mkdirs();
 
-        // interate over schwmatics and create worlds
         for (val file : worldFolder.listFiles()) {
             if (file.getName().endsWith(".schematic")) {
                 val name = file.getName().substring(0, file.getName().length() - 10);
@@ -35,20 +34,12 @@ public class WorldManager {
                         try {
                             val chunk = new Chunk(world, chunkX, chunkZ);
 
-                            // Retrieve blocks for this chunk
                             val blocks = schematic.getBlocksForChunk(chunkX, chunkZ);
 
                             for (val block : blocks) {
-                                int x = block.getX();
-                                int y = block.getY();
-                                int z = block.getZ();
-
-                                // Calculate local block coordinates within the chunk
-                                int localX = x & 15;
-                                int localZ = z & 15;
-
-                                int type = block.getType();
-                                chunk.setType(localX, localZ, y, type);
+                                int x = block.getX(), y = block.getY(), z = block.getZ();
+                                int localX = x & 15, localZ = z & 15;
+                                chunk.setType(localX, localZ, y, block.getType());
                                 chunk.setMetaData(localX, localZ, y, block.getData());
                             }
 
@@ -76,7 +67,6 @@ public class WorldManager {
                 }
 
             });
-        System.out.println("[Mineral] Worlds initialized.");
     }
 
     public World getWorld(byte id) {

@@ -1,40 +1,47 @@
 plugins {
     id 'java'
+    id 'maven-publish'
 }
 
-group = 'gg.mineral'
-version = '1.0-SNAPSHOT'
-description = 'MineralEngine'
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation 'dev.zerite.craftlib:craftlib-chat:0.1.4'
-    implementation 'io.netty:netty-all:4.1.104.Final'
-    implementation 'org.json:json:20231013'
-    implementation 'com.eatthepath:fast-uuid:0.2.0'
-    implementation 'it.unimi.dsi:fastutil:8.5.12'
-
-    compileOnly 'org.projectlombok:lombok:1.18.30'
-    annotationProcessor 'org.projectlombok:lombok:1.18.30'
-}
-
-compileJava {
-    sourceCompatibility = '17'
-    targetCompatibility = '17'
-    options.compilerArgs += ["-parameters"]
-}
-
-jar {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    repositories {
+        mavenCentral()
     }
-    manifest {
-        attributes(
-            'Main-Class': 'gg.mineral.server.MinecraftServer'
-        )
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+    compileJava {
+        sourceCompatibility = '17'
+        targetCompatibility = '17'
+        options.compilerArgs += ['-parameters']
+    }
+
+    group = "gg.mineral"
+    version = new Date().format('yyyyMMdd')
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                artifactId = project.name
+                version = new Date().format("yyyyMMdd-HH.mm.ss")
+            }
+        }
+
+        repositories {
+            maven {
+                name = "mineralDevPrivate"
+                url = uri("https://repo.mineral.gg/private")
+                credentials {
+                    username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                    password = project.findProperty("gpr.token") ?: System.getenv("TOKEN")
+                }
+            }
+        }
     }
 }
