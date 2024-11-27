@@ -6,11 +6,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import gg.mineral.server.util.nbt.ByteArrayTag;
-import gg.mineral.server.util.nbt.CompoundTag;
-import gg.mineral.server.util.nbt.NBTInputStream;
-import gg.mineral.server.util.nbt.NBTOutputStream;
-import gg.mineral.server.util.nbt.ShortTag;
+import gg.mineral.api.nbt.ByteArrayTag;
+import gg.mineral.api.nbt.CompoundTag;
+import gg.mineral.api.nbt.NBTInputStream;
+import gg.mineral.api.nbt.NBTOutputStream;
+import gg.mineral.api.nbt.ShortTag;
 import gg.mineral.server.world.chunk.ChunkImpl;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
