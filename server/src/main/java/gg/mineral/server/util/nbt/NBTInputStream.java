@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
+import lombok.val;
+
 /**
  * This class reads NBT, or Named Binary Tag streams, and produces an object
  * graph of subclasses of the {@link Tag} object.
@@ -17,6 +19,8 @@ import java.util.zip.GZIPInputStream;
  * http://www.minecraft.net/docs/NBT.txt</a>.
  */
 public final class NBTInputStream implements Closeable {
+
+    private final static int MAX_DEPTH = 512;
 
     /**
      * The data input stream.
@@ -79,14 +83,13 @@ public final class NBTInputStream implements Closeable {
     }
 
     private CompoundTag readCompound(int depth, NBTReadLimiter readLimiter) throws IOException {
-        CompoundTag result = new CompoundTag();
+        val result = new CompoundTag();
 
         while (true) {
             // read type
-            TagType type = TagType.byIdOrError(is.readUnsignedByte());
-            if (type == TagType.END) {
+            val type = TagType.byIdOrError(is.readUnsignedByte());
+            if (type == TagType.END)
                 break;
-            }
 
             // read name
             String name = is.readUTF();
@@ -112,9 +115,8 @@ public final class NBTInputStream implements Closeable {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private Tag<?> readTagPayload(TagType type, int depth, NBTReadLimiter readLimiter) throws IOException {
 
-        if (depth > 512) {
+        if (depth > MAX_DEPTH)
             throw new IllegalStateException("Tried to read NBT tag with too high complexity, depth > 512");
-        }
 
         switch (type) {
             case BYTE:

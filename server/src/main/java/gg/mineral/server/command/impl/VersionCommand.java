@@ -1,8 +1,8 @@
 package gg.mineral.server.command.impl;
 
 import dev.zerite.craftlib.chat.type.ChatColor;
-import gg.mineral.server.command.Command;
-import gg.mineral.server.command.CommandExecutor;
+import gg.mineral.api.command.Command;
+import gg.mineral.api.command.CommandExecutor;
 
 public class VersionCommand extends Command {
 

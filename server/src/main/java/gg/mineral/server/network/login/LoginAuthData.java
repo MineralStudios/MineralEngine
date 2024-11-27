@@ -13,7 +13,7 @@ public class LoginAuthData {
     private byte[] verifyToken = new byte[4];
 
     public LoginAuthData() {
-        this.keyPair = LoginUtil.createKeyPair();
+        this.keyPair = LoginUtil.createKeyPair(1024);
         RANDOM.nextBytes(verifyToken);
     }
 }

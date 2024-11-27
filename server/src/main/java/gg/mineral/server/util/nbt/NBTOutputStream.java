@@ -11,6 +11,7 @@ import java.util.zip.GZIPOutputStream;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import lombok.NonNull;
+import lombok.val;
 
 /**
  * This class writes NBT, or Named Binary Tag, {@link Tag} objects to an
@@ -92,36 +93,40 @@ public final class NBTOutputStream implements Closeable {
      */
     @SuppressWarnings("unchecked")
     private void writeTagPayload(@NonNull Tag<?> tag) throws IOException {
-        TagType type = tag.getType();
+        val type = tag.getType();
         byte[] bytes;
+        val value = tag.getValue();
+
+        if (value == null)
+            throw new IOException("Null tag value.");
 
         switch (type) {
             case BYTE:
-                os.writeByte((byte) tag.getValue());
+                os.writeByte((byte) value);
                 break;
 
             case SHORT:
-                os.writeShort((short) tag.getValue());
+                os.writeShort((short) value);
                 break;
 
             case INT:
-                os.writeInt((int) tag.getValue());
+                os.writeInt((int) value);
                 break;
 
             case LONG:
-                os.writeLong((long) tag.getValue());
+                os.writeLong((long) value);
                 break;
 
             case FLOAT:
-                os.writeFloat((float) tag.getValue());
+                os.writeFloat((float) value);
                 break;
 
             case DOUBLE:
-                os.writeDouble((double) tag.getValue());
+                os.writeDouble((double) value);
                 break;
 
             case BYTE_ARRAY:
-                bytes = (byte[]) tag.getValue();
+                bytes = (byte[]) value;
                 os.writeInt(bytes.length);
                 os.write(bytes);
                 break;
@@ -152,11 +157,11 @@ public final class NBTOutputStream implements Closeable {
                 break;
 
             case INT_ARRAY:
-                int[] ints = (int[]) tag.getValue();
+                int[] ints = (int[]) value;
                 os.writeInt(ints.length);
-                for (int value : ints) {
-                    os.writeInt(value);
-                }
+                for (int v : ints)
+                    os.writeInt(v);
+
                 break;
 
             default:

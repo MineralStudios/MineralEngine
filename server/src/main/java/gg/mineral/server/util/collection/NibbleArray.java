@@ -1,6 +1,7 @@
 package gg.mineral.server.util.collection;
 
 import lombok.Getter;
+import lombok.val;
 
 import java.util.Arrays;
 
@@ -146,11 +147,11 @@ public final class NibbleArray {
     }
 
     public byte[] toByteArray() {
-        byte[] bytes = new byte[rawData.length * 2];
+        val resultBytes = new byte[rawData.length * 2];
         for (int i = 0; i < rawData.length; i++) {
-            bytes[i * 2] = (byte) (rawData[i] & 0x0f);
-            bytes[i * 2 + 1] = (byte) ((rawData[i] & 0xf0) >> 4);
+            resultBytes[i * 2] = (byte) (rawData[i] & 0x0f);
+            resultBytes[i * 2 + 1] = (byte) ((rawData[i] & 0xf0) >> 4);
         }
-        return bytes;
+        return resultBytes;
     }
 }

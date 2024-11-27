@@ -1,7 +1,6 @@
 package gg.mineral.server.plugin;
 
-import gg.mineral.server.command.Command;
-import gg.mineral.server.plugin.listener.Listener;
+import gg.mineral.api.MinecraftServer;
 
 public interface MineralPlugin {
 
@@ -9,7 +8,5 @@ public interface MineralPlugin {
 
     void onDisable();
 
-    Listener[] getListeners();
-
-    Command[] getCommands();
+    MinecraftServer getServer();
 }

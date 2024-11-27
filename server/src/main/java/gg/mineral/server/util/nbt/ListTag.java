@@ -1,8 +1,8 @@
 package gg.mineral.server.util.nbt;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import gg.mineral.server.util.collection.GlueList;
 import lombok.NonNull;
 
 /**
@@ -29,7 +29,7 @@ final class ListTag<T extends Tag<?>> extends Tag<List<T>> {
     public ListTag(TagType type, List<T> value) {
         super(TagType.LIST);
         this.type = type;
-        this.value = new GlueList<>(value); // modifying list should not modify tag
+        this.value = new ArrayList<>(value); // modifying list should not modify tag
 
         // ensure type of objects in list matches tag type
         for (Tag<?> elem : value) {

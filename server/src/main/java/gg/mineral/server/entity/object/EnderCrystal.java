@@ -1,0 +1,16 @@
+package gg.mineral.server.entity.object;
+
+import gg.mineral.server.entity.EntityImpl;
+import gg.mineral.server.world.WorldImpl;
+
+public class EnderCrystal extends EntityImpl {
+
+    public EnderCrystal(int id, WorldImpl world) {
+        super(id, world);
+    }
+
+    @Override
+    public void tickAsync() {
+    }
+
+}

@@ -6,6 +6,7 @@ plugins {
 allprojects {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
+    apply plugin: 'pmd'
 
     repositories {
         mavenCentral()
@@ -16,9 +17,13 @@ allprojects {
     }
 
     compileJava {
-        sourceCompatibility = '17'
-        targetCompatibility = '17'
+        sourceCompatibility = '21'
+        targetCompatibility = '21'
         options.compilerArgs += ['-parameters']
+    }
+
+    pmd {
+        rulesMinimumPriority = 4
     }
 
     group = "gg.mineral"

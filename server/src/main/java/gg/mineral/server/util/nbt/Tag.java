@@ -41,13 +41,17 @@ public abstract class Tag<T> {
 
         val tag = (Tag<?>) o;
 
-        return type == tag.type && getValue().equals(tag.getValue());
+        val value = getValue();
+
+        return type == tag.type && value != null && value.equals(tag.getValue());
     }
 
     @Override
     public final int hashCode() {
         int result = type.hashCode();
-        result = 31 * result + getValue().hashCode();
+        val value = getValue();
+        if (value != null)
+            result = 31 * result + value.hashCode();
         return result;
     }
 

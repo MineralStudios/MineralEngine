@@ -1,27 +1,57 @@
 plugins {
-    id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'application'
+}
+
+application {
+    mainClass = 'gg.mineral.server.MinecraftServerImpl'
 }
 
 dependencies {
     implementation project(':api')
-    implementation 'dev.zerite.craftlib:craftlib-chat:0.1.4'
-    implementation 'io.netty:netty-all:4.1.104.Final'
+    implementation 'io.netty:netty-all:4.1.115.Final'
     implementation 'org.json:json:20231013'
     implementation 'com.eatthepath:fast-uuid:0.2.0'
     implementation 'it.unimi.dsi:fastutil:8.5.12'
 
     compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    compileOnly 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.0'
+    annotationProcessor 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.0'
 }
 
-jar {
+shadowJar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
+    archiveClassifier.set('')
+    mergeServiceFiles()
     manifest {
-        attributes(
-            'Main-Class': 'gg.mineral.server.MinecraftServer'
-        )
+        attributes 'Main-Class': 'gg.mineral.server.MinecraftServerImpl'
     }
+}
+
+tasks.build {
+    dependsOn shadowJar
+    tasks.jar.enabled = false
+}
+
+tasks.named('run') {
+    dependsOn shadowJar
+    doFirst {
+        javaexec {
+            mainClass.set('gg.mineral.server.MinecraftServerImpl')
+            classpath = files(shadowJar.archiveFile.get())
+        }
+    }
+}
+
+tasks.distZip {
+    dependsOn shadowJar
+}
+
+tasks.distTar {
+    dependsOn shadowJar
+}
+
+tasks.startScripts {
+    dependsOn shadowJar
 }

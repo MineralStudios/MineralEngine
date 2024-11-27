@@ -1,12 +1,12 @@
 package gg.mineral.server.command.impl;
 
 import java.lang.management.ManagementFactory;
+
 import com.sun.management.OperatingSystemMXBean;
 
 import dev.zerite.craftlib.chat.type.ChatColor;
-import gg.mineral.server.command.Command;
-import gg.mineral.server.command.CommandExecutor;
-import gg.mineral.server.tick.TickLoop;
+import gg.mineral.api.command.Command;
+import gg.mineral.api.command.CommandExecutor;
 import lombok.val;
 
 // TODO: add number of players, cached chunks etc....
@@ -20,7 +20,7 @@ public class TPSCommand extends Command {
     public void execute(CommandExecutor commandExecutor, String[] arguments) {
         commandExecutor.msg(
                 ChatColor.GRAY.toString() + ChatColor.STRIKETHROUGH.toString() + "-------------------------------");
-        TickLoop tickLoop = commandExecutor.getServer().getTickLoop();
+        val tickLoop = commandExecutor.getServer().getTickLoop();
         commandExecutor.msg(ChatColor.UNDERLINE.toString() + "Performance" + ChatColor.GRAY.toString()
                 + " (1m, 5m, 15m)");
         commandExecutor.msg(" ");
@@ -31,6 +31,7 @@ public class TPSCommand extends Command {
                         + getTpsStr(tickLoop.getTps15().getAverage()));
 
         commandExecutor.msg(" ");
+        @SuppressWarnings("null")
         val osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
         commandExecutor.msg(ChatColor.UNDERLINE.toString() + "System Information");
         commandExecutor.msg(" ");

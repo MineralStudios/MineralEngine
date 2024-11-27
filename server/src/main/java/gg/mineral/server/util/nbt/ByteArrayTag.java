@@ -31,7 +31,8 @@ public final class ByteArrayTag extends Tag<byte[]> {
     protected void valueToString(StringBuilder hex) {
         for (byte b : value) {
             val hexDigits = Integer.toHexString(b & 0xff);
-            if (hexDigits.length() == 1)
+            int len = 1;
+            if (hexDigits.length() == len)
                 hex.append("0");
 
             hex.append(hexDigits).append(" ");

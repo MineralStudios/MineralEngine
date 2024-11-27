@@ -1,6 +1,7 @@
 package gg.mineral.server.network.protocol;
 
-import gg.mineral.server.network.packet.Packet.INCOMING;
+import gg.mineral.api.network.packet.Packet.INCOMING;
+import gg.mineral.api.network.packet.registry.PacketRegistry;
 import gg.mineral.server.network.packet.handshake.serverbound.HandshakePacket;
 import gg.mineral.server.network.packet.login.serverbound.EncryptionKeyResponsePacket;
 import gg.mineral.server.network.packet.login.serverbound.LoginStartPacket;
@@ -28,29 +29,29 @@ import gg.mineral.server.network.packet.play.serverbound.PlayerPositionPacket;
 import gg.mineral.server.network.packet.play.serverbound.SteerVehiclePacket;
 import gg.mineral.server.network.packet.play.serverbound.TabCompletePacket;
 import gg.mineral.server.network.packet.play.serverbound.UseEntityPacket;
-import gg.mineral.server.network.packet.registry.PacketRegistry;
+import gg.mineral.server.network.packet.registry.PacketRegistryImpl;
 import gg.mineral.server.network.packet.status.bidirectional.PingPacket;
 import gg.mineral.server.network.packet.status.serverbound.RequestPacket;
 import io.netty.util.AttributeKey;
 
-public class ProtocolState {
+public final class ProtocolState {
     public static final AttributeKey<PacketRegistry<INCOMING>> ATTRIBUTE_KEY = AttributeKey
             .valueOf("protocol_state");
 
-    public static final PacketRegistry<INCOMING> HANDSHAKE = new PacketRegistry<>() {
+    public static final PacketRegistryImpl<INCOMING> HANDSHAKE = new PacketRegistryImpl<>() {
         {
             put((byte) 0x00, HandshakePacket::new);
         }
     };
 
-    public static final PacketRegistry<INCOMING> LOGIN = new PacketRegistry<>() {
+    public static final PacketRegistryImpl<INCOMING> LOGIN = new PacketRegistryImpl<>() {
         {
             put((byte) 0x00, LoginStartPacket::new);
             put((byte) 0x01, EncryptionKeyResponsePacket::new);
         }
     };
 
-    public static final PacketRegistry<INCOMING> PLAY = new PacketRegistry<>() {
+    public static final PacketRegistryImpl<INCOMING> PLAY = new PacketRegistryImpl<>() {
         {
             put((byte) 0x0A, AnimationPacket::new);
             put((byte) 0x01, ChatMessagePacket::new);
@@ -79,14 +80,14 @@ public class ProtocolState {
         }
     };
 
-    public static final PacketRegistry<INCOMING> STATUS = new PacketRegistry<>() {
+    public static final PacketRegistryImpl<INCOMING> STATUS = new PacketRegistryImpl<>() {
         {
             put((byte) 0x00, RequestPacket::new);
             put((byte) 0x01, PingPacket::new);
         }
     };
 
-    public static PacketRegistry<INCOMING> getState(int i) {
+    public static PacketRegistryImpl<INCOMING> getState(int i) {
         return i == 1 ? STATUS : LOGIN;
     }
 }

@@ -1,7 +1,7 @@
 package gg.mineral.server.network.packet.play.serverbound;
 
-import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.network.packet.Packet;
+import gg.mineral.api.network.connection.Connection;
+import gg.mineral.api.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +12,7 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @Data
 @Accessors(fluent = true)
-public class ClientStatusPacket implements Packet.INCOMING {
+public final class ClientStatusPacket implements Packet.INCOMING {
     private byte actionId;
 
     @Override

@@ -1,11 +1,12 @@
 package gg.mineral.server.entity.living;
 
-import gg.mineral.server.entity.LivingEntity;
+import gg.mineral.server.entity.LivingImpl;
+import gg.mineral.server.world.WorldImpl;
 
-public class Ghast extends LivingEntity {
+public class Ghast extends LivingImpl {
 
-    public Ghast(int id) {
-        super(id);
+    public Ghast(int id, WorldImpl world) {
+        super(id, world);
     }
 
     @Override

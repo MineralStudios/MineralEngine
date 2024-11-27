@@ -2,17 +2,17 @@ package gg.mineral.server.network.packet.play.clientbound;
 
 import java.util.Map;
 
-import gg.mineral.server.entity.attribute.Property;
-import gg.mineral.server.network.packet.Packet;
-import gg.mineral.server.util.network.ByteBufUtil;
+import gg.mineral.api.entity.attribute.Attribute;
+import gg.mineral.api.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 
-public record EntityPropertiesPacket(int entityId, Map<String, Property> properties) implements Packet.OUTGOING {
+public final record EntityPropertiesPacket(int entityId, Map<String, Attribute.Property> properties)
+        implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeInt(entityId);
         os.writeInt(properties.size());
-        ByteBufUtil.writeProperties(os, properties);
+        writeProperties(os, properties);
     }
 
     @Override

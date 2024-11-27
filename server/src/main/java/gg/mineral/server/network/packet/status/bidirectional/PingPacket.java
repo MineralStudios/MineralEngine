@@ -1,7 +1,7 @@
 package gg.mineral.server.network.packet.status.bidirectional;
 
-import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.network.packet.Packet;
+import gg.mineral.api.network.connection.Connection;
+import gg.mineral.api.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,9 +12,9 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @Data
 @Accessors(fluent = true)
-public class PingPacket implements Packet.INCOMING, Packet.OUTGOING {
+public final class PingPacket implements Packet.INCOMING, Packet.OUTGOING {
 
-    long time;
+    private long time;
 
     @Override
     public byte getId() {

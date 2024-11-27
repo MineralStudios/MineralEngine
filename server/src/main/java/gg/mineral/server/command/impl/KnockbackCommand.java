@@ -1,7 +1,7 @@
 package gg.mineral.server.command.impl;
 
-import gg.mineral.server.command.Command;
-import gg.mineral.server.command.CommandExecutor;
+import gg.mineral.api.command.Command;
+import gg.mineral.api.command.CommandExecutor;
 
 public class KnockbackCommand extends Command {
     public KnockbackCommand() {

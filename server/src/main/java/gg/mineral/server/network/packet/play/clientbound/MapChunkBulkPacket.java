@@ -2,12 +2,13 @@ package gg.mineral.server.network.packet.play.clientbound;
 
 import java.util.List;
 
-import gg.mineral.server.network.packet.Packet;
-import gg.mineral.server.world.chunk.Chunk;
+import gg.mineral.api.world.chunk.Chunk;
+import gg.mineral.api.network.packet.Packet;
+import gg.mineral.server.world.chunk.ChunkImpl;
 import io.netty.buffer.ByteBuf;
 import lombok.val;
 
-public record MapChunkBulkPacket(boolean skyLight, List<Chunk> chunks) implements Packet.OUTGOING {
+public final record MapChunkBulkPacket(boolean skyLight, List<Chunk> chunks) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         int amount = this.chunks.size();
@@ -16,14 +17,15 @@ public record MapChunkBulkPacket(boolean skyLight, List<Chunk> chunks) implement
 
         val output = new Pair[amount];
         for (int i = 0; i < amount; i++) {
-            val chunk = this.chunks.get(i);
-            val out = chunk.toPacket(skyLight, false);
-            System.arraycopy(out.compressedData(), 0, bytes, bytesPosition, out.compressedData().length);
-            bytesPosition += out.compressedData().length;
-            output[i] = new Pair(chunk, out);
+            if (this.chunks.get(i) instanceof ChunkImpl chunk) {
+                val out = chunk.toPacket(skyLight, false);
+                System.arraycopy(out.compressedData(), 0, bytes, bytesPosition, out.compressedData().length);
+                bytesPosition += out.compressedData().length;
+                output[i] = new Pair(chunk, out);
+            }
         }
 
-        val compressed = Chunk.compress(bytes, bytesPosition);
+        val compressed = ChunkImpl.compress(bytes, bytesPosition);
 
         os.writeShort(amount);
         os.writeInt(compressed.length);

@@ -1,11 +1,12 @@
 package gg.mineral.server.entity.living;
 
-import gg.mineral.server.entity.LivingEntity;
+import gg.mineral.server.entity.LivingImpl;
+import gg.mineral.server.world.WorldImpl;
 
-public class Enderman extends LivingEntity {
+public class Enderman extends LivingImpl {
 
-    public Enderman(int id) {
-        super(id);
+    public Enderman(int id, WorldImpl world) {
+        super(id, world);
     }
 
     @Override

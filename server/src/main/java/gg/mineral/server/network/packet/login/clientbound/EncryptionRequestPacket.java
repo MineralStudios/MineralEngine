@@ -2,16 +2,15 @@ package gg.mineral.server.network.packet.login.clientbound;
 
 import java.security.PublicKey;
 
-import gg.mineral.server.network.packet.Packet;
-import gg.mineral.server.util.network.ByteBufUtil;
+import gg.mineral.api.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 import lombok.val;
 
-public record EncryptionRequestPacket(String serverId, PublicKey publicKey, byte[] verifyToken)
+public final record EncryptionRequestPacket(String serverId, PublicKey publicKey, byte[] verifyToken)
         implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
-        ByteBufUtil.writeString(os, serverId);
+        writeString(os, serverId);
         val publicKeyBytes = publicKey.getEncoded();
         os.writeShort(publicKeyBytes.length);
         os.writeBytes(publicKeyBytes);

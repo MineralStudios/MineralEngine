@@ -1,9 +1,9 @@
 package gg.mineral.server.network.packet.play.clientbound;
 
-import gg.mineral.server.network.packet.Packet;
+import gg.mineral.api.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 
-public record UpdateHealthPacket(float health, short hunger, float saturation) implements Packet.OUTGOING {
+public final record UpdateHealthPacket(float health, short hunger, float saturation) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeFloat(health);

@@ -1,9 +1,8 @@
 package gg.mineral.server.network.packet.play.serverbound;
 
-import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.network.packet.Packet;
-import gg.mineral.server.util.network.ByteBufUtil;
-import gg.mineral.server.world.property.Difficulty;
+import gg.mineral.api.network.connection.Connection;
+import gg.mineral.api.network.packet.Packet;
+import gg.mineral.api.world.property.Difficulty;
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,7 +13,7 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @Data
 @Accessors(fluent = true)
-public class ClientSettingsPacket implements Packet.INCOMING {
+public final class ClientSettingsPacket implements Packet.INCOMING {
     private String locale;
     private byte viewDistance, chatFlags;
     private boolean chatColors;
@@ -29,7 +28,7 @@ public class ClientSettingsPacket implements Packet.INCOMING {
 
     @Override
     public void deserialize(ByteBuf is) {
-        locale = ByteBufUtil.readString(is);
+        locale = readString(is);
         viewDistance = is.readByte();
         chatFlags = is.readByte();
         chatColors = is.readBoolean();

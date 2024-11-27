@@ -1,8 +1,8 @@
 package gg.mineral.server.network.packet.play.serverbound;
 
-import gg.mineral.server.entity.living.human.property.Gamemode;
-import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.network.packet.Packet;
+import gg.mineral.api.entity.living.human.property.Gamemode;
+import gg.mineral.api.network.connection.Connection;
+import gg.mineral.api.network.packet.Packet;
 import gg.mineral.server.network.packet.play.clientbound.BlockChangePacket;
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
@@ -15,7 +15,7 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @Data
 @Accessors(fluent = true)
-public class PlayerDiggingPacket implements Packet.INCOMING {
+public final class PlayerDiggingPacket implements Packet.INCOMING {
     private byte status, face;
     private int x;
     private short y;
@@ -23,7 +23,7 @@ public class PlayerDiggingPacket implements Packet.INCOMING {
 
     @Override
     public void received(Connection connection) {
-        val player = connection.getServer().getEntityManager().get(connection);
+        val player = connection.getPlayer();
 
         if (player == null)
             return;

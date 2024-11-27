@@ -3,9 +3,8 @@ package gg.mineral.server.network.packet.play.serverbound;
 import java.util.Arrays;
 
 import dev.zerite.craftlib.chat.type.ChatColor;
-import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.network.packet.Packet;
-import gg.mineral.server.util.network.ByteBufUtil;
+import gg.mineral.api.network.connection.Connection;
+import gg.mineral.api.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,33 +16,38 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @Data
 @Accessors(fluent = true)
-public class ChatMessagePacket implements Packet.INCOMING {
+public final class ChatMessagePacket implements Packet.INCOMING {
     private String message;
 
     @Override
     public void received(Connection connection) {
-        val entityManager = connection.getServer().getEntityManager();
+        val server = connection.getServer();
         if (message.startsWith("/")) {
-            val player = entityManager.get(connection);
+            val player = connection.getPlayer();
             if (player == null)
                 return;
 
             val splitCommand = message.split(" ");
             val args = splitCommand.length > 1 ? Arrays.copyOfRange(splitCommand, 1, splitCommand.length)
                     : new String[0];
-            connection.getServer().getRegisteredCommands().stream()
-                    .filter(command -> splitCommand[0].equalsIgnoreCase("/" + command.getName()))
-                    .findFirst()
-                    .ifPresent(command -> command.execute(player, args));
+
+            val commandName = splitCommand[0].substring(1);
+
+            val commandMap = server.getRegisteredCommands();
+
+            val command = commandMap.get(commandName);
+
+            if (command != null)
+                command.execute(player, args);
             return;
         }
 
-        entityManager.iteratePlayers(
+        server.getOnlinePlayers().forEach(
                 player -> player.msg(ChatColor.GREEN + connection.getName() + ChatColor.RESET + ": " + message));
     }
 
     @Override
     public void deserialize(ByteBuf is) {
-        message = ByteBufUtil.readString(is);
+        message = readString(is);
     }
 }

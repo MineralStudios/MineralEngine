@@ -1,9 +1,11 @@
 package gg.mineral.server.entity;
 
-public abstract class Ageable extends Entity {
+import gg.mineral.server.world.WorldImpl;
 
-    public Ageable(int id) {
-        super(id);
+public abstract class Ageable extends EntityImpl {
+
+    public Ageable(int id, WorldImpl world) {
+        super(id, world);
     }
 
 }

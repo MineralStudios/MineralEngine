@@ -11,4 +11,5 @@ public class Messages {
                         ChatColor.RED + "Your account was unable to be authenticated.");
         public static final BaseChatComponent DISCONNECT_ALREADY_LOGGED_IN = new StringChatComponent(
                         ChatColor.RED + "Your account was already logged in.");
+
 }

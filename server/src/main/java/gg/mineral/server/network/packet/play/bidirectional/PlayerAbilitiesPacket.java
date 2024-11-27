@@ -1,8 +1,8 @@
 package gg.mineral.server.network.packet.play.bidirectional;
 
-import gg.mineral.server.entity.living.human.property.PlayerAbilities;
-import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.network.packet.Packet;
+import gg.mineral.api.entity.living.human.property.PlayerAbilities;
+import gg.mineral.api.network.connection.Connection;
+import gg.mineral.api.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @Data
 @Accessors(fluent = true)
-public class PlayerAbilitiesPacket implements Packet.INCOMING, Packet.OUTGOING {
+public final class PlayerAbilitiesPacket implements Packet.INCOMING, Packet.OUTGOING {
     private byte flags;
     private float flyingSpeed, walkingSpeed;
 

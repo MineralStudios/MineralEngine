@@ -1,9 +1,10 @@
 package gg.mineral.server.network.packet.play.clientbound;
 
-import gg.mineral.server.network.packet.Packet;
+import gg.mineral.api.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 
-public record ChunkDataPacket(int chunkX, int chunkZ, boolean groundUpContinuous, int primaryBitMap, int addBitMap,
+public final record ChunkDataPacket(int chunkX, int chunkZ, boolean groundUpContinuous, int primaryBitMap,
+        int addBitMap,
         byte[] compressedData) implements Packet.OUTGOING {
     public ChunkDataPacket(int chunkX, int chunkZ) {
         this(chunkX, chunkZ, true, 0, 0, new byte[0]);

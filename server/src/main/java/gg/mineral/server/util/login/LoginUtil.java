@@ -8,22 +8,21 @@ import java.security.PublicKey;
 
 import javax.crypto.Cipher;
 
-import gg.mineral.server.util.collection.ArrayUtil;
 import lombok.SneakyThrows;
 import lombok.val;
 
 public class LoginUtil {
 
     @SneakyThrows
-    public static KeyPair createKeyPair() {
+    public static KeyPair createKeyPair(int size) {
         val keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        keyPairGenerator.initialize(1024);
+        keyPairGenerator.initialize(size);
         return keyPairGenerator.genKeyPair();
     }
 
     @SneakyThrows
     public static String hashSharedSecret(PublicKey publicKey, byte[] secretKeyBytes) {
-        val data = ArrayUtil.of(secretKeyBytes, publicKey.getEncoded());
+        val data = new byte[][] { secretKeyBytes, publicKey.getEncoded() };
         val messageDigest = MessageDigest.getInstance("SHA-1");
         int length = data.length;
 

@@ -46,21 +46,19 @@ public class AutoReadHolderHandler extends ChannelDuplexHandler {
 
     private void drainQueuedMessages(ChannelHandlerContext ctx) {
         if (!this.queuedMessages.isEmpty()) {
-            Object queued;
-            while ((queued = this.queuedMessages.poll()) != null) {
+            for (var queued = this.queuedMessages.poll(); queued != null; queued = this.queuedMessages.poll())
                 ctx.fireChannelRead(queued);
-            }
+
             ctx.fireChannelReadComplete();
         }
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (ctx.channel().config().isAutoRead()) {
+        if (ctx.channel().config().isAutoRead())
             ctx.fireChannelRead(msg);
-        } else {
+        else
             this.queuedMessages.add(msg);
-        }
     }
 
     @Override

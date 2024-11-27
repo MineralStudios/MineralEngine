@@ -267,7 +267,7 @@ public final class CompoundTag extends Tag<Object2ObjectLinkedOpenHashMap<String
     @Nullable
     private <V, T extends Tag<V>> V get(String key, Class<T> clazz) {
         T tag = getTag(key, clazz);
-        return tag != null ? tag.getValue() : null;
+        return tag != null ? tag.getValue() : (V) null;
     }
 
     @SuppressWarnings("unchecked")

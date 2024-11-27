@@ -1,8 +1,9 @@
 package gg.mineral.server.network.packet.login.serverbound;
 
-import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.network.packet.Packet;
-import gg.mineral.server.util.network.ByteBufUtil;
+import gg.mineral.api.network.connection.Connection;
+import gg.mineral.api.network.packet.Packet;
+import gg.mineral.server.network.connection.ConnectionImpl;
+
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,16 +14,17 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(fluent = true)
-public class LoginStartPacket implements Packet.INCOMING {
+public final class LoginStartPacket implements Packet.INCOMING {
     private String name;
 
     @Override
     public void received(Connection connection) {
-        connection.attemptLogin(name);
+        if (connection instanceof ConnectionImpl impl)
+            impl.attemptLogin(name);
     }
 
     @Override
     public void deserialize(ByteBuf is) {
-        this.name = ByteBufUtil.readString(is);
+        this.name = readString(is);
     }
 }

@@ -1,8 +1,8 @@
 package gg.mineral.server.network.packet.play.bidirectional;
 
-import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.network.packet.Packet;
-import gg.mineral.server.util.network.ByteBufUtil;
+import gg.mineral.api.network.connection.Connection;
+import gg.mineral.api.network.packet.Packet;
+
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -12,20 +12,20 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(fluent = true)
-public class AnimationPacket implements Packet.INCOMING, Packet.OUTGOING {
+public final class AnimationPacket implements Packet.INCOMING, Packet.OUTGOING {
     private int entityId;
     private short animationId;
 
     @Override
     public void serialize(ByteBuf os) {
-        ByteBufUtil.writeVarInt(os, entityId);
+        writeVarInt(os, entityId);
         os.writeByte(animationId);
     }
 
     @Override
     public void received(Connection connection) {
         if (animationId == 1) {
-            val player = connection.getServer().getEntityManager().get(connection);
+            val player = connection.getPlayer();
 
             if (player != null)
                 player.swingArm();

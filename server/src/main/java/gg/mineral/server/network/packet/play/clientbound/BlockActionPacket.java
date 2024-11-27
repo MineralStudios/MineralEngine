@@ -1,10 +1,9 @@
 package gg.mineral.server.network.packet.play.clientbound;
 
-import gg.mineral.server.network.packet.Packet;
-import gg.mineral.server.util.network.ByteBufUtil;
+import gg.mineral.api.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 
-public record BlockActionPacket(int x, short y, int z, int blockType, short byte1, short byte2)
+public final record BlockActionPacket(int x, short y, int z, int blockType, short byte1, short byte2)
         implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
@@ -13,7 +12,7 @@ public record BlockActionPacket(int x, short y, int z, int blockType, short byte
         os.writeInt(z);
         os.writeByte(byte1);
         os.writeByte(byte2);
-        ByteBufUtil.writeVarInt(os, blockType);
+        writeVarInt(os, blockType);
     }
 
     @Override

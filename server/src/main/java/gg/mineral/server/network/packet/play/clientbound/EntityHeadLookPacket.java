@@ -1,9 +1,9 @@
 package gg.mineral.server.network.packet.play.clientbound;
 
-import gg.mineral.server.network.packet.Packet;
+import gg.mineral.api.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 
-public record EntityHeadLookPacket(int entityId, byte headYaw) implements Packet.OUTGOING {
+public final record EntityHeadLookPacket(int entityId, byte headYaw) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeInt(entityId);

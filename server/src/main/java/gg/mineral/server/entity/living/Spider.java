@@ -1,11 +1,12 @@
 package gg.mineral.server.entity.living;
 
-import gg.mineral.server.entity.LivingEntity;
+import gg.mineral.server.entity.LivingImpl;
+import gg.mineral.server.world.WorldImpl;
 
-public class Spider extends LivingEntity {
+public class Spider extends LivingImpl {
 
-    public Spider(int id) {
-        super(id);
+    public Spider(int id, WorldImpl world) {
+        super(id, world);
     }
 
     @Override

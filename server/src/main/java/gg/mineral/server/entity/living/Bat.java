@@ -1,11 +1,12 @@
 package gg.mineral.server.entity.living;
 
-import gg.mineral.server.entity.LivingEntity;
+import gg.mineral.server.entity.LivingImpl;
+import gg.mineral.server.world.WorldImpl;
 
-public class Bat extends LivingEntity {
+public class Bat extends LivingImpl {
 
-    public Bat(int id) {
-        super(id);
+    public Bat(int id, WorldImpl world) {
+        super(id, world);
     }
 
     @Override

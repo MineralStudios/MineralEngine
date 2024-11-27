@@ -4,15 +4,13 @@ import java.util.UUID;
 
 import com.eatthepath.uuid.FastUUID;
 
-import gg.mineral.server.network.packet.Packet;
-import gg.mineral.server.util.network.ByteBufUtil;
+import gg.mineral.api.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 
-public record LoginSuccessPacket(UUID uuid, String username) implements Packet.OUTGOING {
+public final record LoginSuccessPacket(UUID uuid, String username) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
-        ByteBufUtil.writeString(os, FastUUID.toString(uuid));
-        ByteBufUtil.writeString(os, username);
+        writeString(os, FastUUID.toString(uuid), username);
     }
 
     @Override

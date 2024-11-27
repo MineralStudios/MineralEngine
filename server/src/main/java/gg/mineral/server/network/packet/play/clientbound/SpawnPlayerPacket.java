@@ -2,14 +2,13 @@ package gg.mineral.server.network.packet.play.clientbound;
 
 import java.util.List;
 
-import gg.mineral.server.entity.living.human.property.PlayerProperty;
-import gg.mineral.server.entity.metadata.EntityMetadata;
-import gg.mineral.server.network.packet.Packet;
-import gg.mineral.server.util.network.ByteBufUtil;
+import gg.mineral.api.entity.living.human.property.PlayerProperty;
+import gg.mineral.api.network.packet.Packet;
+import gg.mineral.server.entity.meta.EntityMetadataImpl;
 import io.netty.buffer.ByteBuf;
 import lombok.val;
 
-public record SpawnPlayerPacket(
+public final record SpawnPlayerPacket(
         int entityId,
         int x,
         int y,
@@ -19,17 +18,17 @@ public record SpawnPlayerPacket(
         String playerName,
         List<PlayerProperty> playerProperties,
         short currentItem,
-        List<EntityMetadata.Entry> entries) implements Packet.OUTGOING {
+        List<EntityMetadataImpl.Entry> entries) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
-        ByteBufUtil.writeVarInt(os, entityId);
-        ByteBufUtil.writeString(os, playerUUID);
-        ByteBufUtil.writeString(os, playerName);
-        ByteBufUtil.writeVarInt(os, playerProperties.size());
+        writeVarInt(os, entityId);
+        writeString(os, playerUUID);
+        writeString(os, playerName);
+        writeVarInt(os, playerProperties.size());
 
         // TODO: Make it more concise like below
         for (val playerProperty : playerProperties)
-            ByteBufUtil.writeString(os, playerProperty.name(), playerProperty.value(), playerProperty.signature());
+            writeString(os, playerProperty.name(), playerProperty.value(), playerProperty.signature());
 
         os.writeInt(x);
         os.writeInt(y);
@@ -37,7 +36,7 @@ public record SpawnPlayerPacket(
         os.writeByte(yaw);
         os.writeByte(pitch);
         os.writeShort(currentItem);
-        ByteBufUtil.writeMetadata(os, entries);
+        writeMetadata(os, entries);
     }
 
     @Override

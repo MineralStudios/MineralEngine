@@ -2,11 +2,11 @@ package gg.mineral.server.network.packet.play.clientbound;
 
 import java.util.List;
 
-import gg.mineral.server.network.packet.Packet;
+import gg.mineral.api.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 import lombok.val;
 
-public record MultiBlockChangePacket(int chunkX, int chunkZ, List<BlockChangePacket> records)
+public final record MultiBlockChangePacket(int chunkX, int chunkZ, List<BlockChangePacket> records)
         implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {

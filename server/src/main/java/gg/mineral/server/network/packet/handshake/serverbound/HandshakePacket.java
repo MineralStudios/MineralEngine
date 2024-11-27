@@ -1,9 +1,9 @@
 package gg.mineral.server.network.packet.handshake.serverbound;
 
-import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.network.packet.Packet;
+import gg.mineral.api.network.connection.Connection;
+import gg.mineral.api.network.packet.Packet;
+import gg.mineral.server.network.connection.ConnectionImpl;
 import gg.mineral.server.network.protocol.ProtocolState;
-import gg.mineral.server.util.network.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,21 +14,23 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(fluent = true)
-public class HandshakePacket implements Packet.INCOMING {
+public final class HandshakePacket implements Packet.INCOMING {
     private int protocol, port, nextState;
     private String serverAddress;
 
     @Override
     public void received(Connection connection) {
-        connection.setProtocolVersion((byte) protocol);
-        connection.setProtocolState(ProtocolState.getState(nextState));
+        if (connection instanceof ConnectionImpl impl) {
+            impl.setProtocolVersion((byte) protocol);
+            impl.setProtocolState(ProtocolState.getState(nextState));
+        }
     }
 
     @Override
     public void deserialize(ByteBuf is) {
-        protocol = ByteBufUtil.readVarInt(is);
-        serverAddress = ByteBufUtil.readString(is);
+        protocol = readVarInt(is);
+        serverAddress = readString(is);
         port = is.readUnsignedShort();
-        nextState = ByteBufUtil.readVarInt(is);
+        nextState = readVarInt(is);
     }
 }

@@ -1,6 +1,10 @@
 
 dependencies {
+    compileOnly 'io.netty:netty-all:4.1.115.Final'
+    implementation 'it.unimi.dsi:fastutil:8.5.12'
+    compileOnly 'org.apache.commons:commons-lang3:3.12.0'
     compileOnly 'org.projectlombok:lombok:1.18.36'
+    implementation 'dev.zerite.craftlib:craftlib-chat:0.1.4'
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
     implementation 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.0'
     annotationProcessor 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.0'

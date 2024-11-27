@@ -2,16 +2,16 @@ package gg.mineral.server.network.packet.play.clientbound;
 
 import java.util.List;
 
-import gg.mineral.server.entity.metadata.EntityMetadata;
-import gg.mineral.server.network.packet.Packet;
-import gg.mineral.server.util.network.ByteBufUtil;
+import gg.mineral.api.network.packet.Packet;
+import gg.mineral.server.entity.meta.EntityMetadataImpl;
 import io.netty.buffer.ByteBuf;
 
-public record EntityMetadataPacket(int entityId, List<EntityMetadata.Entry> entries) implements Packet.OUTGOING {
+public final record EntityMetadataPacket(int entityId, List<EntityMetadataImpl.Entry> entries)
+        implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeInt(entityId);
-        ByteBufUtil.writeMetadata(os, entries);
+        writeMetadata(os, entries);
     }
 
     @Override

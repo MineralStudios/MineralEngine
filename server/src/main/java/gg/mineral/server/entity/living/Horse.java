@@ -1,11 +1,12 @@
 package gg.mineral.server.entity.living;
 
-import gg.mineral.server.entity.LivingEntity;
+import gg.mineral.server.entity.LivingImpl;
+import gg.mineral.server.world.WorldImpl;
 
-public class Horse extends LivingEntity {
+public class Horse extends LivingImpl {
 
-    public Horse(int id) {
-        super(id);
+    public Horse(int id, WorldImpl world) {
+        super(id, world);
     }
 
     @Override

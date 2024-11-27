@@ -1,13 +1,13 @@
 package gg.mineral.server.plugin;
 
-import gg.mineral.server.plugin.listener.Listener;
-import gg.mineral.server.util.collection.GlueList;
-import lombok.val;
-
+import java.util.ArrayList;
 import java.util.List;
 
+import gg.mineral.server.plugin.listener.Listener;
+import lombok.val;
+
 public class PluginRegistry {
-    public static final List<Listener> LISTENERS = new GlueList<>();
+    public static final List<Listener> LISTENERS = new ArrayList<>();
 
     public static void registerPlugins(MineralPlugin... plugins) {
         for (val plugin : plugins)

@@ -1,11 +1,12 @@
 package gg.mineral.server.entity.living;
 
-import gg.mineral.server.entity.LivingEntity;
+import gg.mineral.server.entity.LivingImpl;
+import gg.mineral.server.world.WorldImpl;
 
-public class IronGolem extends LivingEntity {
+public class IronGolem extends LivingImpl {
 
-    public IronGolem(int id) {
-        super(id);
+    public IronGolem(int id, WorldImpl world) {
+        super(id, world);
     }
 
     @Override

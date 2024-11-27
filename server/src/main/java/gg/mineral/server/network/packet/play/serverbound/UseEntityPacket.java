@@ -1,7 +1,7 @@
 package gg.mineral.server.network.packet.play.serverbound;
 
-import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.network.packet.Packet;
+import gg.mineral.api.network.connection.Connection;
+import gg.mineral.api.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @Data
 @Accessors(fluent = true)
-public class UseEntityPacket implements Packet.INCOMING {
+public final class UseEntityPacket implements Packet.INCOMING {
     private int target;
     private byte mouse;
 
@@ -21,8 +21,7 @@ public class UseEntityPacket implements Packet.INCOMING {
     public void received(Connection connection) {
         if (mouse == 1) { // left click
             if (target != -1) {
-                val entityManager = connection.getServer().getEntityManager();
-                val attacker = entityManager.get(connection);
+                val attacker = connection.getPlayer();
 
                 if (attacker != null)
                     attacker.attack(target);

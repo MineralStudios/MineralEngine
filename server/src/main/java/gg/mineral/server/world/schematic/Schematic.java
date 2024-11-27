@@ -11,7 +11,7 @@ import gg.mineral.server.util.nbt.CompoundTag;
 import gg.mineral.server.util.nbt.NBTInputStream;
 import gg.mineral.server.util.nbt.NBTOutputStream;
 import gg.mineral.server.util.nbt.ShortTag;
-import gg.mineral.server.world.chunk.Chunk;
+import gg.mineral.server.world.chunk.ChunkImpl;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -30,40 +30,58 @@ public class Schematic {
         val stream = new NBTInputStream(new FileInputStream(source));
         val nbt = stream.readCompound();
 
-        short width = ((Short) nbt.getValue().get("Width").getValue()).shortValue();
-        short height = ((Short) nbt.getValue().get("Height").getValue()).shortValue();
-        short length = ((Short) nbt.getValue().get("Length").getValue()).shortValue();
+        val nbtValue = nbt.getValue();
 
-        val schematic = new SchematicFile(source, width, height, length);
+        if (nbtValue == null)
+            throw new IllegalArgumentException("Invalid schematic file: missing root tag");
 
-        val blockArray = (byte[]) nbt.getValue().get("Blocks").getValue();
-        val dataArray = (byte[]) nbt.getValue().get("Data").getValue();
+        val widthTag = nbtValue.get("Width");
+        val heightTag = nbtValue.get("Height");
+        val lengthTag = nbtValue.get("Length");
 
-        val chunkedBlocks = schematic.getChunkedBlocks();
+        if (widthTag == null || heightTag == null || lengthTag == null)
+            throw new IllegalArgumentException("Invalid schematic file: missing dimensions");
 
-        for (int x = 0; x < width; x++) {
-            int absoluteX = x;
-            byte chunkX = (byte) (absoluteX >> 4);
+        if (widthTag.getValue() instanceof Short width && heightTag.getValue() instanceof Short height
+                && lengthTag.getValue() instanceof Short length) {
 
-            for (int y = 0; y < height; y++) {
-                for (int z = 0; z < length; z++) {
-                    int absoluteZ = z;
-                    byte chunkZ = (byte) (absoluteZ >> 4);
+            val schematic = new SchematicFile(source, width, height, length);
 
-                    int index = (y * length + z) * width + x;
-                    int type = blockArray[index] & 0xFF;
-                    byte data = (byte) (dataArray[index] & 0xF);
+            val blocksTag = nbtValue.get("Blocks");
+            val dataTag = nbtValue.get("Data");
 
-                    val block = new SchematicBlock(absoluteX, y, absoluteZ, type, data);
+            if (blocksTag == null || dataTag == null)
+                throw new IllegalArgumentException("Invalid schematic file: missing blocks");
 
-                    short chunkKey = Chunk.toKey(chunkX, chunkZ);
+            if (blocksTag.getValue() instanceof byte[] blockArray && dataTag.getValue() instanceof byte[] dataArray) {
+                val chunkedBlocks = schematic.getChunkedBlocks();
 
-                    chunkedBlocks.computeIfAbsent(chunkKey, k -> new ArrayList<>()).add(block);
+                for (int x = 0; x < width; x++) {
+                    int absoluteX = x;
+                    byte chunkX = (byte) (absoluteX >> 4);
+
+                    for (int y = 0; y < height; y++) {
+                        for (int z = 0; z < length; z++) {
+                            int absoluteZ = z;
+                            byte chunkZ = (byte) (absoluteZ >> 4);
+
+                            int index = (y * length + z) * width + x, type = blockArray[index] & 0xFF;
+                            byte data = (byte) (dataArray[index] & 0xF);
+
+                            val block = new SchematicBlock(absoluteX, y, absoluteZ, type, data);
+
+                            short chunkKey = ChunkImpl.toKey(chunkX, chunkZ);
+
+                            chunkedBlocks.computeIfAbsent(chunkKey, k -> new ArrayList<>()).add(block);
+                        }
+                    }
                 }
+
+                return schematic;
             }
         }
 
-        return schematic;
+        throw new IllegalArgumentException("Invalid schematic file: invalid dimensions");
     }
 
     /**
@@ -103,7 +121,7 @@ public class Schematic {
                     byte chunkX = (byte) (absoluteX >> 4);
                     byte chunkZ = (byte) (absoluteZ >> 4);
 
-                    short chunkKey = Chunk.toKey(chunkX, chunkZ);
+                    short chunkKey = ChunkImpl.toKey(chunkX, chunkZ);
                     val blocksInChunk = schematic.getChunkedBlocks().get(chunkKey);
 
                     if (blocksInChunk != null) {

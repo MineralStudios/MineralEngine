@@ -51,7 +51,7 @@ public class HttpsClient {
             throw new IllegalArgumentException("body must be null for GET calls.");
 
         val conn = getConnection();
-        if (mode == Mode.POST) {
+        if (mode == Mode.POST && body != null) {
             val data = body.getBytes("UTF-8");
             conn.setRequestProperty("Content-Length", String.valueOf(data.length));
             conn.setDoOutput(true);
@@ -118,8 +118,7 @@ public class HttpsClient {
 
     private void copy(final Reader input, final Writer output) throws IOException {
         val buffer = new char[BUFFER_SIZE];
-        int n;
-        while (-1 != (n = input.read(buffer)))
+        for (int n = input.read(buffer); n != -1; n = input.read(buffer))
             output.write(buffer, 0, n);
     }
 }

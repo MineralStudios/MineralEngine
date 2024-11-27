@@ -1,8 +1,8 @@
 package gg.mineral.server.network.packet.play.bidirectional;
 
-import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.network.packet.Packet;
-import gg.mineral.server.util.network.ByteBufUtil;
+import gg.mineral.api.network.connection.Connection;
+import gg.mineral.api.network.packet.Packet;
+
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @Data
 @Accessors(fluent = true)
-public class UpdateSignPacket implements Packet.INCOMING, Packet.OUTGOING {
+public final class UpdateSignPacket implements Packet.INCOMING, Packet.OUTGOING {
     private int x;
     private short y;
     private int z;
@@ -24,10 +24,7 @@ public class UpdateSignPacket implements Packet.INCOMING, Packet.OUTGOING {
         os.writeInt(x);
         os.writeShort(y);
         os.writeInt(z);
-        ByteBufUtil.writeString(os, line1);
-        ByteBufUtil.writeString(os, line2);
-        ByteBufUtil.writeString(os, line3);
-        ByteBufUtil.writeString(os, line4);
+        writeString(os, line1, line2, line3, line4);
     }
 
     @Override
@@ -41,10 +38,10 @@ public class UpdateSignPacket implements Packet.INCOMING, Packet.OUTGOING {
         x = is.readInt();
         y = is.readShort();
         z = is.readInt();
-        line1 = ByteBufUtil.readString(is);
-        line2 = ByteBufUtil.readString(is);
-        line3 = ByteBufUtil.readString(is);
-        line4 = ByteBufUtil.readString(is);
+        line1 = readString(is);
+        line2 = readString(is);
+        line3 = readString(is);
+        line4 = readString(is);
     }
 
     @Override

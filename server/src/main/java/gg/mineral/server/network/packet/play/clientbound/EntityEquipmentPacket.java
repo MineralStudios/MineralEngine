@@ -1,16 +1,16 @@
 package gg.mineral.server.network.packet.play.clientbound;
 
-import gg.mineral.server.inventory.item.ItemStack;
-import gg.mineral.server.network.packet.Packet;
-import gg.mineral.server.util.network.ByteBufUtil;
+import gg.mineral.api.inventory.item.ItemStack;
+import gg.mineral.api.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 
-public record EntityEquipmentPacket(int entityId, short slot, ItemStack itemStack) implements Packet.OUTGOING {
+public final record EntityEquipmentPacket(int entityId, short slot, ItemStack itemStack)
+        implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeInt(entityId);
         os.writeShort(slot);
-        ByteBufUtil.writeSlot(os, itemStack);
+        writeSlot(os, itemStack);
     }
 
     @Override

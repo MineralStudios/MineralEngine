@@ -5,6 +5,8 @@ import java.util.UUID;
 import com.eatthepath.uuid.FastUUID;
 
 public class UUIDUtil {
+    private static final int UUID_INT_ARRAY_LENGTH = 4;
+
     public static String fromUUID(UUID uuid) {
         return FastUUID.toString(uuid).replace("-", "");
     }
@@ -35,11 +37,11 @@ public class UUIDUtil {
      * @return a UUID
      */
     public static UUID fromIntArray(int[] arr) {
-        if (arr.length != 4)
+        if (arr.length != UUID_INT_ARRAY_LENGTH)
             return null;
 
-        long mostSigBits = (long) arr[0] << 32 | arr[1] & 0xFFFFFFFFL;
-        long leastSigBits = (long) arr[2] << 32 | arr[2] & 0xFFFFFFFFL;
+        long mostSigBits = (long) arr[0] << 32 | arr[1] & 0xFFFFFFFFL,
+                leastSigBits = (long) arr[2] << 32 | arr[2] & 0xFFFFFFFFL;
         return new UUID(mostSigBits, leastSigBits);
     }
 }

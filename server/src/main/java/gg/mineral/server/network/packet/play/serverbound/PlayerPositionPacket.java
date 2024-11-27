@@ -1,7 +1,7 @@
 package gg.mineral.server.network.packet.play.serverbound;
 
-import gg.mineral.server.network.connection.Connection;
-import gg.mineral.server.network.packet.Packet;
+import gg.mineral.api.network.connection.Connection;
+import gg.mineral.api.network.packet.Packet;
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,16 +13,13 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @Data
 @Accessors(fluent = true)
-public class PlayerPositionPacket implements Packet.INCOMING {
+public final class PlayerPositionPacket implements Packet.INCOMING {
     private double x, feetY, headY, z;
     private boolean onGround;
 
     @Override
     public void received(Connection connection) {
-        val player = connection.getServer().getEntityManager().get(connection);
-
-        if (player == null)
-            return;
+        val player = connection.getPlayer();
 
         val newMotX = x - player.getX();
         val newMotY = feetY - player.getY();

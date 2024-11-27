@@ -13,11 +13,11 @@ public class NBTReadLimiter {
     };
 
     private final long limit;
-    private long read = 0;
+    private long currentRead = 0;
 
     public void read(int length) {
-        this.read += length;
-        if (this.read > this.limit)
+        this.currentRead += length;
+        if (this.currentRead > this.limit)
             throw new IllegalStateException("Read more than " + this.limit + " bytes from NBT tag");
     }
 }

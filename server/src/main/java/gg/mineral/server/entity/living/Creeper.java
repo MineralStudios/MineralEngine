@@ -1,11 +1,12 @@
 package gg.mineral.server.entity.living;
 
-import gg.mineral.server.entity.LivingEntity;
+import gg.mineral.server.entity.LivingImpl;
+import gg.mineral.server.world.WorldImpl;
 
-public class Creeper extends LivingEntity {
+public class Creeper extends LivingImpl {
 
-    public Creeper(int id) {
-        super(id);
+    public Creeper(int id, WorldImpl world) {
+        super(id, world);
     }
 
     @Override

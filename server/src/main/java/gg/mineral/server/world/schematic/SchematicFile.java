@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-import gg.mineral.server.world.chunk.Chunk;
+import gg.mineral.server.world.chunk.ChunkImpl;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,7 +19,7 @@ public class SchematicFile {
     private short xSize, ySize, zSize;
 
     public List<SchematicBlock> getBlocksForChunk(byte chunkX, byte chunkZ) {
-        short key = Chunk.toKey(chunkX, chunkZ);
+        short key = ChunkImpl.toKey(chunkX, chunkZ);
         return chunkedBlocks.getOrDefault(key, Collections.emptyList());
     }
 }

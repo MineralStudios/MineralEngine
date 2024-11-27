@@ -1,16 +1,16 @@
 package gg.mineral.server.network.packet.play.clientbound;
 
-import gg.mineral.server.network.packet.Packet;
-import gg.mineral.server.util.network.ByteBufUtil;
+import gg.mineral.api.network.packet.Packet;
+
 import io.netty.buffer.ByteBuf;
 
-public record OpenWindowPacket(short windowId, short inventoryType, String windowTitle, short numberOfSlots,
+public final record OpenWindowPacket(short windowId, short inventoryType, String windowTitle, short numberOfSlots,
         boolean useProvidedWindowTitle, int entityId) implements Packet.OUTGOING {
     @Override
     public void serialize(ByteBuf os) {
         os.writeByte(windowId);
         os.writeByte(inventoryType);
-        ByteBufUtil.writeString(os, windowTitle);
+        writeString(os, windowTitle);
         os.writeByte(numberOfSlots);
         os.writeBoolean(useProvidedWindowTitle);
         os.writeInt(entityId);
