@@ -14,8 +14,8 @@ dependencies {
     implementation 'com.eatthepath:fast-uuid:0.2.0'
     implementation 'it.unimi.dsi:fastutil:8.5.12'
 
-    compileOnly 'org.projectlombok:lombok:1.18.30'
-    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    compileOnly 'org.projectlombok:lombok:1.18.36'
+    annotationProcessor 'org.projectlombok:lombok:1.18.36'
     compileOnly 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.0'
     annotationProcessor 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.0'
 }
