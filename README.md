@@ -7,6 +7,7 @@ A fully custom Minecraft Server implementation written in Java.
 
 ## Features
 - Minimal
+- Low Level API Fucntionality
 - Modern (Java 21 and updated dependencies)
 - Schematic World Loading
 - Array Chunk Caching (Less memory than ConcurrentHashMaps, while still having the same time complexity)
