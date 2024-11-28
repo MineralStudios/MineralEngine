@@ -12,7 +12,7 @@ dependencies {
     implementation 'io.netty:netty-all:4.1.115.Final'
     implementation 'org.json:json:20240303'
     implementation 'com.eatthepath:fast-uuid:0.2.0'
-    implementation 'it.unimi.dsi:fastutil:8.5.12'
+    implementation 'it.unimi.dsi:fastutil:8.5.15'
 
     compileOnly 'org.projectlombok:lombok:1.18.36'
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
