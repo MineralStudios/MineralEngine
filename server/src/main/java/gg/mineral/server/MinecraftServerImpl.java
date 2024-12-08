@@ -2,30 +2,43 @@ package gg.mineral.server;
 
 import java.io.File;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jline.reader.Candidate;
+import org.jline.reader.Completer;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.ParsedLine;
+
 import gg.mineral.api.MinecraftServer;
+import gg.mineral.api.command.CommandExecutor;
 import gg.mineral.api.entity.living.human.Player;
 import gg.mineral.api.network.connection.Connection;
+import gg.mineral.api.plugin.PluginLoader;
 import gg.mineral.api.world.World;
 import gg.mineral.api.world.World.Environment;
 import gg.mineral.api.world.World.Generator;
 import gg.mineral.server.command.CommandMapImpl;
 import gg.mineral.server.command.impl.KnockbackCommand;
+import gg.mineral.server.command.impl.StopCommand;
 import gg.mineral.server.command.impl.TPSCommand;
 import gg.mineral.server.command.impl.VersionCommand;
+import gg.mineral.server.config.GroovyConfig;
 import gg.mineral.server.entity.EntityImpl;
 import gg.mineral.server.entity.living.human.PlayerImpl;
 import gg.mineral.server.network.channel.MineralChannelInitializer;
 import gg.mineral.server.network.connection.ConnectionImpl;
 import gg.mineral.server.tick.TickLoopImpl;
 import gg.mineral.server.tick.TickThreadFactory;
-import gg.mineral.server.util.messages.Messages;
 import gg.mineral.server.world.WorldImpl;
 import gg.mineral.server.world.chunk.ChunkImpl;
 import gg.mineral.server.world.schematic.Schematic;
@@ -44,20 +57,22 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.val;
+import net.minecrell.terminalconsole.SimpleTerminalConsole;
 
 @Getter
-public class MinecraftServerImpl implements MinecraftServer {
+public class MinecraftServerImpl extends SimpleTerminalConsole implements MinecraftServer, CommandExecutor, Completer {
+
+    private static final Logger LOGGER = LogManager.getLogger(MinecraftServer.class);
+
+    private static Set<String> permissions = new ObjectOpenHashSet<>(Arrays.asList("*"));
 
     private static final int NETWORK_THREADS = Runtime.getRuntime().availableProcessors();
 
     private static final ExecutorService asyncExecutor = Executors.newWorkStealingPool();
     private static final ScheduledExecutorService tickExecutor = Executors
             .newSingleThreadScheduledExecutor(TickThreadFactory.INSTANCE);
-
-    private static final File worldFolder = new File("worlds");
 
     private final Byte2ObjectOpenHashMap<WorldImpl> worlds = new Byte2ObjectOpenHashMap<>();
     private final Int2ObjectOpenHashMap<EntityImpl> entities = new Int2ObjectOpenHashMap<>();
@@ -70,11 +85,14 @@ public class MinecraftServerImpl implements MinecraftServer {
 
     private final TickLoopImpl tickLoop = new TickLoopImpl(this);
 
+    private final GroovyConfig config = new GroovyConfig();
+
     private final CommandMapImpl registeredCommands = new CommandMapImpl() {
         {
             register(new TPSCommand());
             register(new VersionCommand());
             register(new KnockbackCommand());
+            register(new StopCommand());
         }
     };
 
@@ -93,10 +111,6 @@ public class MinecraftServerImpl implements MinecraftServer {
 
     private EventLoopGroup group;
     private boolean running = false;
-
-    @Setter
-    // TODO: add ability to filter debug messages using groovy config
-    public boolean debugMessages = false;
 
     public PlayerImpl createPlayer(ConnectionImpl connection) throws IllegalStateException {
         val spawnWorld = worlds.get((byte) 0);
@@ -130,12 +144,13 @@ public class MinecraftServerImpl implements MinecraftServer {
         val player = players.remove(id);
 
         if (player != null)
-            player.disconnect(Messages.DISCONNECT_UNKNOWN);
+            player.disconnect(config.getDisconnectUnknown());
     }
 
     public void disconnected(ConnectionImpl connection) {
         val player = playerConnections.remove(connection);
         if (player != null) {
+            LOGGER.info(player.getName() + " has disconnected. [UUID: " + player.getUuid() + "].");
             players.remove(player.getId());
             playerNames.remove(player.getName());
             entities.remove(player.getId());
@@ -158,11 +173,28 @@ public class MinecraftServerImpl implements MinecraftServer {
 
     @SneakyThrows
     @Override
-    public void start(int port) {
+    public void start() {
         if (running)
             throw new IllegalStateException("Server is already running.");
 
         running = true;
+        long startTime = System.nanoTime();
+        LOGGER.info("Starting server...");
+
+        config.load();
+
+        LOGGER.info("Config at " + config.getConfigFile().getAbsolutePath() + " has been loaded successfully ["
+                + (System.nanoTime() - startTime) / 1_000_000 + "ms].");
+
+        val pluginLoader = new PluginLoader(this, new File(config.getPluginsFolder()));
+
+        pluginLoader.loadPlugins();
+
+        LOGGER.info("Loaded " + pluginLoader.getLoadedPlugins().size() + " plugins ["
+                + (System.nanoTime() - startTime) / 1_000_000 + "ms].");
+
+        int port = config.getPort();
+        val worldFolder = new File(config.getWorldsFolder());
         if (!worldFolder.exists())
             worldFolder.mkdirs();
 
@@ -170,8 +202,9 @@ public class MinecraftServerImpl implements MinecraftServer {
             if (file.getName().endsWith(".schematic")) {
                 val name = file.getName().substring(0, file.getName().length() - 10);
                 val schematic = Schematic.load(file);
-                System.out.println("[Mineral] Loaded schematic " + name + " with " + schematic.getChunkedBlocks().size()
-                        + " chunks.");
+                LOGGER.info("Loaded schematic " + name + " with " + schematic.getChunkedBlocks().size()
+                        + " chunks ["
+                        + (System.nanoTime() - startTime) / 1_000_000 + "ms].");
 
                 createWorld(name, Environment.NORMAL, new Generator() {
                     @Override
@@ -208,34 +241,20 @@ public class MinecraftServerImpl implements MinecraftServer {
         else
             group = new NioEventLoopGroup(NETWORK_THREADS);
 
-        val b = new ServerBootstrap();
-        b.group(group)
+        val bootstrap = new ServerBootstrap();
+        bootstrap.group(group)
                 .channel(Epoll.isAvailable() ? EpollServerSocketChannel.class
                         : KQueue.isAvailable()
                                 ? KQueueServerSocketChannel.class
                                 : NioServerSocketChannel.class)
                 .localAddress(new InetSocketAddress(port))
-                .childHandler(new MineralChannelInitializer(this));
-        val f = b.bind().sync();
+                .childHandler(new MineralChannelInitializer(this)).bind().sync();
 
-        System.out.println("[Mineral] Server started on port " + port);
         tickLoop.start();
-        try {
-            f.channel().closeFuture().sync();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-        }
 
-    }
+        LOGGER.info("Server started on port " + port + " [" + (System.nanoTime() - startTime) / 1_000_000 + "ms].");
 
-    @SneakyThrows
-    @Override
-    public void stop() {
-        tickExecutor.shutdown();
-        asyncExecutor.shutdown();
-        if (group != null)
-            group.shutdownGracefully().sync();
+        super.start();
     }
 
     @Override
@@ -249,7 +268,7 @@ public class MinecraftServerImpl implements MinecraftServer {
     }
 
     public static void main(String[] args) {
-        new MinecraftServerImpl().start(25565);
+        new MinecraftServerImpl().start();
     }
 
     @Override
@@ -265,6 +284,63 @@ public class MinecraftServerImpl implements MinecraftServer {
     @Override
     public Player getPlayer(int entityId) {
         return players.get(entityId);
+    }
+
+    @Override
+    public Set<String> getPermissions() {
+        return permissions;
+    }
+
+    @Override
+    public void msg(String message) {
+        LOGGER.info(message);
+    }
+
+    @Override
+    public MinecraftServer getServer() {
+        return this;
+    }
+
+    @Override
+    protected void runCommand(String input) {
+        val splitCommand = input.split(" ");
+        val args = splitCommand.length > 1 ? Arrays.copyOfRange(splitCommand, 1, splitCommand.length)
+                : new String[0];
+
+        val commandName = splitCommand[0];
+        val command = registeredCommands.get(input);
+
+        if (command != null)
+            command.execute(this, args);
+        else
+            LOGGER.error("Unknown command: " + commandName);
+    }
+
+    @Override
+    @SneakyThrows
+    public void shutdown() {
+        this.running = false;
+        tickExecutor.shutdown();
+        asyncExecutor.shutdown();
+        if (group != null)
+            group.shutdownGracefully().sync();
+    }
+
+    @Override
+    protected LineReader buildReader(LineReaderBuilder builder) {
+        return super.buildReader(builder
+                .appName("MineralEngine")
+                .completer(this));
+    }
+
+    @Override
+    public void complete(LineReader reader, ParsedLine line, List<Candidate> candidates) {
+        val buffer = line.line();
+
+        // line.word() for current word, add autocomplete for arguments
+        for (val cmd : registeredCommands.keySet())
+            if (cmd.startsWith(buffer))
+                candidates.add(new Candidate(cmd));
     }
 
 }

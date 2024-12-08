@@ -27,20 +27,6 @@ public interface MinecraftServer {
     TickLoop getTickLoop();
 
     /**
-     * Gets if debug messages are enabled.
-     * 
-     * @return If debug messages are enabled.
-     */
-    boolean isDebugMessages();
-
-    /**
-     * Sets if debug messages are enabled.
-     * 
-     * @param debugMessages If debug messages are enabled.
-     */
-    void setDebugMessages(boolean debugMessages);
-
-    /**
      * Gets the connections.
      * 
      * @return The connections.
@@ -64,18 +50,14 @@ public interface MinecraftServer {
     /**
      * Starts the server.
      * 
-     * @param port The port to start the server on.
-     * 
-     * @throws IllegalArgumentException If the port is invalid.
-     * 
-     * @throws IllegalStateException    If the server is already running.
+     * @throws IllegalStateException If the server is already running.
      */
-    void start(int port);
+    void start();
 
     /**
      * Stops the server.
      */
-    void stop();
+    void shutdown();
 
     /**
      * Gets all the online players.

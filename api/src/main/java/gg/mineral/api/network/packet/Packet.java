@@ -38,4 +38,13 @@ public interface Packet {
          */
         void deserialize(ByteBuf is);
     }
+
+    public static interface ASYNC_INCOMING extends INCOMING {
+        /**
+         * Handle the packet when it is received asynchronously.
+         * 
+         * @param connection
+         */
+        void receivedAsync(Connection connection);
+    }
 }

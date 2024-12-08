@@ -12,7 +12,7 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @Data
 @Accessors(fluent = true)
-public final class KeepAlivePacket implements Packet.INCOMING, Packet.OUTGOING {
+public final class KeepAlivePacket implements Packet.ASYNC_INCOMING, Packet.OUTGOING {
     private int keepAliveId;
 
     @Override
@@ -32,6 +32,10 @@ public final class KeepAlivePacket implements Packet.INCOMING, Packet.OUTGOING {
     @Override
     public byte getId() {
         return 0x00;
+    }
+
+    @Override
+    public void receivedAsync(Connection connection) {
     }
 
 }

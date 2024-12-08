@@ -44,4 +44,8 @@ public class UUIDUtil {
                 leastSigBits = (long) arr[2] << 32 | arr[2] & 0xFFFFFFFFL;
         return new UUID(mostSigBits, leastSigBits);
     }
+
+    public static UUID fromName(String name) {
+        return UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes());
+    }
 }

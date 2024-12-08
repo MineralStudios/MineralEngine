@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <TerminalConsole name="Console">
+            <PatternLayout pattern="[%d{HH:mm:ss} %level]: %minecraftFormatting{%msg}%n"/>
+        </TerminalConsole>
+        <RollingFile name="File"
+                     fileName="logs/latest.log"
+                     filePattern="logs/%d{yyyy-MM-dd}.log.gz">
+            <!-- Emulate Spigot-like formatting in the log file -->
+            <PatternLayout pattern="[%d{HH:mm:ss} %level]: %minecraftFormatting{%msg}{strip}%n"/>
+            <Policies>
+                <OnStartupTriggeringPolicy/>
+            </Policies>
+            <DefaultRolloverStrategy compressionLevel="9"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
+        </Root>
+    </Loggers>
+</Configuration>

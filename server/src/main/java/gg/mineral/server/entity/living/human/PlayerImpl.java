@@ -6,6 +6,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import dev.zerite.craftlib.chat.component.BaseChatComponent;
@@ -53,6 +55,7 @@ import lombok.val;
 
 public class PlayerImpl extends HumanImpl implements Player {
 
+    private static final Logger LOGGER = LogManager.getLogger(Player.class);
     @Getter
     private final Short2IntLinkedOpenHashMap chunkUpdateTracker = new Short2IntLinkedOpenHashMap();
     @Getter
@@ -105,7 +108,7 @@ public class PlayerImpl extends HumanImpl implements Player {
 
         world.updatePosition(this);
 
-        if (!isFirstTick() && getCurrentTick() % 2 == 0)
+        if (!isFirstTick() && getCurrentTick() % server.getConfig().getRelativeMoveFrequency() == 0)
             updateVisibleEntities();
 
         tickArm();
@@ -226,6 +229,10 @@ public class PlayerImpl extends HumanImpl implements Player {
                 new PlayerPositionAndLookPacket(x, headY, z, yaw, pitch, onGround),
                 new SetSlotPacket((byte) 0, (short) 36,
                         new ItemStack(Material.DIAMOND_SWORD, (short) 1, (short) 1)));
+
+        LOGGER.info(this.getName() + " has connected. [UUID: " + this.getUuid() + "] [IP: " + connection.getIpAddress()
+                + "]");
+
         setupAttributes();
         effect(PotionEffect.SPEED, (byte) 1, (short) 32767);
     }

@@ -8,6 +8,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import dev.zerite.craftlib.chat.component.BaseChatComponent;
@@ -29,7 +31,6 @@ import gg.mineral.server.network.protocol.ProtocolVersion;
 import gg.mineral.server.util.datatypes.UUIDUtil;
 import gg.mineral.server.util.json.JsonUtil;
 import gg.mineral.server.util.login.LoginUtil;
-import gg.mineral.server.util.messages.Messages;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -40,6 +41,7 @@ import lombok.val;
 
 @RequiredArgsConstructor
 public class ConnectionImpl extends SimpleChannelInboundHandler<Packet.INCOMING> implements Connection, ByteWriter {
+    private static final Logger LOGGER = LogManager.getLogger(Connection.class);
     @Getter
     private PacketRegistry<INCOMING> protocolState = ProtocolState.HANDSHAKE;
     @Setter
@@ -67,14 +69,19 @@ public class ConnectionImpl extends SimpleChannelInboundHandler<Packet.INCOMING>
         val player = server.getPlayerNames().get(name);
 
         if (player != null) {
-            disconnect(Messages.DISCONNECT_ALREADY_LOGGED_IN);
+            disconnect(server.getConfig().getDisconnectAlreadyLoggedIn());
             return;
         }
 
-        // TODO: Implement offline mode with uuid from username
-        this.loginAuthData = new LoginAuthData();
-        queuePacket(new EncryptionRequestPacket("",
-                this.loginAuthData.getKeyPair().getPublic(), this.loginAuthData.getVerifyToken()));
+        if (server.getConfig().isOnlineMode()) {
+            this.loginAuthData = new LoginAuthData();
+            queuePacket(new EncryptionRequestPacket("",
+                    this.loginAuthData.getKeyPair().getPublic(), this.loginAuthData.getVerifyToken()));
+            return;
+        }
+
+        this.uuid = UUIDUtil.fromName(name);
+        this.loggedIn();
     }
 
     public void loggedIn() throws IllegalStateException {
@@ -86,9 +93,7 @@ public class ConnectionImpl extends SimpleChannelInboundHandler<Packet.INCOMING>
     public void sendPacket(Packet.OUTGOING... packets) {
         for (val packet : packets) {
             channel.write(serialize(packet));
-
-            if (server.debugMessages)
-                System.out.println("[Mineral] Packet sent: " + packet.getClass().getSimpleName());
+            LOGGER.debug("Packet sent: " + packet.getClass().getSimpleName());
         }
 
         channel.flush();
@@ -98,9 +103,7 @@ public class ConnectionImpl extends SimpleChannelInboundHandler<Packet.INCOMING>
         for (val packet : packets) {
             channel.write(serialize(packet));
             packetsQueued = true;
-
-            if (server.debugMessages)
-                System.out.println("[Mineral] Packet queued: " + packet.getClass().getSimpleName());
+            LOGGER.debug("Packet queued: " + packet.getClass().getSimpleName());
         }
     }
 
@@ -180,12 +183,14 @@ public class ConnectionImpl extends SimpleChannelInboundHandler<Packet.INCOMING>
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Packet.INCOMING received) throws Exception {
-        if (server.debugMessages)
-            System.out.println("[Mineral] Packet received: " + received.getClass().getSimpleName());
+        LOGGER.debug("Packet received: " + received.getClass().getSimpleName());
         if (protocolState == ProtocolState.PLAY || protocolState == ProtocolState.LOGIN)
             packetQueue.add(() -> received.received(this));
         else
             received.received(this);
+
+        if (received instanceof Packet.ASYNC_INCOMING async)
+            server.getAsyncExecutor().submit(() -> async.receivedAsync(this));
     }
 
     @Override
@@ -193,7 +198,10 @@ public class ConnectionImpl extends SimpleChannelInboundHandler<Packet.INCOMING>
         while (!packetQueue.isEmpty())
             packetQueue.poll().run();
 
-        if (getProtocolState() == ProtocolState.PLAY && System.currentTimeMillis() - lastKeepAlive > 17500) {
+        if (getProtocolState() == ProtocolState.PLAY && System.currentTimeMillis() - lastKeepAlive > 17500) { // 17.5
+                                                                                                              // seconds
+                                                                                                              // for
+                                                                                                              // timeout
             queuePacket(new KeepAlivePacket(0));
             lastKeepAlive = System.currentTimeMillis();
         }
