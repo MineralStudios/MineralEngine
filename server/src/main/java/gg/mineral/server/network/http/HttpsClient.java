@@ -7,7 +7,7 @@ import lombok.val;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 
 /**
  * Handles all the https requests including the pooling and re-usage of
@@ -92,7 +92,7 @@ public class HttpsClient {
     }
 
     private HttpURLConnection getConnection() throws IOException {
-        val turl = new URL(url);
+        val turl = URI.create(url).toURL();
         val conn = (HttpsURLConnection) turl.openConnection();
         conn.setRequestMethod(mode == Mode.GET ? "GET" : "POST");
         conn.setDefaultUseCaches(false);

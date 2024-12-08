@@ -2,6 +2,7 @@ package gg.mineral.server.entity;
 
 import java.util.Random;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ThreadLocalRandom;
 
 import gg.mineral.api.entity.Entity;
 import gg.mineral.api.math.MathUtil;
@@ -35,8 +36,6 @@ public abstract class EntityImpl implements Callable<EntityImpl>, Entity, MathUt
     @Getter
     @Setter
     private int lastDamaged;
-    @Getter
-    private final Random random = new Random(); // TODO: better random implementation
     protected float width, height;
     @Getter
     protected WorldImpl world;
@@ -46,6 +45,10 @@ public abstract class EntityImpl implements Callable<EntityImpl>, Entity, MathUt
         this.id = id;
         this.setWorld(world);
         this.server = world.getServer();
+    }
+
+    public Random getRandom() {
+        return ThreadLocalRandom.current();
     }
 
     public void setWorld(WorldImpl world) {
@@ -155,9 +158,9 @@ public abstract class EntityImpl implements Callable<EntityImpl>, Entity, MathUt
 
         if (this instanceof HumanImpl human) {
             if (human.isExtraKnockback()) {
-                float angle = (float) Math.toRadians(this.getYaw());
-                double sin = -Math.sin(angle);
-                double cos = Math.cos(angle);
+                float angle = toRadians(this.getYaw());
+                double sin = -sin(angle);
+                double cos = cos(angle);
                 motX += extraX * sin;
                 motY += extraY;
                 motZ += extraZ * cos;

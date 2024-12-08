@@ -18,7 +18,7 @@ public final class RequestPacket implements Packet.INCOMING {
     public void received(Connection connection) {
 
         val serverPing = new ServerPing(ChatColor.BLUE + "Custom Minecraft Server Software",
-                (int) connection.getServer().getConnections().size(),
+                (int) connection.getServer().getOnlinePlayers().size(),
                 2024, 5,
                 "Mineral", new ServerPing.Icon("server-icon.png"));
         connection.queuePacket(new ResponsePacket(serverPing.toJsonString()));

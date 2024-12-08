@@ -2,9 +2,10 @@ package gg.mineral.api.math;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import gg.mineral.api.world.World;
+import lombok.val;
 
 /**
  * Represents a mutable vector. Because the components of Vectors are mutable,
@@ -12,10 +13,7 @@ import gg.mineral.api.world.World;
  * Vector later. If you want to keep around a Vector, it may be wise to call
  * <code>clone()</code> in order to get a copy.
  */
-// TODO: move to api
 public class Vector implements Cloneable, MathUtil {
-
-    private static Random random = new Random();
 
     /**
      * Threshold for fuzzy equals().
@@ -633,6 +631,7 @@ public class Vector implements Cloneable, MathUtil {
      * @return A random vector.
      */
     public static Vector getRandom() {
+        val random = ThreadLocalRandom.current();
         return new Vector(random.nextDouble(), random.nextDouble(), random.nextDouble());
     }
 

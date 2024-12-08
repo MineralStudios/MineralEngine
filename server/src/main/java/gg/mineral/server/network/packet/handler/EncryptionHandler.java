@@ -1,73 +1,65 @@
 package gg.mineral.server.network.packet.handler;
 
+import java.security.GeneralSecurityException;
+import java.util.List;
+
+import javax.crypto.SecretKey;
+
+import com.velocitypowered.natives.encryption.VelocityCipher;
+import com.velocitypowered.natives.util.MoreByteBufUtils;
+import com.velocitypowered.natives.util.Natives;
+
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 import lombok.val;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.ShortBufferException;
-import javax.crypto.spec.IvParameterSpec;
-import java.nio.ByteBuffer;
-import java.security.GeneralSecurityException;
-import java.util.List;
-
 /**
- * Experimental pipeline component.
+ * Optimized pipeline component using Velocity Natives.
  */
 public final class EncryptionHandler extends MessageToMessageCodec<ByteBuf, ByteBuf> {
 
-    private final CryptBuf encodeBuf, decodeBuf;
+    private final VelocityCipher encryptCipher, decryptCipher;
 
     /**
-     * Creates an instance that applies symmetrical AES encryption.
+     * Creates an instance that applies symmetrical AES encryption using Velocity
+     * Natives.
      *
      * @param sharedSecret an AES key
      */
     public EncryptionHandler(SecretKey sharedSecret) {
         try {
-            encodeBuf = new CryptBuf(Cipher.ENCRYPT_MODE, sharedSecret);
-            decodeBuf = new CryptBuf(Cipher.DECRYPT_MODE, sharedSecret);
+            this.encryptCipher = Natives.cipher.get().forEncryption(sharedSecret);
+            this.decryptCipher = Natives.cipher.get().forDecryption(sharedSecret);
         } catch (GeneralSecurityException e) {
             throw new AssertionError("Failed to initialize encrypted channel", e);
         }
     }
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out)
-            throws Exception {
-        encodeBuf.crypt(msg, out);
+    protected void encode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) {
+        crypt(encryptCipher, msg, out);
     }
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out)
-            throws Exception {
-        decodeBuf.crypt(msg, out);
+    protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) {
+        crypt(decryptCipher, msg, out);
     }
 
-    private static class CryptBuf {
-
-        private final Cipher cipher;
-
-        private CryptBuf(int mode, SecretKey sharedSecret) throws GeneralSecurityException {
-            cipher = Cipher.getInstance("AES/CFB8/NoPadding"); // NON-NLS
-            cipher.init(mode, sharedSecret, new IvParameterSpec(sharedSecret.getEncoded()));
-        }
-
-        public void crypt(ByteBuf msg, List<Object> out) {
-            val outBuffer = ByteBuffer.allocate(msg.readableBytes());
-
-            try {
-                cipher.update(msg.nioBuffer(), outBuffer);
-            } catch (ShortBufferException e) {
-                throw new AssertionError("Encryption buffer was too short", e);
-            }
-
-            outBuffer.flip();
-            out.add(Unpooled.wrappedBuffer(outBuffer));
+    private void crypt(VelocityCipher cipher, ByteBuf msg, List<Object> out) {
+        val compatibleInput = MoreByteBufUtils.ensureCompatible(msg.alloc(),
+                cipher, msg);
+        try {
+            cipher.process(compatibleInput);
+            out.add(compatibleInput.retain());
+        } finally {
+            compatibleInput.release();
         }
     }
 
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        encryptCipher.close();
+        decryptCipher.close();
+    }
 }

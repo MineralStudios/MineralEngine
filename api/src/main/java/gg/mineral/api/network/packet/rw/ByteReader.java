@@ -1,7 +1,6 @@
 package gg.mineral.api.network.packet.rw;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -15,13 +14,9 @@ import gg.mineral.api.math.Vector;
 import gg.mineral.api.nbt.CompoundTag;
 import gg.mineral.api.nbt.NBTInputStream;
 import gg.mineral.api.nbt.NBTReadLimiter;
-import gg.mineral.api.network.packet.Packet;
-import gg.mineral.api.network.packet.Packet.INCOMING;
-import gg.mineral.api.network.packet.registry.PacketRegistry;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.handler.codec.DecoderException;
-import io.netty.util.internal.shaded.org.jctools.queues.MessagePassingQueue.Consumer;
 import lombok.val;
 
 public interface ByteReader extends ByteRW {
@@ -32,21 +27,6 @@ public interface ByteReader extends ByteRW {
 
         do {
             currentByte = buf.readByte();
-            value |= (currentByte & 127) << position++ * 7;
-            if (position > 5)
-                throw new RuntimeException("VarInt too big");
-        } while ((currentByte & 128) == 128);
-
-        return value;
-    }
-
-    default int readVarInt(ByteBuffer buf) {
-        int value = 0, position = 0;
-
-        byte currentByte;
-
-        do {
-            currentByte = buf.get();
             value |= (currentByte & 127) << position++ * 7;
             if (position > 5)
                 throw new RuntimeException("VarInt too big");
@@ -181,58 +161,5 @@ public interface ByteReader extends ByteRW {
             }
         }
         return entries;
-    }
-
-    default List<Packet.INCOMING> deserialize(ByteBuf data, PacketRegistry<INCOMING> packetRegistry) {
-        val packets = new ArrayList<INCOMING>();
-
-        processPackets(data, packetBuf -> {
-            try {
-                byte id = packetBuf.readByte();
-                val packet = packetRegistry.create(id);
-                packet.deserialize(packetBuf);
-                packets.add(packet);
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                if (packetBuf.refCnt() > 0)
-                    packetBuf.release();
-            }
-        });
-
-        data.discardReadBytes();
-        return packets;
-    }
-
-    default void processPackets(ByteBuf buf, Consumer<ByteBuf> consumer) {
-        buf.markReaderIndex();
-        val lengthBytes = new byte[3];
-
-        for (int position = 0; position < lengthBytes.length; ++position) {
-            if (!buf.isReadable()) {
-                buf.resetReaderIndex();
-                return;
-            }
-
-            lengthBytes[position] = buf.readByte();
-
-            if (lengthBytes[position] < 0)
-                continue;
-
-            val byteBuf = ByteBuffer.wrap(lengthBytes);
-
-            try {
-                int length = readVarInt(byteBuf);
-                if (buf.readableBytes() < length) {
-                    buf.resetReaderIndex();
-                    return;
-                }
-                val splitBuf = buf.readBytes(length);
-                consumer.accept(splitBuf);
-            } finally {
-                byteBuf.clear();
-            }
-            return;
-        }
     }
 }

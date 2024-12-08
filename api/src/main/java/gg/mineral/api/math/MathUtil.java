@@ -27,6 +27,18 @@ public interface MathUtil {
         return num * num;
     }
 
+    default double sin(double num) {
+        return Math.sin(num);
+    }
+
+    default double cos(double num) {
+        return Math.cos(num);
+    }
+
+    default float toRadians(float angle) {
+        return (float) Math.toRadians(angle);
+    }
+
     default int toInt(Object object) {
         if (object instanceof Number number)
             return number.intValue();
