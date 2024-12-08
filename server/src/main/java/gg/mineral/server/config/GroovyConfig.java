@@ -10,6 +10,7 @@ import dev.zerite.craftlib.chat.component.StringChatComponent;
 import dev.zerite.craftlib.chat.type.ChatColor;
 import groovy.util.ConfigObject;
 import groovy.util.ConfigSlurper;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -92,7 +93,7 @@ public class GroovyConfig {
     @Setting("connection")
     private boolean onlineMode = true;
     @Setting("connection")
-    private boolean proxy = false;// TODO: proxy
+    private boolean proxy = false; // TODO: proxy
     @Setting("connection")
     private int port = 25565;
     @Setting("connection")
@@ -116,34 +117,34 @@ public class GroovyConfig {
             configFile.createNewFile();
 
         val config = configSlurper.parse(configFile.toURI().toURL());
+        val configCache = new Object2ObjectOpenHashMap<String, Object>();
+
+        flattenConfig("", config, configCache);
 
         for (val field : this.getClass().getDeclaredFields()) {
             val setting = field.getDeclaredAnnotation(Setting.class);
             if (setting == null)
                 continue;
 
-            val keys = setting.value().split("\\.");
-            ConfigObject subConfig = null, lastSubConfig = config;
-
-            for (val key : keys) {
-                val nextObject = (ConfigObject) lastSubConfig.get(key);
-
-                if (nextObject == null)
-                    break;
-
-                subConfig = nextObject;
-                lastSubConfig = subConfig;
-            }
-
-            if (subConfig == null)
-                continue;
-
-            val value = subConfig.get(field.getName());
+            val key = setting.value() + "." + field.getName();
+            val value = configCache.get(key);
 
             if (value == null)
                 continue;
 
+            field.setAccessible(true);
             field.set(this, value);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void flattenConfig(String prefix, ConfigObject source, Object2ObjectOpenHashMap<String, Object> target) {
+        source.forEach((key, value) -> {
+            val newKey = prefix.isEmpty() ? key.toString() : prefix + "." + key.toString();
+            if (value instanceof ConfigObject configObj)
+                flattenConfig(newKey, configObj, target);
+            else
+                target.put(newKey, value);
+        });
     }
 }

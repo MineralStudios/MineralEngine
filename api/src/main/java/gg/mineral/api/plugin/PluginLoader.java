@@ -1,17 +1,21 @@
 package gg.mineral.api.plugin;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.jar.JarFile;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.codehaus.groovy.control.CompilationFailedException;
+import org.eclipse.jdt.annotation.Nullable;
 
 import gg.mineral.api.MinecraftServer;
+import groovy.lang.Binding;
+import groovy.lang.GroovyShell;
 import lombok.Cleanup;
 import lombok.Getter;
 import lombok.val;
@@ -40,43 +44,56 @@ public class PluginLoader {
             try {
                 loadPlugin(file);
             } catch (Exception e) {
-                LOGGER.error("Failed to load plugin from " + file.getName());
-                e.printStackTrace();
+                LOGGER.error("Failed to load plugin from " + file.getName(), e);
             }
         }
-    }
-
-    private static List<String> scanJarForClasses(File jarFile) throws IOException {
-        val classNames = new ArrayList<String>();
-        try (val jar = new JarFile(jarFile)) {
-            val entries = jar.entries();
-            while (entries.hasMoreElements()) {
-                val entry = entries.nextElement();
-                if (entry.getName().endsWith(".class") && !entry.isDirectory()) {
-                    val className = entry.getName().replace("/", ".").replace(".class", "");
-                    classNames.add(className);
-                }
-            }
-        }
-        return classNames;
     }
 
     private void loadPlugin(File jarFile) throws Exception {
         @Cleanup
         val loader = new URLClassLoader(new URL[] { jarFile.toURI().toURL() }, this.getClass().getClassLoader());
 
-        for (val className : scanJarForClasses(jarFile)) {
-            val clazz = loader.loadClass(className);
+        val mainClass = loadMainClassFromGroovy(loader, jarFile);
+        if (mainClass == null) {
+            LOGGER.error("Failed to find main class in plugin " + jarFile.getName());
+            return;
+        }
 
-            if (MineralPlugin.class.isAssignableFrom(clazz) && clazz.isAnnotationPresent(Plugin.class)) {
-                val pluginAnnotation = clazz.getAnnotation(Plugin.class);
-                LOGGER.info("Loading plugin " + pluginAnnotation.name() + " v" + pluginAnnotation.version());
+        val clazz = loader.loadClass(mainClass);
+        if (MineralPlugin.class.isAssignableFrom(clazz)) {
+            val constructor = clazz.getConstructor(MinecraftServer.class);
+            val plugin = (MineralPlugin) constructor.newInstance(server);
 
-                val constructor = clazz.getConstructor(MinecraftServer.class);
-                val plugin = (MineralPlugin) constructor.newInstance(server);
-                loadedPlugins.add(plugin);
-                plugin.onEnable();
+            if (plugin == null) {
+                LOGGER.error("Failed to instantiate plugin " + clazz.getName());
+                return;
             }
+
+            loadedPlugins.add(plugin);
+            plugin.onEnable();
+        } else {
+            LOGGER.error("Main class " + mainClass + " does not extend MineralPlugin");
+        }
+    }
+
+    @Nullable
+    private String loadMainClassFromGroovy(URLClassLoader loader, File jarFile)
+            throws CompilationFailedException, IOException {
+        val resource = loader.findResource("plugin.groovy");
+        if (resource == null) {
+            LOGGER.error("plugin.groovy not found in " + jarFile.getName());
+            return null;
+        }
+
+        val binding = new Binding();
+        val shell = new GroovyShell(loader, binding);
+
+        try (val reader = new FileReader(new File(resource.toURI()))) {
+            shell.evaluate(reader);
+            return (String) binding.getVariable("mainClass");
+        } catch (Exception e) {
+            LOGGER.error("Failed to parse plugin.groovy in " + jarFile.getName(), e);
+            return null;
         }
     }
 
@@ -85,8 +102,7 @@ public class PluginLoader {
             try {
                 plugin.onDisable();
             } catch (Exception e) {
-                LOGGER.error("Error disabling plugin " + plugin.getClass().getName());
-                e.printStackTrace();
+                LOGGER.error("Error disabling plugin " + plugin.getClass().getName(), e);
             }
         }
     }
