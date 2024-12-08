@@ -64,3 +64,15 @@ tasks.distTar {
 tasks.startScripts {
     dependsOn shadowJar
 }
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact(tasks.shadowJar) {
+                classifier = null 
+            }
+        }
+    }
+}
+
+
