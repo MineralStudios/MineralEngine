@@ -23,11 +23,3 @@ jar {
     }
 }
 
-sourceSets {
-    ap {
-        java {
-            srcDir 'src/ap/java'
-        }
-    }
-}
-
