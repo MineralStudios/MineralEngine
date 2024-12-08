@@ -1,6 +1,6 @@
 package gg.mineral.server.entity.effect;
 
-import java.util.UUID;
+import com.eatthepath.uuid.FastUUID;
 
 import gg.mineral.api.entity.attribute.Attribute;
 import gg.mineral.api.entity.attribute.AttributeModifier;
@@ -17,7 +17,7 @@ public enum PotionEffect {
         @Override
         public void applyAttributes(PlayerImpl player, int amplifier, double duration) {
             player.getAttribute(Attribute.MOVEMENT_SPEED)
-                    .addModifier(new AttributeModifier(UUID.fromString("91AEAA56-376B-4498-935B-2F7F68070635"),
+                    .addModifier(new AttributeModifier(FastUUID.parseUUID("91AEAA56-376B-4498-935B-2F7F68070635"),
                             "potion.moveSpeed", 0.2f * (amplifier + 1),
                             AttributeOperation.MULTIPLY_TOTAL));
         }
@@ -26,7 +26,7 @@ public enum PotionEffect {
         @Override
         public void applyAttributes(PlayerImpl player, int amplifier, double duration) {
             player.getAttribute(Attribute.MOVEMENT_SPEED)
-                    .addModifier(new AttributeModifier(UUID.fromString("7107DE5E-7CE8-4030-940E-514C1F160890"),
+                    .addModifier(new AttributeModifier(FastUUID.parseUUID("7107DE5E-7CE8-4030-940E-514C1F160890"),
                             "potion.moveSlowdown", -0.15f * (amplifier + 1),
                             AttributeOperation.MULTIPLY_TOTAL));
         }

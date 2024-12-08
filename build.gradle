@@ -29,7 +29,7 @@ allprojects {
         rulesMinimumPriority = 4
     }
 
-    group = "gg.mineral"
+    group = "gg.mineral.engine"
     version = new Date().format('yyyyMMdd')
 
     publishing {
