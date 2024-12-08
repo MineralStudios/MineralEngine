@@ -1,7 +1,6 @@
 package gg.mineral.api.plugin.processor;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -33,6 +32,7 @@ import com.squareup.javapoet.TypeSpec;
 import gg.mineral.api.plugin.event.Event;
 import gg.mineral.api.plugin.event.EventHandler;
 import gg.mineral.api.plugin.listener.Listener;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.val;
 
 @AutoService(Processor.class)
@@ -59,7 +59,7 @@ public class EventHandlerProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         // Collect all methods annotated with @EventHandler
-        val listenerMethodsMap = new HashMap<TypeElement, List<ExecutableElement>>();
+        val listenerMethodsMap = new Object2ObjectOpenHashMap<TypeElement, List<ExecutableElement>>();
 
         // Use the annotation class reference directly
         for (val annotatedElement : roundEnv.getElementsAnnotatedWith(EventHandler.class)) {
