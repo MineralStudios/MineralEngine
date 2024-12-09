@@ -1,5 +1,6 @@
 package gg.mineral.api.command;
 
+import java.util.Collection;
 import java.util.Map;
 
 public interface CommandMap extends Map<String, Command> {
@@ -12,6 +13,16 @@ public interface CommandMap extends Map<String, Command> {
      *         registered
      */
     boolean register(Command command);
+
+    /**
+     * Register multiple commands
+     * 
+     * @param commands
+     * 
+     * @return true if all commands were registered, false if any command was
+     *         already registered
+     */
+    boolean registerAll(Collection<? extends Command> commands);
 
     /**
      * Unregister a command

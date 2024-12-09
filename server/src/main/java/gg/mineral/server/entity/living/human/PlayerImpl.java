@@ -18,6 +18,8 @@ import gg.mineral.api.entity.living.human.Player;
 import gg.mineral.api.entity.living.human.property.PlayerAbilities;
 import gg.mineral.api.inventory.item.ItemStack;
 import gg.mineral.api.inventory.item.Material;
+import gg.mineral.api.plugin.event.player.PlayerJoinEvent;
+import gg.mineral.api.world.World;
 import gg.mineral.api.world.property.Difficulty;
 import gg.mineral.api.world.property.Dimension;
 import gg.mineral.api.world.property.LevelType;
@@ -215,10 +217,18 @@ public class PlayerImpl extends HumanImpl implements Player {
     }
 
     public void onJoin() {
-        this.setX(52);
-        this.setY(12);
-        this.setHeadY(12 + this.height);
-        this.setZ(14);
+
+        val playerJoinEvent = new PlayerJoinEvent(this);
+
+        if (server.callEvent(playerJoinEvent)) {
+            disconnect(server.getConfig().getDisconnectUnknown());
+            return;
+        }
+
+        this.setX(playerJoinEvent.getX());
+        this.setY(playerJoinEvent.getY());
+        this.setHeadY(playerJoinEvent.getY() + this.height);
+        this.setZ(playerJoinEvent.getZ());
         connection.queuePacket(new LoginSuccessPacket(connection.getUuid(), connection.getName()),
                 new JoinGamePacket(this.getId(), gamemode, Dimension.OVERWORLD, Difficulty.PEACEFUL,
                         (short) 1000, LevelType.FLAT),
@@ -270,6 +280,12 @@ public class PlayerImpl extends HumanImpl implements Player {
             val attributeInstance = new AttributeInstance(attribute, this::onAttributeChanged);
             this.attributeModifiers.put(attribute.getKey(), attributeInstance);
         }
+    }
+
+    @Override
+    public void teleport(World world, double x, double y, double z, float yaw, float pitch) {
+        super.teleport(world, x, y, z, yaw, pitch);
+        connection.queuePacket(new PlayerPositionAndLookPacket(x, y, z, yaw, pitch, onGround));
     }
 
     @NotNull

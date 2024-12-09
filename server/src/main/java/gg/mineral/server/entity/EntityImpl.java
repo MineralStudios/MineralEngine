@@ -54,6 +54,9 @@ public abstract class EntityImpl implements Callable<EntityImpl>, Entity, MathUt
     public void setWorld(WorldImpl world) {
         val oldWorld = getWorld();
 
+        if (oldWorld == world)
+            return;
+
         if (oldWorld != null)
             oldWorld.removeEntity(this.getId());
         world.addEntity(this);

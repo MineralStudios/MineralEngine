@@ -1,7 +1,11 @@
 package gg.mineral.server;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -13,6 +17,8 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.codehaus.groovy.control.CompilationFailedException;
+import org.eclipse.jdt.annotation.Nullable;
 import org.jline.reader.Candidate;
 import org.jline.reader.Completer;
 import org.jline.reader.LineReader;
@@ -23,7 +29,8 @@ import gg.mineral.api.MinecraftServer;
 import gg.mineral.api.command.CommandExecutor;
 import gg.mineral.api.entity.living.human.Player;
 import gg.mineral.api.network.connection.Connection;
-import gg.mineral.api.plugin.PluginLoader;
+import gg.mineral.api.plugin.MineralPlugin;
+import gg.mineral.api.plugin.event.Event;
 import gg.mineral.api.world.World;
 import gg.mineral.api.world.World.Environment;
 import gg.mineral.api.world.World.Generator;
@@ -42,6 +49,8 @@ import gg.mineral.server.tick.TickThreadFactory;
 import gg.mineral.server.world.WorldImpl;
 import gg.mineral.server.world.chunk.ChunkImpl;
 import gg.mineral.server.world.schematic.Schematic;
+import groovy.lang.Binding;
+import groovy.lang.GroovyShell;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
@@ -56,6 +65,7 @@ import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import lombok.Cleanup;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -86,6 +96,8 @@ public class MinecraftServerImpl extends SimpleTerminalConsole implements Minecr
     private final TickLoopImpl tickLoop = new TickLoopImpl(this);
 
     private final GroovyConfig config = new GroovyConfig();
+
+    private final Set<MineralPlugin> loadedPlugins = new ObjectOpenHashSet<>();
 
     private final CommandMapImpl registeredCommands = new CommandMapImpl() {
         {
@@ -186,11 +198,9 @@ public class MinecraftServerImpl extends SimpleTerminalConsole implements Minecr
         LOGGER.info("Config at " + config.getConfigFile().getAbsolutePath() + " has been loaded successfully ["
                 + (System.nanoTime() - startTime) / 1_000_000 + "ms].");
 
-        val pluginLoader = new PluginLoader(this, new File(config.getPluginsFolder()));
+        this.loadPlugins(new File(config.getPluginsFolder()));
 
-        pluginLoader.loadPlugins();
-
-        LOGGER.info("Loaded " + pluginLoader.getLoadedPlugins().size() + " plugins ["
+        LOGGER.info("Loaded " + this.getLoadedPlugins().size() + " plugins ["
                 + (System.nanoTime() - startTime) / 1_000_000 + "ms].");
 
         int port = config.getPort();
@@ -341,6 +351,90 @@ public class MinecraftServerImpl extends SimpleTerminalConsole implements Minecr
         for (val cmd : registeredCommands.keySet())
             if (cmd.startsWith(buffer))
                 candidates.add(new Candidate(cmd));
+    }
+
+    private void loadPlugins(File pluginDirectory) throws IOException {
+        val files = pluginDirectory.listFiles((dir, name) -> name.endsWith(".jar"));
+        if (files == null || files.length == 0)
+            return;
+
+        for (val file : files) {
+            try {
+                loadPlugin(file);
+            } catch (Exception e) {
+                LOGGER.error("Failed to load plugin from " + file.getName(), e);
+            }
+        }
+    }
+
+    private void loadPlugin(File jarFile) throws Exception {
+        @Cleanup
+        val loader = new URLClassLoader(new URL[] { jarFile.toURI().toURL() }, this.getClass().getClassLoader());
+
+        val pluginClass = loadMainClassFromGroovy(loader, jarFile);
+        if (pluginClass == null) {
+            LOGGER.error("Failed to find main class in plugin " + jarFile.getName());
+            return;
+        }
+
+        val constructor = pluginClass.getConstructor();
+        val plugin = constructor.newInstance();
+
+        if (plugin == null) {
+            LOGGER.error("Failed to instantiate plugin " + pluginClass.getName());
+            return;
+        }
+
+        this.getLoadedPlugins().add(plugin);
+        plugin.onEnable();
+        this.registeredCommands.registerAll(plugin.getCommands().values());
+    }
+
+    @Nullable
+    private Class<? extends MineralPlugin> loadMainClassFromGroovy(URLClassLoader loader, File jarFile)
+            throws CompilationFailedException, IOException {
+        val resource = loader.findResource("plugin.groovy");
+        if (resource == null) {
+            LOGGER.error("plugin.groovy not found in " + jarFile.getName());
+            return null;
+        }
+
+        val binding = new Binding();
+        val shell = new GroovyShell(loader, binding);
+
+        try (val inputStream = resource.openStream();
+                val reader = new InputStreamReader(inputStream)) {
+            shell.evaluate(reader);
+            val mainClass = binding.getVariable("mainClass");
+            if (mainClass instanceof Class<?> clazz && MineralPlugin.class.isAssignableFrom(clazz)) {
+                return clazz.asSubclass(MineralPlugin.class);
+            } else {
+                LOGGER.error("mainClass in plugin.groovy is not a valid MineralPlugin class");
+                return null;
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to parse plugin.groovy in " + jarFile.getName(), e);
+            return null;
+        }
+    }
+
+    public void disablePlugins() {
+        for (val plugin : getLoadedPlugins()) {
+            try {
+                plugin.onDisable();
+            } catch (Exception e) {
+                LOGGER.error("Error disabling plugin " + plugin.getClass().getName(), e);
+            }
+        }
+    }
+
+    public boolean callEvent(Event event) {
+        for (val plugin : getLoadedPlugins())
+            for (val listener : plugin.getListeners())
+                if (listener.onEvent(event))
+                    return true;
+
+        return false;
     }
 
 }
