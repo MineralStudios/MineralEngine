@@ -17,7 +17,7 @@ public abstract class MineralPlugin {
     private final Map<String, Command> commands = new Object2ObjectOpenHashMap<>();
 
     @SneakyThrows
-    public void registerListener(@SuppressWarnings("unchecked") Class<? extends Listener>... listenerClasses) {
+    public void registerListener(Class<?>... listenerClasses) {
         for (val listenerClass : listenerClasses) {
             val classLoader = listenerClass.getClassLoader();
             val generated = classLoader.loadClass(listenerClass.getName() + "_Generated").asSubclass(Listener.class);
