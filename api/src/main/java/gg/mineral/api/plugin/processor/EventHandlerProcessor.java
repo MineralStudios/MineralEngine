@@ -36,7 +36,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.val;
 
 @AutoService(Processor.class)
-@SupportedAnnotationTypes("gg.mineral.api.plugin.annotation.EventHandler")
+@SupportedAnnotationTypes("gg.mineral.api.plugin.event.EventHandler")
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
 public class EventHandlerProcessor extends AbstractProcessor {
 
