@@ -19,7 +19,8 @@ public abstract class MineralPlugin {
     @SneakyThrows
     public void registerListener(@SuppressWarnings("unchecked") Class<? extends Listener>... listenerClasses) {
         for (val listenerClass : listenerClasses) {
-            val generated = Class.forName(listenerClass.getName() + "_Generated").asSubclass(Listener.class);
+            val classLoader = listenerClass.getClassLoader();
+            val generated = classLoader.loadClass(listenerClass.getName() + "_Generated").asSubclass(Listener.class);
             val listener = generated.getDeclaredConstructor().newInstance();
             this.listeners.add(listener);
         }
