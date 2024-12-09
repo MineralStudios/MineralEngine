@@ -11,7 +11,7 @@ dependencies {
     compileOnly 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.100'
     annotationProcessor 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.100'
     annotationProcessor 'com.squareup:javapoet:1.13.0' 
-    compileOnly 'com.squareup:javapoet:1.13.0'
+    implementation 'com.squareup:javapoet:1.13.0'
     annotationProcessor 'com.google.auto.service:auto-service:1.1.1'
     compileOnly 'com.google.auto.service:auto-service:1.1.1'
 }
