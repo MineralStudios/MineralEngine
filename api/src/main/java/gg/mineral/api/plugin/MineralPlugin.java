@@ -8,15 +8,21 @@ import gg.mineral.api.command.Command;
 import gg.mineral.api.plugin.listener.Listener;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
+import lombok.SneakyThrows;
+import lombok.val;
 
 @Getter
 public abstract class MineralPlugin {
     private final List<Listener> listeners = new ArrayList<>();
     private final Map<String, Command> commands = new Object2ObjectOpenHashMap<>();
 
-    public void registerListener(Listener... listeners) {
-        for (Listener listener : listeners)
+    @SneakyThrows
+    public void registerListener(@SuppressWarnings("unchecked") Class<? extends Listener>... listenerClasses) {
+        for (val listenerClass : listenerClasses) {
+            val generated = Class.forName(listenerClass.getName() + "_Generated").asSubclass(Listener.class);
+            val listener = generated.getDeclaredConstructor().newInstance();
             this.listeners.add(listener);
+        }
     }
 
     public void registerCommand(Command... commands) {
