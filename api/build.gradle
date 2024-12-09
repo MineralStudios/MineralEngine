@@ -8,7 +8,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.36'
     implementation 'dev.zerite.craftlib:craftlib-chat:0.1.4'
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
-    implementation 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.100'
+    compileOnly 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.100'
     annotationProcessor 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.100'
     annotationProcessor 'com.squareup:javapoet:1.13.0' 
     compileOnly 'com.squareup:javapoet:1.13.0'
@@ -21,5 +21,6 @@ jar {
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
 }
 
