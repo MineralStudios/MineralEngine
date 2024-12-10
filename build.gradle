@@ -47,8 +47,8 @@ allprojects {
         publications {
             mavenJava(MavenPublication) {
                 from components.java
-                artifactId = project.name as Publication
-                version = new Date().format("yyyyMMdd-HH.mm.ss") as Publication
+                artifactId = project.name
+                version = new Date().format("yyyyMMdd-HH.mm.ss")
             }
         }
 
