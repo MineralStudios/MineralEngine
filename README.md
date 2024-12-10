@@ -1,6 +1,6 @@
 # Mineral Engine
 
-A fully custom Minecraft Server implementation written in Java. 
+A fully custom Minecraft Server implementation written in Kotlin. 
 
 ## Supported Protocol Versions
 - 1.7.10 (5)
