@@ -1,10 +1,15 @@
-plugins {
-    id 'java'
-    id 'maven-publish'
+buildscript {
+    ext.kotlin_version = '2.1.0'
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
 }
 
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'org.jetbrains.kotlin.jvm'
     apply plugin: 'maven-publish'
     apply plugin: 'pmd'
 
@@ -15,18 +20,24 @@ allprojects {
         }
     }
 
-    tasks.withType(JavaCompile) {
+    dependencies {
+        implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    }
+
+    tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
     }
 
     compileJava {
-        sourceCompatibility = '21'
-        targetCompatibility = '21'
         options.compilerArgs += ['-parameters']
     }
 
     pmd {
         rulesMinimumPriority = 4
+    }
+
+    kotlin {
+        jvmToolchain(21)
     }
 
     group = "gg.mineral.engine"
@@ -36,8 +47,8 @@ allprojects {
         publications {
             mavenJava(MavenPublication) {
                 from components.java
-                artifactId = project.name
-                version = new Date().format("yyyyMMdd-HH.mm.ss")
+                artifactId = project.name as Publication
+                version = new Date().format("yyyyMMdd-HH.mm.ss") as Publication
             }
         }
 

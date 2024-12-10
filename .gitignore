@@ -42,3 +42,7 @@ eclipse-formatter.xml
 bin
 /target
 .settings
+config.groovy
+.idea
+plugins
+worlds
