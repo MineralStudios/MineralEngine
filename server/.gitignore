@@ -23,7 +23,6 @@ paper.yml
 permissions.yml
 server.properties
 /plugins
-ops.json
 spigot.yml
 taco.yml
 usercache.json

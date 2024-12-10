@@ -77,7 +77,7 @@ class CompoundTag
         return tag ?: 0.0
     }
 
-    fun getByteArray(key: String): ByteArray = get<ByteArray, ByteArrayTag>(key, ByteArrayTag::class.java)!!
+    fun getByteArray(key: String): ByteArray = get(key, ByteArrayTag::class.java)!!
 
     fun getString(key: String): String? = get(key, StringTag::class.java)
 

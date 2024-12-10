@@ -31,14 +31,14 @@ internal class ListTag<T : Tag<*>>(
     init {
         // ensure type of objects in list matches tag type
         for (elem in value)
-            require(childType === elem.type) { "ListTag(" + childType + ") cannot hold tags of type " + elem!!.type }
+            require(childType === elem.type) { "ListTag(" + childType + ") cannot hold tags of type " + elem.type }
     }
 
     override fun valueToString(builder: StringBuilder) {
         builder.append(value.size).append(" entries of type ").append(childType.name).append("\n{\n")
         for (elem in value)
             builder.append("    ").append(elem.toString().replace("\n".toRegex(), "\n    ")).append("\n")
-        
+
         builder.append("}")
     }
 }

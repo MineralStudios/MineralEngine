@@ -28,7 +28,7 @@ class ItemStack(
         val displayTags = CompoundTag()
         if (hasDisplayName()) displayTags.putString("Name", displayName)
 
-        if (hasLore()) displayTags.putList<String>("Lore", TagType.STRING, lore)
+        if (hasLore()) displayTags.putList("Lore", TagType.STRING, lore)
 
         if (!displayTags.isEmpty) tag.putCompound("display", displayTags)
 
@@ -43,7 +43,7 @@ class ItemStack(
             val display = tag.getCompound("display")
             if (display.isString("Name")) displayName = display.getString("Name") ?: ""
 
-            if (display.isList("Lore", TagType.STRING)) lore = display.getList<String>("Lore", TagType.STRING)
+            if (display.isList("Lore", TagType.STRING)) lore = display.getList("Lore", TagType.STRING)
         }
 
         val tagEnchants = readNbtEnchants("ench", tag)

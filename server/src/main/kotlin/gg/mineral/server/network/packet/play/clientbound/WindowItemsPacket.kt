@@ -13,6 +13,24 @@ data class WindowItemsPacket(val windowId: Short, val itemstacks: Array<ItemStac
         for (itemstack in itemstacks) writeSlot(os, itemstack)
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as WindowItemsPacket
+
+        if (windowId != other.windowId) return false
+        if (!itemstacks.contentEquals(other.itemstacks)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = windowId.toInt()
+        result = 31 * result + itemstacks.contentHashCode()
+        return result
+    }
+
     override val id: Byte
         get() = 0x30
 }

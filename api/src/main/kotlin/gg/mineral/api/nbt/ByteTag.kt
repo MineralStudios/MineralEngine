@@ -13,5 +13,4 @@ class ByteTag
      * The value.
      */
     override val value: Byte
-) : Tag<Byte>(TagType.BYTE) {
-}
+) : Tag<Byte>(TagType.BYTE)
