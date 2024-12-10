@@ -148,7 +148,7 @@ class NBTInputStream @JvmOverloads constructor(`is`: InputStream, compressed: Bo
                 val length = `is`.readInt()
                 readLimiter.read(4 * length)
 
-                val tagList: MutableList<Tag<*>> = ArrayList<Tag<*>>(length)
+                val tagList: MutableList<Tag<*>> = ArrayList(length)
                 var i = 0
                 while (i < length) {
                     tagList.add(readTagPayload(childType, depth + 1, readLimiter))

@@ -16,7 +16,7 @@ class RequestPacket : Packet.INCOMING {
 
             val serverPing = ServerPing(
                 config.motd,
-                connection.server.onlinePlayers.size as Int,
+                connection.server.onlinePlayers.size,
                 config.maxPlayers, 5,
                 config.brandName, ServerPing.Icon("server-icon.png")
             )

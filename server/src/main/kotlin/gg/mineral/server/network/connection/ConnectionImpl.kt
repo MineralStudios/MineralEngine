@@ -129,7 +129,7 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
                 + "&serverId="
                 + serverId)
 
-        val json = JsonUtil.getJsonObject(url) ?: return false
+        val json = JsonUtil.getJsonObject(url)
 
         val id = json.getString("id") ?: return false
 
