@@ -9,9 +9,7 @@ data class SpawnGlobalEntityPacket(val entityId: Int, val type: Byte, val x: Int
     override fun serialize(os: ByteBuf) {
         os.writeVarInt(entityId)
         os.writeByte(type.toInt())
-        os.writeInt(x)
-        os.writeInt(y)
-        os.writeInt(z)
+        os.writeInt(x, y, z)
     }
 
     override val id: Byte

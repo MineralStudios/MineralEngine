@@ -93,28 +93,28 @@ class CompoundTag
         return result
     }
 
-    fun getCompound(key: String): CompoundTag = getTag(key, CompoundTag::class.java)
+    fun getCompound(key: String) = getTag(key, CompoundTag::class.java)
 
-    fun getCompoundList(key: String): List<CompoundTag> = getTagList(key, TagType.COMPOUND) as List<CompoundTag>
+    fun getCompoundList(key: String) = getTagList(key, TagType.COMPOUND) as List<CompoundTag>
 
     /**///////////////////////////////////////////////////////////////////////// */ // Simple is
-    fun isByte(key: String): Boolean = `is`(key, ByteTag::class.java)
+    fun isByte(key: String) = `is`(key, ByteTag::class.java)
 
-    fun isShort(key: String): Boolean = `is`(key, ShortTag::class.java)
+    fun isShort(key: String) = `is`(key, ShortTag::class.java)
 
-    fun isInt(key: String): Boolean = `is`(key, IntTag::class.java)
+    fun isInt(key: String) = `is`(key, IntTag::class.java)
 
-    fun isLong(key: String): Boolean = `is`(key, LongTag::class.java)
+    fun isLong(key: String) = `is`(key, LongTag::class.java)
 
-    fun isFloat(key: String): Boolean = `is`(key, FloatTag::class.java)
+    fun isFloat(key: String) = `is`(key, FloatTag::class.java)
 
-    fun isDouble(key: String): Boolean = `is`(key, DoubleTag::class.java)
+    fun isDouble(key: String) = `is`(key, DoubleTag::class.java)
 
-    fun isByteArray(key: String): Boolean = `is`(key, ByteArrayTag::class.java)
+    fun isByteArray(key: String) = `is`(key, ByteArrayTag::class.java)
 
-    fun isString(key: String): Boolean = `is`(key, StringTag::class.java)
+    fun isString(key: String) = `is`(key, StringTag::class.java)
 
-    fun isIntArray(key: String): Boolean = `is`(key, IntArrayTag::class.java)
+    fun isIntArray(key: String) = `is`(key, IntArrayTag::class.java)
 
     /**///////////////////////////////////////////////////////////////////////// */ // Fancy is
     fun isList(key: String, type: TagType): Boolean {
@@ -123,7 +123,7 @@ class CompoundTag
         return tag.childType === type
     }
 
-    fun isCompound(key: String): Boolean = `is`(key, CompoundTag::class.java)
+    fun isCompound(key: String) = `is`(key, CompoundTag::class.java)
 
     /**///////////////////////////////////////////////////////////////////////// */ // Simple sets
     fun putBool(key: String, value: Boolean) =
@@ -198,7 +198,7 @@ class CompoundTag
 
     private fun getTagList(key: String, type: TagType): List<Tag<*>> {
         val tag = getTag(key, ListTag::class.java)
-        if (tag.value.size == 0)
+        if (tag.value.isEmpty())
         // empty lists are allowed to be the wrong type
             return mutableListOf()
 

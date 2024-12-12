@@ -2,6 +2,7 @@ package gg.mineral.server.network.packet.play.bidirectional
 
 import gg.mineral.api.network.connection.Connection
 import gg.mineral.api.network.packet.Packet
+import gg.mineral.server.network.connection.ConnectionImpl
 import io.netty.buffer.ByteBuf
 
 class KeepAlivePacket(var keepAliveId: Int = 0) : Packet.ASYNC_INCOMING, Packet.OUTGOING {
@@ -20,5 +21,9 @@ class KeepAlivePacket(var keepAliveId: Int = 0) : Packet.ASYNC_INCOMING, Packet.
         get() = 0x00
 
     override fun receivedAsync(connection: Connection) {
+        if (connection is ConnectionImpl) {
+            val time = connection.server.getMillis() - connection.lastKeepAlive
+            connection.ping = ((connection.ping * 3 + time) / 4).toInt();
+        }
     }
 }

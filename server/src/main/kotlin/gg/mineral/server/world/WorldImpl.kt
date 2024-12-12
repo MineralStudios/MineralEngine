@@ -24,20 +24,22 @@ class WorldImpl(
     val server: MinecraftServerImpl
 ) :
     World {
-    private val chunkCache: Array<ChunkImpl?> = arrayOfNulls(65536)
-    private val entities = IntOpenHashSet()
-    private val entityChunkPositions: Int2ShortOpenHashMap = object : Int2ShortOpenHashMap() {
-        init {
-            defaultReturnValue(Short.MIN_VALUE)
+    private val chunkCache: Array<ChunkImpl?> by lazy { arrayOfNulls(65536) }
+    private val entities by lazy { IntOpenHashSet() }
+    private val entityChunkPositions by lazy {
+        object : Int2ShortOpenHashMap() {
+            init {
+                defaultReturnValue(Short.MIN_VALUE)
+            }
+
+            override fun get(key: Int): Short = super.get(key)
+
+            override fun getOrDefault(key: Int, defaultValue: Short): Short = super.getOrDefault(key, defaultValue)
+
+            override fun containsKey(key: Int): Boolean = super.containsKey(key)
+
+            override fun remove(k: Int): Short = super.remove(k)
         }
-
-        override fun get(key: Int): Short = super.get(key)
-
-        override fun getOrDefault(key: Int, defaultValue: Short): Short = super.getOrDefault(key, defaultValue)
-
-        override fun containsKey(key: Int): Boolean = super.containsKey(key)
-
-        override fun remove(k: Int): Short = super.remove(k)
     }
 
     override fun getChunk(key: Short): Chunk {

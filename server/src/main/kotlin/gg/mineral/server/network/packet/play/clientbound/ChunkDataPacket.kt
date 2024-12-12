@@ -12,11 +12,9 @@ data class ChunkDataPacket(
     constructor(chunkX: Int, chunkZ: Int) : this(chunkX, chunkZ, true, 0, 0, ByteArray(0))
 
     override fun serialize(os: ByteBuf) {
-        os.writeInt(chunkX)
-        os.writeInt(chunkZ)
+        os.writeInt(chunkX, chunkZ)
         os.writeBoolean(groundUpContinuous)
-        os.writeShort(primaryBitMap)
-        os.writeShort(addBitMap)
+        os.writeShort(primaryBitMap, addBitMap)
         os.writeInt(compressedData.size)
         os.writeBytes(compressedData)
     }

@@ -14,11 +14,8 @@ data class JoinGamePacket(
 ) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
         os.writeInt(entityId)
-        os.writeByte(gamemode.id.toInt())
-        os.writeByte(dimension.id.toInt())
-        os.writeByte(difficulty.id.toInt())
-        os.writeByte(maxPlayers.toInt())
-        writeString(os, levelType.string())
+        os.writeByte(gamemode.id, dimension.id, difficulty.id, maxPlayers.toByte())
+        os.writeString(levelType.string())
     }
 
     override val id: Byte

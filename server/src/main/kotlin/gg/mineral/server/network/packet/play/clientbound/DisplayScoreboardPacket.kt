@@ -7,7 +7,7 @@ import io.netty.buffer.ByteBuf
 data class DisplayScoreboardPacket(val position: Byte, val scoreName: String) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
         os.writeByte(position.toInt())
-        writeString(os, scoreName)
+        os.writeString(scoreName)
     }
 
     override val id: Byte

@@ -5,7 +5,7 @@ import gg.mineral.api.command.CommandExecutor
 
 class KnockbackCommand : Command("knockback", "") {
     override fun execute(commandExecutor: CommandExecutor, arguments: Array<String?>) {
-        if (arguments.size == 0) {
+        if (arguments.isEmpty()) {
             commandExecutor.msg("Usage: /knockback <x> <y> <z> <extraX> <extraY> <extraZ> <yLimit> <friction>")
             return
         }

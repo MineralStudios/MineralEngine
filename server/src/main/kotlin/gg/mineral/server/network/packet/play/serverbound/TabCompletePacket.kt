@@ -10,6 +10,6 @@ class TabCompletePacket(var text: String? = null) : Packet.INCOMING {
     }
 
     override fun deserialize(`is`: ByteBuf) {
-        this.text = readString(`is`)
+        this.text = `is`.readString()
     }
 }

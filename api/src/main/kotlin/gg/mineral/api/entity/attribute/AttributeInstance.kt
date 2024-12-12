@@ -8,7 +8,7 @@ import kotlin.math.min
 /**
  * Represents an instance of an attribute and its modifiers.
  */
-class AttributeInstance(
+open class AttributeInstance(
     val attribute: Attribute,
     private val propertyChangeListener: Consumer<AttributeInstance>?
 ) {
@@ -58,14 +58,14 @@ class AttributeInstance(
      *
      * @return the modifiers.
      */
-    fun getModifiers(): Collection<AttributeModifier> {
+    private fun getModifiers(): Collection<AttributeModifier> {
         return modifiers.values
     }
 
     /**
      * Recalculate the value of this attribute instance using the modifiers.
      */
-    protected fun refreshCachedValue() {
+    private fun refreshCachedValue() {
         val modifiers = getModifiers()
         var base: Float = baseValue
 

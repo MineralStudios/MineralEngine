@@ -18,11 +18,8 @@ data class SpawnObjectPacket(
     override fun serialize(os: ByteBuf) {
         os.writeVarInt(entityId)
         os.writeByte(type.toInt())
-        os.writeInt(x)
-        os.writeInt(y)
-        os.writeInt(z)
-        os.writeByte(pitch.toInt())
-        os.writeByte(yaw.toInt())
+        os.writeInt(x, y, z)
+        os.writeByte(pitch, yaw)
         os.writeInt(data)
     }
 

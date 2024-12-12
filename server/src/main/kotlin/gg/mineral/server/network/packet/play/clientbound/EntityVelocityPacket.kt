@@ -7,9 +7,7 @@ import io.netty.buffer.ByteBuf
 data class EntityVelocityPacket(val entityId: Int, val x: Short, val y: Short, val z: Short) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
         os.writeInt(entityId)
-        os.writeShort(x.toInt())
-        os.writeShort(y.toInt())
-        os.writeShort(z.toInt())
+        os.writeShort(x, y, z)
     }
 
     override val id: Byte

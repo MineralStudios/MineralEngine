@@ -14,11 +14,8 @@ data class SpawnPaintingPacket(
 ) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
         os.writeVarInt(entityId)
-        writeString(os, title)
-        os.writeInt(x)
-        os.writeInt(y)
-        os.writeInt(z)
-        os.writeInt(direction)
+        os.writeString(title)
+        os.writeInt(x, y, z, direction)
     }
 
     override val id: Byte

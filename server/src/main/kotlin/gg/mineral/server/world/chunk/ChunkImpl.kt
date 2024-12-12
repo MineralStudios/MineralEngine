@@ -6,7 +6,6 @@ import gg.mineral.server.network.packet.play.clientbound.ChunkDataPacket
 import gg.mineral.server.util.collection.NibbleArray
 import gg.mineral.server.world.block.Block
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
-import it.unimi.dsi.fastutil.ints.IntSet
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.util.zip.DeflaterOutputStream
@@ -15,13 +14,13 @@ open class ChunkImpl(
     private val world: World,
     override val x: Byte, override val z: Byte
 ) : Chunk {
-    val entities: IntSet = IntOpenHashSet()
-    private val cache = arrayOfNulls<ChunkDataPacket>(4)
+    val entities by lazy { IntOpenHashSet() }
+    private val cache by lazy { arrayOfNulls<ChunkDataPacket>(4) }
 
     /**
      * The array of chunk sections this chunk contains, or null if it is unloaded.
      */
-    private val sections = arrayOfNulls<ChunkSection>(DEPTH / SEC_DEPTH)
+    private val sections by lazy { arrayOfNulls<ChunkSection>(DEPTH / SEC_DEPTH) }
 
     /**
      * The array of biomes this chunk contains, or null if it is unloaded.
@@ -46,13 +45,6 @@ open class ChunkImpl(
         else if (compress) 1
         else 0
         cache[index] = packet
-    }
-
-    fun generateCache() {
-        toPacket(true, true)
-        toPacket(true, false)
-        toPacket(false, true)
-        toPacket(false, false)
     }
 
     // ======== Basic stuff ========
@@ -320,13 +312,11 @@ open class ChunkImpl(
     }
 
     class ChunkSection {
-        val types: ByteArray = ByteArray(ARRAY_SIZE)
-        val metaData: NibbleArray = NibbleArray(ARRAY_SIZE)
-        val skyLight: NibbleArray = NibbleArray(ARRAY_SIZE, 0xf.toByte())
-        val blockLight: NibbleArray = NibbleArray(ARRAY_SIZE)
-        val addData: NibbleArray = NibbleArray(ARRAY_SIZE)
-
-        var count: Int = 0
+        val types by lazy { ByteArray(ARRAY_SIZE) }
+        val metaData by lazy { NibbleArray(ARRAY_SIZE) }
+        val skyLight by lazy { NibbleArray(ARRAY_SIZE, 0xf.toByte()) }
+        val blockLight by lazy { NibbleArray(ARRAY_SIZE) }
+        var count = 0
 
         /**
          * Create a new, empty ChunkSection.
@@ -360,10 +350,10 @@ open class ChunkImpl(
         /**
          * The dimensions of a chunk (width: x, height: z, depth: y).
          */
-        const val WIDTH: Int = 16
-        const val HEIGHT: Int = 16
-        const val DEPTH: Int = 256
-        private val EMPTY_SECTION = ChunkSection()
+        const val WIDTH = 16
+        const val HEIGHT = 16
+        const val DEPTH = 256
+        private val EMPTY_SECTION by lazy { ChunkSection() }
 
         /**
          * The Y depth of a single chunk section.
@@ -371,20 +361,11 @@ open class ChunkImpl(
         private const val SEC_DEPTH = 16
         private const val ARRAY_SIZE = WIDTH * HEIGHT * SEC_DEPTH
 
-        @JvmStatic
-        fun toKey(x: Byte, z: Byte): Short {
-            return ((x.toInt() shl 8) or (z.toInt() and 0xFF)).toShort()
-        }
+        fun toKey(x: Byte, z: Byte) = ((x.toInt() shl 8) or (z.toInt() and 0xFF)).toShort()
 
-        @JvmStatic
-        fun xFromKey(key: Short): Byte {
-            return ((key.toInt() shr 8) and 0xFF).toByte()
-        }
+        fun xFromKey(key: Short) = ((key.toInt() shr 8) and 0xFF).toByte()
 
-        @JvmStatic
-        fun zFromKey(key: Short): Byte {
-            return (key.toInt() and 0xFF).toByte()
-        }
+        fun zFromKey(key: Short) = (key.toInt() and 0xFF).toByte()
 
         @JvmStatic
         fun compress(data: ByteArray, length: Int): ByteArray {

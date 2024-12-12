@@ -17,7 +17,7 @@ class UpdateSignPacket(
         os.writeInt(x)
         os.writeShort(y.toInt())
         os.writeInt(z)
-        writeString(os, line1, line2, line3, line4)
+        os.writeString(line1, line2, line3, line4)
     }
 
     override fun received(connection: Connection) {
@@ -28,10 +28,10 @@ class UpdateSignPacket(
         x = `is`.readInt()
         y = `is`.readShort()
         z = `is`.readInt()
-        line1 = readString(`is`)
-        line2 = readString(`is`)
-        line3 = readString(`is`)
-        line4 = readString(`is`)
+        line1 = `is`.readString()
+        line2 = `is`.readString()
+        line3 = `is`.readString()
+        line4 = `is`.readString()
     }
 
     override val id: Byte

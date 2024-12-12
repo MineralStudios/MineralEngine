@@ -148,6 +148,10 @@ class GroovyConfig {
     @Setting("plugin")
     val hiddenPlugins = listOf("SpookyAC")
 
+    init {
+        load()
+    }
+
     fun load() {
         val configSlurper = ConfigSlurper()
 

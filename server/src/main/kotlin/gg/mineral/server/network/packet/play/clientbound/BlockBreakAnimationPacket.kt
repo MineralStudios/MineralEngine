@@ -8,9 +8,7 @@ data class BlockBreakAnimationPacket(val entityId: Int, val x: Int, val y: Int, 
     Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
         os.writeVarInt(entityId)
-        os.writeInt(x)
-        os.writeInt(y)
-        os.writeInt(z)
+        os.writeInt(x, y, z)
         os.writeByte(destroyStage.toInt())
     }
 

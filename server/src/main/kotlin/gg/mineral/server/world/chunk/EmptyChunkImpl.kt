@@ -5,7 +5,7 @@ import gg.mineral.api.world.chunk.EmptyChunk
 import gg.mineral.server.network.packet.play.clientbound.ChunkDataPacket
 
 class EmptyChunkImpl(world: World, x: Byte, z: Byte) : ChunkImpl(world, x, z), EmptyChunk {
-    private val packet = ChunkDataPacket(this.x.toInt(), this.z.toInt())
+    private val packet by lazy { ChunkDataPacket(this.x.toInt(), this.z.toInt()) }
 
     override fun toPacket(skylight: Boolean, compress: Boolean): ChunkDataPacket {
         return packet

@@ -8,9 +8,7 @@ data class EntityRelativeMovePacket(val entityId: Int, val deltaX: Byte, val del
     Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
         os.writeInt(entityId)
-        os.writeByte(deltaX.toInt())
-        os.writeByte(deltaY.toInt())
-        os.writeByte(deltaZ.toInt())
+        os.writeByte(deltaX, deltaY, deltaZ)
     }
 
     override val id: Byte

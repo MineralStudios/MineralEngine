@@ -12,6 +12,6 @@ class CreativeInventoryActionPacket(var slot: Short = 0, var clickedItem: ItemSt
 
     override fun deserialize(`is`: ByteBuf) {
         slot = `is`.readShort()
-        clickedItem = readSlot(`is`)
+        clickedItem = `is`.readSlot()
     }
 }

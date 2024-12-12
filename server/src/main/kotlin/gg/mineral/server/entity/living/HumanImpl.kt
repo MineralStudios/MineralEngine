@@ -11,21 +11,23 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import it.unimi.dsi.fastutil.ints.IntSet
 
 open class HumanImpl(id: Int, world: WorldImpl) : LivingImpl(id, world), Human {
-    @JvmField
-    protected val entityRemoveIds: IntSet = IntOpenHashSet()
+    protected val entityRemoveIds: IntSet by lazy { IntOpenHashSet() }
 
-    val visibleEntities: Int2ObjectOpenHashMap<IntArray> = object : Int2ObjectOpenHashMap<IntArray>() {
-        override fun remove(key: Int): IntArray {
-            val value = super.remove(key)
-            if (value != null) entityRemoveIds.add(key)
-            return value
+    val visibleEntities by lazy {
+        object : Int2ObjectOpenHashMap<IntArray>() {
+            override fun remove(key: Int): IntArray {
+                val value = super.remove(key)
+                if (value != null) entityRemoveIds.add(key)
+                return value
+            }
+
+            override fun get(key: Int): IntArray? = super.get(key)
+
+            override fun getOrDefault(key: Int, defaultValue: IntArray): IntArray =
+                super.getOrDefault(key, defaultValue)
+
+            override fun containsKey(key: Int): Boolean = super.containsKey(key)
         }
-
-        override fun get(key: Int): IntArray? = super.get(key)
-
-        override fun getOrDefault(key: Int, defaultValue: IntArray): IntArray = super.getOrDefault(key, defaultValue)
-
-        override fun containsKey(key: Int): Boolean = super.containsKey(key)
     }
 
     override var extraKnockback: Boolean = false

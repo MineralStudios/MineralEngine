@@ -41,4 +41,11 @@ interface Connection : PreLoginConnection {
      * @param packets
      */
     fun queuePacket(vararg packets: Packet.OUTGOING)
+
+    /**
+     * Gets the current ping of the connection.
+     *
+     * @return The current ping in milliseconds.
+     */
+    var ping: Int
 }

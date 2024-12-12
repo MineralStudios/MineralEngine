@@ -4,7 +4,7 @@ import gg.mineral.api.network.connection.Connection
 import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
-class CloseWindowPacket(var windowId: Short = 0) : Packet.INCOMING, Packet.OUTGOING {
+class CloseWindowPacket(var windowId: UByte = 0.toUByte()) : Packet.INCOMING, Packet.OUTGOING {
 
     override fun serialize(os: ByteBuf) {
         os.writeByte(windowId.toInt())
@@ -15,7 +15,7 @@ class CloseWindowPacket(var windowId: Short = 0) : Packet.INCOMING, Packet.OUTGO
     }
 
     override fun deserialize(`is`: ByteBuf) {
-        windowId = `is`.readByte().toShort()
+        windowId = `is`.readByte().toUByte()
     }
 
     override val id: Byte

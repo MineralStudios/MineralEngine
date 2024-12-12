@@ -10,7 +10,7 @@ data class StatisticsPacket(val statistics: Object2IntMap<String>) : Packet.OUTG
         os.writeVarInt(statistics.size)
 
         for (entry in statistics.object2IntEntrySet()) {
-            writeString(os, entry.key)
+            os.writeString(entry.key)
             os.writeVarInt(entry.intValue)
         }
     }

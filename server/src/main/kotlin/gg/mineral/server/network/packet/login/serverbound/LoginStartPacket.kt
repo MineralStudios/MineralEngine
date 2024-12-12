@@ -11,6 +11,6 @@ class LoginStartPacket(var name: String? = null) : Packet.INCOMING {
     }
 
     override fun deserialize(`is`: ByteBuf) {
-        this.name = readString(`is`)
+        this.name = `is`.readString()
     }
 }

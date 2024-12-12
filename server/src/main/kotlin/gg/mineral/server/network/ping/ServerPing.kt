@@ -48,7 +48,7 @@ class ServerPing(
             .put("max", maxPlayers)
             .put("online", onlinePlayers)
 
-        if (!playerSampleMap.isEmpty()) {
+        if (playerSampleMap.isNotEmpty()) {
             val playerSample = JSONArray()
 
             for ((key, value) in playerSampleMap) playerSample.put(

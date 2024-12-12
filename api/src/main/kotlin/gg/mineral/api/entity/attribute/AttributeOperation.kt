@@ -1,6 +1,6 @@
 package gg.mineral.api.entity.attribute
 
-enum class AttributeOperation(val id: Int) {
+enum class AttributeOperation(val id: Byte) {
     ADDITION(0),
     MULTIPLY_BASE(1),
     MULTIPLY_TOTAL(2);

@@ -9,7 +9,7 @@ data class EntityEquipmentPacket(val entityId: Int, val slot: Short, val itemSta
     override fun serialize(os: ByteBuf) {
         os.writeInt(entityId)
         os.writeShort(slot.toInt())
-        writeSlot(os, itemStack)
+        os.writeSlot(itemStack)
     }
 
     override val id: Byte

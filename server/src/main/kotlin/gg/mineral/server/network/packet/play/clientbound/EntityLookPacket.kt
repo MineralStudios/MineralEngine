@@ -7,8 +7,7 @@ import io.netty.buffer.ByteBuf
 data class EntityLookPacket(val entityId: Int, val yaw: Byte, val pitch: Byte) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
         os.writeInt(entityId)
-        os.writeByte(yaw.toInt())
-        os.writeByte(pitch.toInt())
+        os.writeByte(yaw, pitch)
     }
 
     override val id: Byte

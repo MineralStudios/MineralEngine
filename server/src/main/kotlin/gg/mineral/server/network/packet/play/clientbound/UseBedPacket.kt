@@ -6,8 +6,7 @@ import io.netty.buffer.ByteBuf
 @JvmRecord
 data class UseBedPacket(val entityId: Int, val x: Int, val y: Short, val z: Int) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
-        os.writeInt(entityId)
-        os.writeInt(x)
+        os.writeInt(entityId, x)
         os.writeByte(y.toInt())
         os.writeInt(z)
     }

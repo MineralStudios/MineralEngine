@@ -9,14 +9,8 @@ data class ParticlePacket(
     val offsetZ: Float, val particleData: Float, val numberOfParticles: Int
 ) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
-        writeString(os, particleName)
-        os.writeFloat(x)
-        os.writeFloat(y)
-        os.writeFloat(z)
-        os.writeFloat(offsetX)
-        os.writeFloat(offsetY)
-        os.writeFloat(offsetZ)
-        os.writeFloat(particleData)
+        os.writeString(particleName)
+        os.writeFloat(x, y, z, offsetX, offsetY, offsetZ, particleData)
         os.writeInt(numberOfParticles)
     }
 

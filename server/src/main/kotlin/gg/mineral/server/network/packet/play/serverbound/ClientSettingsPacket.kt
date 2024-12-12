@@ -18,7 +18,7 @@ class ClientSettingsPacket(
     }
 
     override fun deserialize(`is`: ByteBuf) {
-        locale = readString(`is`)
+        locale = `is`.readString()
         viewDistance = `is`.readByte()
         chatFlags = `is`.readByte()
         chatColors = `is`.readBoolean()
