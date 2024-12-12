@@ -14,9 +14,36 @@ import io.netty.buffer.Unpooled
 import io.netty.handler.codec.EncoderException
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.nio.charset.StandardCharsets
 import java.util.*
 
 interface ByteWriter : ByteRW {
+    fun ByteBuf.writeInt(vararg values: Int) {
+        for (value in values) this.writeInt(value)
+    }
+
+    fun ByteBuf.writeByte(vararg values: Byte) {
+        for (value in values) this.writeByte(value.toInt())
+    }
+
+    @OptIn(ExperimentalUnsignedTypes::class)
+    fun ByteBuf.writeByte(vararg values: UByte) {
+        for (value in values) this.writeByte(value)
+    }
+
+    fun ByteBuf.writeFloat(vararg values: Float) {
+        for (value in values) this.writeFloat(value)
+    }
+
+    fun ByteBuf.writeShort(vararg values: Short) {
+        for (value in values) this.writeShort(value)
+    }
+
+    fun ByteBuf.writeShort(vararg values: Int) {
+        for (value in values) this.writeShort(value)
+    }
+
+
     /**
      * Writes a Minecraft-style VarInt to the specified `buf`.
      *
@@ -55,30 +82,30 @@ interface ByteWriter : ByteRW {
         }
     }
 
-    fun writeString(buf: ByteBuf, vararg strings: String) {
-        for (string in strings) writeString(buf, string)
+    fun ByteBuf.writeString(vararg strings: String) {
+        for (string in strings) this.writeString(string)
     }
 
-    fun writeString(buf: ByteBuf, string: String) {
-        val stringBytes = string.toByteArray(ByteRW.UTF_8)
+    fun ByteBuf.writeString(string: String) {
+        val stringBytes = string.toByteArray(StandardCharsets.UTF_8)
 
         if (stringBytes.size > 32767) throw EncoderException("String too big (was " + string.length + " bytes encoded, max " + 32767 + ")")
 
-        buf.writeVarInt(stringBytes.size)
-        buf.writeBytes(stringBytes)
+        this.writeVarInt(stringBytes.size)
+        this.writeBytes(stringBytes)
     }
 
-    fun writeString(buf: ByteBuf, strings: Collection<String>) {
-        for (string in strings) writeString(buf, string)
+    fun ByteBuf.writeString(strings: Collection<String>) {
+        for (string in strings) this.writeString(string)
     }
 
-    fun writeUuid(buf: ByteBuf, uuid: UUID) {
-        buf.writeLong(uuid.mostSignificantBits)
-        buf.writeLong(uuid.leastSignificantBits)
+    fun ByteBuf.writeUuid(uuid: UUID) {
+        this.writeLong(uuid.mostSignificantBits)
+        this.writeLong(uuid.leastSignificantBits)
     }
 
-    fun writeIntArray(buf: ByteBuf, ints: IntArray) {
-        for (i in ints.indices) buf.writeInt(ints[i])
+    fun ByteBuf.writeIntArray(ints: IntArray) {
+        for (i in ints.indices) this.writeInt(ints[i])
     }
 
     /**
@@ -88,9 +115,9 @@ interface ByteWriter : ByteRW {
      * @param buf  The buffer.
      * @param data The tag to write, or null.
      */
-    fun writeCompound(buf: ByteBuf, data: CompoundTag?) {
+    fun ByteBuf.writeCompound(data: CompoundTag?) {
         if (data == null) {
-            buf.writeShort(-1)
+            this.writeShort(-1)
             return
         }
 
@@ -104,7 +131,7 @@ interface ByteWriter : ByteRW {
             return
         }
 
-        buf.writeBytes(out.toByteArray())
+        this.writeBytes(out.toByteArray())
     }
 
     /**
@@ -113,18 +140,18 @@ interface ByteWriter : ByteRW {
      * @param buf   The buffer.
      * @param stack The stack to write, or null.
      */
-    fun writeSlot(buf: ByteBuf, stack: ItemStack?) {
+    fun ByteBuf.writeSlot(stack: ItemStack?) {
         if (stack == null || stack.typeId.toInt() == 0) {
-            buf.writeShort(-1)
+            this.writeShort(-1)
             return
         }
 
-        buf.writeShort(stack.typeId.toInt())
-        buf.writeByte(stack.amount.toInt())
-        buf.writeShort(stack.durability.toInt())
+        this.writeShort(stack.typeId.toInt())
+        this.writeByte(stack.amount.toInt())
+        this.writeShort(stack.durability.toInt())
         val result = CompoundTag()
         stack.writeNbt(result)
-        writeCompound(buf, if (result.isEmpty) null else result)
+        this.writeCompound(if (result.isEmpty) null else result)
     }
 
     /**
@@ -133,57 +160,57 @@ interface ByteWriter : ByteRW {
      * @param buf     The buffer.
      * @param entries The metadata.
      */
-    fun writeMetadata(buf: ByteBuf, entries: List<EntityMetadata.Entry>) {
+    fun ByteBuf.writeMetadata(entries: List<EntityMetadata.Entry>) {
         for (entry in entries) {
             val index = entry.index
             val value = entry.value
 
             val type = index.type.id.toInt()
             val id = index.index
-            buf.writeByte((type shl 5) or id)
+            this.writeByte((type shl 5) or id)
 
             when (index.type) {
-                EntityMetadataType.BYTE -> buf.writeByte((value as Byte).toInt())
-                EntityMetadataType.SHORT -> buf.writeShort((value as Short).toInt())
-                EntityMetadataType.INT -> buf.writeInt(value as Int)
-                EntityMetadataType.FLOAT -> buf.writeFloat(value as Float)
-                EntityMetadataType.STRING -> writeString(buf, value as String)
-                EntityMetadataType.ITEM -> writeSlot(buf, value as ItemStack)
+                EntityMetadataType.BYTE -> this.writeByte((value as Byte).toInt())
+                EntityMetadataType.SHORT -> this.writeShort((value as Short).toInt())
+                EntityMetadataType.INT -> this.writeInt(value as Int)
+                EntityMetadataType.FLOAT -> this.writeFloat(value as Float)
+                EntityMetadataType.STRING -> this.writeString(value as String)
+                EntityMetadataType.ITEM -> this.writeSlot(value as ItemStack)
                 EntityMetadataType.VECTOR -> {
                     val vector = value as Vector
-                    buf.writeInt(vector.blockX)
-                    buf.writeInt(vector.blockY)
-                    buf.writeInt(vector.blockZ)
+                    this.writeInt(vector.blockX, vector.blockY, vector.blockZ)
                 }
 
                 EntityMetadataType.EULER_ANGLE -> {
                     val angle = value as EulerAngle
-                    buf.writeFloat(Math.toDegrees(angle.x).toFloat())
-                    buf.writeFloat(Math.toDegrees(angle.y).toFloat())
-                    buf.writeFloat(Math.toDegrees(angle.z).toFloat())
+                    this.writeFloat(
+                        Math.toDegrees(angle.x).toFloat(),
+                        Math.toDegrees(angle.y).toFloat(),
+                        Math.toDegrees(angle.z).toFloat()
+                    )
                 }
             }
         }
 
-        buf.writeByte(127)
+        this.writeByte(127)
     }
 
-    fun writeProperties(buf: ByteBuf, props: Map<String, Attribute.Property>) {
+    fun ByteBuf.writeProperties(props: Map<String, Attribute.Property>) {
         for ((key, value) in props) {
-            writeString(buf, key)
-            buf.writeDouble(value.value)
+            this.writeString(key)
+            this.writeDouble(value.value)
 
             val modifiers = value.modifiers
             if (modifiers.isEmpty()) {
-                buf.writeShort(0)
+                this.writeShort(0)
                 continue
             }
 
-            buf.writeShort(modifiers.size)
+            this.writeShort(modifiers.size)
             for (modifier in modifiers) {
-                writeUuid(buf, modifier.id)
-                buf.writeDouble(modifier.amount.toDouble())
-                buf.writeByte(modifier.operation.id)
+                this.writeUuid(modifier.id)
+                this.writeDouble(modifier.amount.toDouble())
+                this.writeByte(modifier.operation.id)
             }
         }
     }
@@ -192,11 +219,14 @@ interface ByteWriter : ByteRW {
         val data = Unpooled.buffer()
         data.writeVarInt(packet.id.toInt())
         packet.serialize(data)
+
         val length = data.writerIndex()
         val lengthSize = getVarIntSize(length)
         val os = Unpooled.buffer(lengthSize + length)
         os.writeVarInt(length)
         os.writeBytes(data)
+
+
         return os
     }
 }

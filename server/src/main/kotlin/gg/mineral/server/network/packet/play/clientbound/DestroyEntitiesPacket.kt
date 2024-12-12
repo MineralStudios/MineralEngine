@@ -7,7 +7,7 @@ import io.netty.buffer.ByteBuf
 data class DestroyEntitiesPacket(val entityIds: IntArray) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
         os.writeByte(entityIds.size)
-        writeIntArray(os, entityIds)
+        os.writeIntArray(entityIds)
     }
 
     override val id: Byte

@@ -6,8 +6,7 @@ import io.netty.buffer.ByteBuf
 @JvmRecord
 data class AttachEntityPacket(val entityId: Int, val vehicleId: Int, val leash: Boolean) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
-        os.writeInt(entityId)
-        os.writeInt(vehicleId)
+        os.writeInt(entityId, vehicleId)
         os.writeBoolean(leash)
     }
 

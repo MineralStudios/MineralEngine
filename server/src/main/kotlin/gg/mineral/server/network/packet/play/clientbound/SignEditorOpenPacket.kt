@@ -5,11 +5,8 @@ import io.netty.buffer.ByteBuf
 
 @JvmRecord
 data class SignEditorOpenPacket(val x: Int, val y: Int, val z: Int) : Packet.OUTGOING {
-    override fun serialize(os: ByteBuf) {
-        os.writeInt(x)
-        os.writeInt(y)
-        os.writeInt(z)
-    }
+    override fun serialize(os: ByteBuf) =
+        os.writeInt(x, y, z)
 
     override val id: Byte
         get() = 0x36

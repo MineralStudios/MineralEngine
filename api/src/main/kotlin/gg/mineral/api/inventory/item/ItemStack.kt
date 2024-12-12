@@ -6,9 +6,9 @@ import gg.mineral.api.nbt.TagType
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
 import java.util.*
 
-class ItemStack(
+open class ItemStack(
     val typeId: Short,
-    var amount: Short = 1,
+    var amount: UByte = 1.toUByte(),
     var durability: Short = 1
 ) {
     private var displayName: String = ""

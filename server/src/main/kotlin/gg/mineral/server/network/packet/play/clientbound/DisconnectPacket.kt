@@ -8,7 +8,7 @@ import io.netty.buffer.ByteBuf
 @JvmRecord
 data class DisconnectPacket(val baseChatComponent: BaseChatComponent) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) =
-        writeString(os, baseChatComponent.json)
+        os.writeString(baseChatComponent.json)
 
     override val id: Byte
         get() = 0x40

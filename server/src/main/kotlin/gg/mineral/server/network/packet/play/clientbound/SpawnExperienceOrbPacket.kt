@@ -8,9 +8,7 @@ data class SpawnExperienceOrbPacket(val entityId: Int, val x: Int, val y: Int, v
     Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
         os.writeVarInt(entityId)
-        os.writeInt(x)
-        os.writeInt(y)
-        os.writeInt(z)
+        os.writeInt(x, y, z)
         os.writeShort(count.toInt())
     }
 

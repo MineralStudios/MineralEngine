@@ -45,6 +45,6 @@ class ChatMessagePacket(private var message: String? = null) : Packet.ASYNC_INCO
     }
 
     override fun deserialize(`is`: ByteBuf) {
-        message = readString(`is`)
+        message = `is`.readString()
     }
 }

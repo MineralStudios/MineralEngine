@@ -10,12 +10,12 @@ data class TeamsPacket(
     val friendlyFire: Byte, val players: List<String>
 ) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
-        writeString(os, teamName)
+        os.writeString(teamName)
         os.writeByte(mode.toInt())
-        writeString(os, teamDisplayName, teamPrefix, teamSuffix)
+        os.writeString(teamDisplayName, teamPrefix, teamSuffix)
         os.writeByte(friendlyFire.toInt())
         os.writeShort(players.size)
-        writeString(os, players)
+        os.writeString(players)
     }
 
     override val id: Byte

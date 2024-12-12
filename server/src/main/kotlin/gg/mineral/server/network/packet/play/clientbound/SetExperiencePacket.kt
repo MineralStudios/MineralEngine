@@ -8,8 +8,7 @@ data class SetExperiencePacket(val experienceBar: Float, val level: Short, val t
     Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
         os.writeFloat(experienceBar)
-        os.writeShort(level.toInt())
-        os.writeShort(totalExperience.toInt())
+        os.writeShort(level, totalExperience)
     }
 
     override val id: Byte

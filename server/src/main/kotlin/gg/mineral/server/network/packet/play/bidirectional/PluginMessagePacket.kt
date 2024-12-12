@@ -12,7 +12,7 @@ class PluginMessagePacket(var channel: String? = null, var data: ByteArray? = nu
         if (dataSize == 0)
             return
 
-        channel?.let { writeString(os, it) }
+        channel?.let { os.writeString(it) }
         os.writeShort(dataSize)
         os.writeBytes(data)
     }
@@ -22,7 +22,7 @@ class PluginMessagePacket(var channel: String? = null, var data: ByteArray? = nu
     }
 
     override fun deserialize(`is`: ByteBuf) {
-        channel = readString(`is`)
+        channel = `is`.readString()
         val length = `is`.readShort()
         data = ByteArray(length.toInt())
         `is`.readBytes(data)

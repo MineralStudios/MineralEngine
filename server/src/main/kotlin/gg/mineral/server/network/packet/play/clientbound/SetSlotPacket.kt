@@ -9,7 +9,7 @@ data class SetSlotPacket(val windowId: Byte, val slot: Short, val itemStack: Ite
     override fun serialize(os: ByteBuf) {
         os.writeByte(windowId.toInt())
         os.writeShort(slot.toInt())
-        writeSlot(os, itemStack)
+        os.writeSlot(itemStack)
     }
 
     override val id: Byte

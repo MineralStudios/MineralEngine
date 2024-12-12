@@ -20,30 +20,26 @@ import gg.mineral.server.entity.effect.PotionEffect
 import gg.mineral.server.entity.living.HumanImpl
 import gg.mineral.server.entity.meta.EntityMetadataImpl
 import gg.mineral.server.network.connection.ConnectionImpl
-import gg.mineral.server.network.packet.login.clientbound.LoginSuccessPacket
 import gg.mineral.server.network.packet.play.bidirectional.HeldItemChangePacket
 import gg.mineral.server.network.packet.play.bidirectional.PlayerAbilitiesPacket
 import gg.mineral.server.network.packet.play.clientbound.*
 import gg.mineral.server.world.WorldImpl
 import gg.mineral.server.world.chunk.ChunkImpl
-import it.unimi.dsi.fastutil.ints.IntSet
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import it.unimi.dsi.fastutil.shorts.Short2IntLinkedOpenHashMap
 import it.unimi.dsi.fastutil.shorts.ShortOpenHashSet
-import it.unimi.dsi.fastutil.shorts.ShortSet
 import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
 
 open class PlayerImpl(override val connection: ConnectionImpl, id: Int, world: WorldImpl) :
     HumanImpl(id, world), Player {
-    val chunkUpdateTracker = Short2IntLinkedOpenHashMap()
-    val visibleChunks: ShortSet = ShortOpenHashSet()
-    override val permissions: MutableSet<String> = ObjectOpenHashSet()
-    private val attributeModifiers: MutableMap<String, AttributeInstance> = ConcurrentHashMap()
+    val chunkUpdateTracker by lazy { Short2IntLinkedOpenHashMap() }
+    val visibleChunks by lazy { ShortOpenHashSet() }
+    override val permissions: MutableSet<String> by lazy { ObjectOpenHashSet() }
+    private val attributeModifiers: MutableMap<String, AttributeInstance> by lazy { ConcurrentHashMap() }
 
     val name: String
         get() = connection.name.toString()
@@ -154,7 +150,7 @@ open class PlayerImpl(override val connection: ConnectionImpl, id: Int, world: W
             val key = fastKeyIterator.nextShort()
             val chunk = world.getChunk(key)
             if (chunk is ChunkImpl) {
-                val newlyVisible: IntSet = chunk.entities
+                val newlyVisible = chunk.entities
 
                 val fastIterator = newlyVisible.iterator()
                 while (fastIterator.hasNext()) {
@@ -172,9 +168,7 @@ open class PlayerImpl(override val connection: ConnectionImpl, id: Int, world: W
                     val pitch = angleToByte(player.pitch)
                     connection.sendPacket(
                         SpawnPlayerPacket(
-                            player.id,  // TODO: Fix not being able to see
-                            // player
-                            // sometimes
+                            player.id,
                             x, y, z, yaw,
                             pitch, player.uuid.toString(),
                             player.name, ArrayList(),  /* TODO: player property */0.toShort(),  /*
@@ -204,7 +198,6 @@ open class PlayerImpl(override val connection: ConnectionImpl, id: Int, world: W
         this.headY = playerJoinEvent.y + this.height
         this.z = playerJoinEvent.z
         connection.queuePacket(
-            LoginSuccessPacket(connection.uuid!!, connection.name!!),
             JoinGamePacket(
                 this.id, gamemode, Dimension.OVERWORLD, Difficulty.PEACEFUL,
                 1000.toShort(), LevelType.FLAT
@@ -217,7 +210,7 @@ open class PlayerImpl(override val connection: ConnectionImpl, id: Int, world: W
             PlayerPositionAndLookPacket(x, headY, z, yaw, pitch, onGround),
             SetSlotPacket(
                 0.toByte(), 36.toShort(),
-                ItemStack(Material.DIAMOND_SWORD, 1.toShort(), 1.toShort())
+                ItemStack(Material.DIAMOND_SWORD, 1.toUByte(), 1.toShort())
             )
         )
 
@@ -291,10 +284,7 @@ open class PlayerImpl(override val connection: ConnectionImpl, id: Int, world: W
             return EntityPropertiesPacket(id, properties)
         }
 
-    fun getAttributeValue(attribute: Attribute): Float {
-        val instance = attributeModifiers[attribute.key]
-        return instance?.value ?: attribute.defaultValue
-    }
+    fun getAttributeValue(attribute: Attribute) = attributeModifiers[attribute.key]?.value ?: attribute.defaultValue
 
     override fun equals(other: Any?): Boolean {
         if (other is PlayerImpl) return other.connection == connection
@@ -302,17 +292,13 @@ open class PlayerImpl(override val connection: ConnectionImpl, id: Int, world: W
         return false
     }
 
-    override fun hashCode(): Int {
-        return connection.hashCode()
-    }
+    override fun hashCode() = connection.hashCode()
 
-    override fun msg(message: String) {
+    override fun msg(message: String) =
         connection.queuePacket(ChatMessagePacket(StringChatComponent(message)))
-    }
-
 
     companion object {
-        private val LOGGER: Logger = LogManager.getLogger(Player::class.java)
+        private val LOGGER = LogManager.getLogger(Player::class.java)
         private val BASE_ATTRIBUTES = arrayOf(
             Attribute.MAX_HEALTH,
             Attribute.KNOCKBACK_RESISTANCE,

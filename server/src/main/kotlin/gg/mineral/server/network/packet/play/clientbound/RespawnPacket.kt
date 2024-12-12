@@ -17,9 +17,8 @@ data class RespawnPacket(
     Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
         os.writeInt(dimension.id.toInt())
-        os.writeByte(difficulty.id.toInt())
-        os.writeByte(gamemode.id.toInt())
-        writeString(os, levelType.string())
+        os.writeByte(difficulty.id, gamemode.id)
+        os.writeString(levelType.string())
     }
 
     override val id: Byte

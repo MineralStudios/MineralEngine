@@ -5,14 +5,14 @@ import io.netty.buffer.ByteBuf
 
 @JvmRecord
 data class OpenWindowPacket(
-    val windowId: Short, val inventoryType: Short, val windowTitle: String, val numberOfSlots: Short,
+    val windowId: UByte, val inventoryType: UByte, val windowTitle: String, val numberOfSlots: UByte,
     val useProvidedWindowTitle: Boolean, val entityId: Int
 ) : Packet.OUTGOING {
+    @OptIn(ExperimentalUnsignedTypes::class)
     override fun serialize(os: ByteBuf) {
-        os.writeByte(windowId.toInt())
-        os.writeByte(inventoryType.toInt())
-        writeString(os, windowTitle)
-        os.writeByte(numberOfSlots.toInt())
+        os.writeByte(windowId, inventoryType)
+        os.writeString(windowTitle)
+        os.writeByte(numberOfSlots)
         os.writeBoolean(useProvidedWindowTitle)
         os.writeInt(entityId)
     }

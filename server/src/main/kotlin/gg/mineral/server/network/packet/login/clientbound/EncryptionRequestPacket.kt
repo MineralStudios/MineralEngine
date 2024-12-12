@@ -11,7 +11,7 @@ data class EncryptionRequestPacket(val serverId: String, val publicKey: PublicKe
         get() = 0x01
 
     override fun serialize(os: ByteBuf) {
-        writeString(os, serverId)
+        os.writeString(serverId)
         val publicKeyBytes = publicKey.encoded
         os.writeShort(publicKeyBytes.size)
         os.writeBytes(publicKeyBytes)

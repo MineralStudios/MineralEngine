@@ -7,17 +7,15 @@ import io.netty.buffer.ByteBuf
 data class EffectPacket(
     val effectId: Int,
     val x: Int,
-    val y: Short,
+    val y: UByte,
     val z: Int,
     val data: Int,
     val disableRelativeVolume: Boolean
 ) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
-        os.writeInt(effectId)
-        os.writeInt(x)
+        os.writeInt(effectId, x)
         os.writeByte(y.toInt())
-        os.writeInt(z)
-        os.writeInt(data)
+        os.writeInt(z, data)
         os.writeBoolean(disableRelativeVolume)
     }
 

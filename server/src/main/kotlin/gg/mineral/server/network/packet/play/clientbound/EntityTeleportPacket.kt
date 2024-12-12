@@ -7,12 +7,8 @@ import io.netty.buffer.ByteBuf
 data class EntityTeleportPacket(val entityId: Int, val x: Int, val y: Int, val z: Int, val yaw: Byte, val pitch: Byte) :
     Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
-        os.writeInt(entityId)
-        os.writeInt(x)
-        os.writeInt(y)
-        os.writeInt(z)
-        os.writeByte(yaw.toInt())
-        os.writeByte(pitch.toInt())
+        os.writeInt(entityId, x, y, z)
+        os.writeByte(yaw, pitch)
     }
 
     override val id: Byte

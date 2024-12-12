@@ -10,11 +10,7 @@ data class EntityLookAndRelativeMovePacket(
 ) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
         os.writeInt(entityId)
-        os.writeByte(deltaX.toInt())
-        os.writeByte(deltaY.toInt())
-        os.writeByte(deltaZ.toInt())
-        os.writeByte(yaw.toInt())
-        os.writeByte(pitch.toInt())
+        os.writeByte(deltaX, deltaY, deltaZ, yaw, pitch)
     }
 
     override val id: Byte

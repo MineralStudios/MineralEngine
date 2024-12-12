@@ -12,8 +12,7 @@ data class PlayerPositionAndLookPacket(
         os.writeDouble(x)
         os.writeDouble(headY)
         os.writeDouble(z)
-        os.writeFloat(yaw)
-        os.writeFloat(pitch)
+        os.writeFloat(yaw, pitch)
         os.writeBoolean(onGround)
     }
 

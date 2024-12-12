@@ -15,14 +15,14 @@ class HandshakePacket(
     override fun received(connection: Connection) {
         if (connection is ConnectionImpl) {
             connection.protocolVersion = protocol.toByte()
-            connection.setProtocolState(ProtocolState.getState(nextState))
+            connection.protocolState = ProtocolState.getState(nextState)
         }
     }
 
     override fun deserialize(`is`: ByteBuf) {
-        protocol = readVarInt(`is`)
-        serverAddress = readString(`is`)
+        protocol = `is`.readVarInt()
+        serverAddress = `is`.readString()
         port = `is`.readUnsignedShort()
-        nextState = readVarInt(`is`)
+        nextState = `is`.readVarInt()
     }
 }

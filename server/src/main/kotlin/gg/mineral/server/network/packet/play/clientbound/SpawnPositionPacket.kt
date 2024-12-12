@@ -5,11 +5,8 @@ import io.netty.buffer.ByteBuf
 
 @JvmRecord
 data class SpawnPositionPacket(val x: Int, val headY: Int, val z: Int) : Packet.OUTGOING {
-    override fun serialize(os: ByteBuf) {
-        os.writeInt(x)
-        os.writeInt(headY)
-        os.writeInt(z)
-    }
+    override fun serialize(os: ByteBuf) =
+        os.writeInt(x, headY, z)
 
     override val id: Byte
         get() = 0x05

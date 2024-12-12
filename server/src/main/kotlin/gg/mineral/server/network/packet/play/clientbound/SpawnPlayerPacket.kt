@@ -20,25 +20,20 @@ data class SpawnPlayerPacket(
 ) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
         os.writeVarInt(entityId)
-        writeString(os, playerUUID)
-        writeString(os, playerName)
+        os.writeString(playerUUID, playerName)
         os.writeVarInt(playerProperties.size)
 
         // TODO: Make it more concise like below
-        for (playerProperty in playerProperties) writeString(
-            os,
+        for (playerProperty in playerProperties) os.writeString(
             playerProperty.name,
             playerProperty.value,
             playerProperty.signature
         )
 
-        os.writeInt(x)
-        os.writeInt(y)
-        os.writeInt(z)
-        os.writeByte(yaw.toInt())
-        os.writeByte(pitch.toInt())
+        os.writeInt(x, y, z)
+        os.writeByte(yaw, pitch)
         os.writeShort(currentItem.toInt())
-        writeMetadata(os, entries)
+        os.writeMetadata(entries)
     }
 
     override val id: Byte

@@ -5,7 +5,11 @@ import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
 
-class ConfirmTransactionPacket(var windowId: Short = 0, var actionNumber: Short = 0, var accepted: Boolean = false) :
+class ConfirmTransactionPacket(
+    var windowId: UByte = 0.toUByte(),
+    var actionNumber: Short = 0,
+    var accepted: Boolean = false
+) :
     Packet.INCOMING, Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
         os.writeByte(windowId.toInt())
@@ -21,7 +25,7 @@ class ConfirmTransactionPacket(var windowId: Short = 0, var actionNumber: Short 
     }
 
     override fun deserialize(`is`: ByteBuf) {
-        windowId = `is`.readByte().toShort()
+        windowId = `is`.readByte().toUByte()
         actionNumber = `is`.readShort()
         accepted = `is`.readBoolean()
     }

@@ -3,6 +3,7 @@ package gg.mineral.server.network.packet.login.serverbound
 import gg.mineral.api.network.connection.Connection
 import gg.mineral.api.network.packet.Packet
 import gg.mineral.server.network.connection.ConnectionImpl
+import gg.mineral.server.network.protocol.ProtocolState
 import io.netty.buffer.ByteBuf
 import java.util.concurrent.CompletableFuture
 
@@ -16,16 +17,17 @@ class EncryptionKeyResponsePacket(
                 { connection.authenticate(sharedSecretBytes!!, verifyToken!!) },
                 connection.server.asyncExecutor
             )
-                .thenAcceptAsync({ success ->
+                .thenAccept { secretKey ->
                     val config = connection.server.config
-
-                    if (success) try {
-                        connection.loggedIn()
+                    if (secretKey != null) try {
+                        connection.enableEncryption(secretKey)
+                        connection.loginSuccess()
                     } catch (e: Exception) {
                         e.printStackTrace()
                         connection.disconnect(config.disconnectCanNotAuthenticate)
-                    }
-                    else connection.disconnect(config.disconnectCanNotAuthenticate)
+                    } else connection.disconnect(config.disconnectCanNotAuthenticate)
+                }.thenAcceptAsync({
+                    if (connection.protocolState == ProtocolState.PLAY) connection.spawnPlayer()
                 }, connection.server.tickExecutor)
         }
     }

@@ -5,12 +5,12 @@ import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
 @JvmRecord
-data class WindowItemsPacket(val windowId: Short, val itemstacks: Array<ItemStack>) : Packet.OUTGOING {
+data class WindowItemsPacket(val windowId: UByte, val itemstacks: Array<ItemStack>) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
         os.writeByte(windowId.toInt())
         os.writeShort(itemstacks.size)
 
-        for (itemstack in itemstacks) writeSlot(os, itemstack)
+        for (itemstack in itemstacks) os.writeSlot(itemstack)
     }
 
     override fun equals(other: Any?): Boolean {

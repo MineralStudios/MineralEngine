@@ -7,8 +7,7 @@ import io.netty.buffer.ByteBuf
 data class MultiBlockChangePacket(val chunkX: Int, val chunkZ: Int, val records: List<BlockChangePacket>) :
     Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
-        os.writeInt(chunkX)
-        os.writeInt(chunkZ)
+        os.writeInt(chunkX, chunkZ)
         os.writeShort(records.size)
         os.writeInt(records.size * 4)
 

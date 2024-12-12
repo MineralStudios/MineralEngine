@@ -6,7 +6,7 @@ import io.netty.buffer.ByteBuf
 @JvmRecord
 data class PlayerListItemPacket(val playerName: String, val online: Boolean, val ping: Short) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
-        writeString(os, playerName)
+        os.writeString(playerName)
         os.writeBoolean(online)
         os.writeShort(ping.toInt())
     }

@@ -24,7 +24,7 @@ class PlayerBlockPlacementPacket(
         y = `is`.readUnsignedByte()
         z = `is`.readInt()
         direction = `is`.readByte()
-        itemStack = readSlot(`is`)
+        itemStack = `is`.readSlot()
         cursorX = `is`.readByte()
         cursorY = `is`.readByte()
         cursorZ = `is`.readByte()

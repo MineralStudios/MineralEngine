@@ -9,15 +9,15 @@ data class BlockActionPacket(
     val y: Short,
     val z: Int,
     val blockType: Int,
-    val byte1: Short,
-    val byte2: Short
+    val byte1: UByte,
+    val byte2: UByte
 ) : Packet.OUTGOING {
+    @OptIn(ExperimentalUnsignedTypes::class)
     override fun serialize(os: ByteBuf) {
         os.writeInt(x)
         os.writeShort(y.toInt())
         os.writeInt(z)
-        os.writeByte(byte1.toInt())
-        os.writeByte(byte2.toInt())
+        os.writeByte(byte1, byte2)
         os.writeVarInt(blockType)
     }
 

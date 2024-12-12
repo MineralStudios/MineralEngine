@@ -9,7 +9,7 @@ data class EntityMetadataPacket(val entityId: Int, val entries: List<EntityMetad
     Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
         os.writeInt(entityId)
-        writeMetadata(os, entries)
+        os.writeMetadata(entries)
     }
 
     override val id: Byte

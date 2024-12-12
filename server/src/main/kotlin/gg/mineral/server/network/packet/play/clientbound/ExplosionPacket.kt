@@ -11,21 +11,13 @@ data class ExplosionPacket(
     val playerMotionY: Float, val playerMotionZ: Float
 ) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
-        os.writeFloat(x)
-        os.writeFloat(y)
-        os.writeFloat(z)
-        os.writeFloat(radius)
+        os.writeFloat(x, y, z, radius)
         os.writeInt(records.size)
 
-        for (record in records) {
-            os.writeByte(record.x.toInt())
-            os.writeByte(record.y.toInt())
-            os.writeByte(record.z.toInt())
-        }
+        for (record in records)
+            os.writeByte(record.x, record.y, record.z)
 
-        os.writeFloat(playerMotionX)
-        os.writeFloat(playerMotionY)
-        os.writeFloat(playerMotionZ)
+        os.writeFloat(playerMotionX, playerMotionY, playerMotionZ)
     }
 
     override val id: Byte

@@ -22,16 +22,10 @@ data class SpawnMobPacket(
     override fun serialize(os: ByteBuf) {
         os.writeVarInt(entityId)
         os.writeByte(type.toInt())
-        os.writeInt(x)
-        os.writeInt(y)
-        os.writeInt(z)
-        os.writeByte(yaw.toInt())
-        os.writeByte(pitch.toInt())
-        os.writeByte(headPitch.toInt())
-        os.writeShort(velocityX.toInt())
-        os.writeShort(velocityY.toInt())
-        os.writeShort(velocityZ.toInt())
-        writeMetadata(os, entries)
+        os.writeInt(x, y, z)
+        os.writeByte(yaw, pitch, headPitch)
+        os.writeShort(velocityX, velocityY, velocityZ)
+        os.writeMetadata(entries)
     }
 
     override val id: Byte

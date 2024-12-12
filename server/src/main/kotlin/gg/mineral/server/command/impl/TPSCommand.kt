@@ -53,6 +53,10 @@ class TPSCommand : Command("tps", "") {
             (ChatColor.WHITE.toString() + "JVM Total Memory: " + ChatColor.AQUA.toString()
                     + (Runtime.getRuntime().maxMemory() / 1048576) + " MBs")
         )
+        commandExecutor.msg(
+            (ChatColor.WHITE.toString() + "Active Netty Channels: " + ChatColor.AQUA.toString()
+                    + commandExecutor.server.connections.size)
+        )
 
         commandExecutor.msg(
             ChatColor.GRAY.toString() + ChatColor.STRIKETHROUGH.toString() + "-------------------------------"

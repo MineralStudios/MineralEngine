@@ -5,7 +5,6 @@ import gg.mineral.server.network.protocol.ProtocolState
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.ByteToMessageDecoder
-import java.util.function.Consumer
 
 class PacketDecoder : ByteToMessageDecoder(), ByteReader {
     @Throws(Exception::class)
@@ -14,33 +13,9 @@ class PacketDecoder : ByteToMessageDecoder(), ByteReader {
 
         val packetRegistry = ctx.channel().attr(ProtocolState.ATTRIBUTE_KEY).get()
 
-        processPacket(buf) { packetBuf: ByteBuf ->
-            try {
-                val id = packetBuf.readByte()
-                val packet = packetRegistry.create(id)
-                packet.deserialize(packetBuf)
-                packets.add(packet)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
-                // Release the packet buffer after processing
-                if (packetBuf.refCnt() > 0) packetBuf.release()
-            }
-        }
-
-        // Discard read bytes to keep buffer tidy
-        buf.discardReadBytes()
-    }
-
-    /**
-     * Attempts to read a single packet from the buffer and pass it to the consumer.
-     * If not enough data is present to form a complete packet, the buffer's reader
-     * index is reset and this method returns without consuming any data.
-     */
-    private fun processPacket(buf: ByteBuf, consumer: Consumer<ByteBuf>) {
         buf.markReaderIndex()
 
-        val length = readVarInt(buf)
+        val length = buf.readVarInt()
         if (length == -1) {
             buf.resetReaderIndex()
             return
@@ -52,6 +27,19 @@ class PacketDecoder : ByteToMessageDecoder(), ByteReader {
         }
 
         val packetData = buf.readRetainedSlice(length)
-        consumer.accept(packetData)
+
+        try {
+            val id = packetData.readByte()
+            val packet = packetRegistry.create(id)
+            packet.deserialize(packetData)
+            packets.add(packet)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            // Release the packet buffer after processing
+            if (packetData.refCnt() > 0) packetData.release()
+        }
+        // Discard read bytes to keep buffer tidy
+        buf.discardReadBytes()
     }
 }

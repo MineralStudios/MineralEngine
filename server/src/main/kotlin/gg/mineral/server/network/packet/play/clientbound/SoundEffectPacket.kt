@@ -13,10 +13,8 @@ data class SoundEffectPacket(
     val pitch: Short
 ) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
-        writeString(os, soundName)
-        os.writeInt(x)
-        os.writeInt(y)
-        os.writeInt(z)
+        os.writeString(soundName)
+        os.writeInt(x, y, z)
         os.writeFloat(volume)
         os.writeByte(pitch.toInt())
     }

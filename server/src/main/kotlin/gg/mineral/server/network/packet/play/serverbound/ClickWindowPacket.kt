@@ -23,6 +23,6 @@ class ClickWindowPacket(
         button = `is`.readByte()
         actionNumber = `is`.readShort()
         mode = `is`.readByte()
-        clickedItem = readSlot(`is`)
+        clickedItem = `is`.readSlot()
     }
 }

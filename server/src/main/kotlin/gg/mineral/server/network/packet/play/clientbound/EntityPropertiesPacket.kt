@@ -8,9 +8,8 @@ import io.netty.buffer.ByteBuf
 data class EntityPropertiesPacket(val entityId: Int, val properties: Map<String, Attribute.Property>) :
     Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
-        os.writeInt(entityId)
-        os.writeInt(properties.size)
-        writeProperties(os, properties)
+        os.writeInt(entityId, properties.size)
+        os.writeProperties(properties)
     }
 
     override val id: Byte

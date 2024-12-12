@@ -7,7 +7,7 @@ import io.netty.buffer.ByteBuf
 data class TabCompletePacket(val completions: List<String>) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) {
         os.writeVarInt(completions.size)
-        for (completion in completions) writeString(os, completion)
+        for (completion in completions) os.writeString(completion)
     }
 
     override val id: Byte

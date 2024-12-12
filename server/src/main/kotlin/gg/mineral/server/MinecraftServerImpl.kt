@@ -8,10 +8,7 @@ import gg.mineral.api.plugin.MineralPlugin
 import gg.mineral.api.plugin.event.Event
 import gg.mineral.api.world.World
 import gg.mineral.server.command.CommandMapImpl
-import gg.mineral.server.command.impl.KnockbackCommand
-import gg.mineral.server.command.impl.StopCommand
-import gg.mineral.server.command.impl.TPSCommand
-import gg.mineral.server.command.impl.VersionCommand
+import gg.mineral.server.command.impl.*
 import gg.mineral.server.config.GroovyConfig
 import gg.mineral.server.entity.EntityImpl
 import gg.mineral.server.entity.living.human.PlayerImpl
@@ -54,7 +51,79 @@ import java.util.concurrent.ScheduledExecutorService
 
 class MinecraftServerImpl : SimpleTerminalConsole(), MinecraftServer, CommandExecutor,
     Completer {
-    private val worlds = Byte2ObjectOpenHashMap<WorldImpl>()
+    private val worlds: Byte2ObjectOpenHashMap<WorldImpl> by lazy {
+        object : Byte2ObjectOpenHashMap<WorldImpl>() {
+            init {
+                val startTime = System.nanoTime()
+                val worldFolder = File(config.worldsFolder)
+
+                worldFolder.mkdirs()
+
+                val files = worldFolder.listFiles()
+
+                if (files != null) for (file in files) {
+                    if (file.name.endsWith(".schematic")) {
+                        val name = file.name.substring(0, file.name.length - 10)
+                        val schematic = Schematic.load(file)
+                        LOGGER.info(
+                            "Loaded schematic {} with {} chunks [{}ms].",
+                            name,
+                            schematic.chunkedBlocks.size,
+                            (System.nanoTime() - startTime) / 1000000
+                        )
+
+                        this.createWorld(
+                            name, World.Environment.NORMAL
+                        ) { world: World, chunkX: Byte, chunkZ: Byte ->
+                            try {
+                                val chunk = ChunkImpl(world, chunkX, chunkZ)
+
+                                val blocks = schematic.getBlocksForChunk(chunkX, chunkZ)
+
+                                for (block in blocks) {
+                                    val x = block.x
+                                    val y = block.y
+                                    val z = block.z
+                                    val localX = x and 15
+                                    val localZ = z and 15
+                                    chunk.setType(localX, localZ, y.toShort(), block.type)
+                                    chunk.setMetaData(localX, localZ, y.toShort(), block.data)
+                                }
+
+                                return@createWorld chunk
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                return@createWorld ChunkImpl(world, chunkX, chunkZ)
+                            }
+                        }
+                    }
+                }
+
+                if (this.isEmpty()) this.createWorld("Spawn", World.Environment.NORMAL)
+            }
+
+            @kotlin.Throws(IllegalStateException::class)
+            fun createWorld(
+                name: String,
+                environment: World.Environment,
+                generator: World.Generator = DEFAULT_GENERATOR
+            ): WorldImpl {
+                val id = (nextWorldId++).toByte()
+                val world = WorldImpl(id, name, environment, generator, this@MinecraftServerImpl)
+                check(this.put(id, world) == null) { "World with id $id already exists." }
+                return world
+            }
+
+            override fun get(key: Byte): WorldImpl? = super.get(key)
+
+            override fun getOrDefault(key: Byte, defaultValue: WorldImpl): WorldImpl? =
+                super.getOrDefault(key, defaultValue)
+
+            override fun containsKey(key: Byte): Boolean = super.containsKey(key)
+
+            override fun remove(k: Byte): WorldImpl? = super.remove(k)
+        }
+    }
     val entities = Int2ObjectOpenHashMap<EntityImpl>()
     val players = Int2ObjectOpenHashMap<PlayerImpl>()
     val playerNames = Object2ObjectOpenHashMap<String, PlayerImpl>()
@@ -72,14 +141,91 @@ class MinecraftServerImpl : SimpleTerminalConsole(), MinecraftServer, CommandExe
 
     val config = GroovyConfig()
 
-    private val loadedPlugins: ObjectOpenHashSet<MineralPlugin> = ObjectOpenHashSet()
+    private val loadedPlugins: ObjectOpenHashSet<MineralPlugin> by lazy {
+        object : ObjectOpenHashSet<MineralPlugin>() {
+            init {
+                val startTime = System.nanoTime()
+                this.loadPlugins(File(config.pluginsFolder))
 
-    override val registeredCommands: CommandMapImpl = object : CommandMapImpl() {
-        init {
-            register(TPSCommand())
-            register(VersionCommand())
-            register(KnockbackCommand())
-            register(StopCommand())
+                LOGGER.info(
+                    "Loaded {} plugins [{}ms].",
+                    this.size,
+                    (System.nanoTime() - startTime) / 1000000
+                )
+            }
+
+            private fun loadPlugins(pluginDirectory: File) {
+                val files = pluginDirectory.listFiles { _: File?, name -> name.endsWith(".jar") }
+                if (files == null) return
+
+                for (file in files) {
+                    try {
+                        loadPlugin(file)
+                    } catch (e: Exception) {
+                        LOGGER.error("Failed to load plugin from {}", file.name, e)
+                    }
+                }
+            }
+
+            @Throws(Exception::class)
+            private fun loadPlugin(jarFile: File) {
+                val loader = URLClassLoader(arrayOf(jarFile.toURI().toURL()), javaClass.classLoader)
+
+                val pluginClass = loadMainClassFromGroovy(loader, jarFile)
+                if (pluginClass == null) {
+                    LOGGER.error("Failed to find main class in plugin {}", jarFile.name)
+                    return
+                }
+
+                val constructor = pluginClass.getConstructor()
+                val plugin = constructor.newInstance()
+
+                this.add(plugin)
+                plugin.onEnable()
+                registeredCommands.registerAll(plugin.commands.values)
+            }
+
+            @kotlin.Throws(CompilationFailedException::class)
+            private fun loadMainClassFromGroovy(loader: URLClassLoader, jarFile: File): Class<out MineralPlugin>? {
+                val resource = loader.findResource("plugin.groovy")
+                if (resource == null) {
+                    LOGGER.error("plugin.groovy not found in {}", jarFile.name)
+                    return null
+                }
+
+                val binding = Binding()
+                val shell = GroovyShell(loader, binding)
+
+                try {
+                    resource.openStream().use { inputStream ->
+                        InputStreamReader(inputStream).use { reader ->
+                            shell.evaluate(reader)
+                            val mainClass = binding.getVariable("mainClass")
+                            if (mainClass is Class<*> && MineralPlugin::class.java.isAssignableFrom(mainClass)) {
+                                return mainClass.asSubclass(MineralPlugin::class.java)
+                            } else {
+                                LOGGER.error("mainClass in plugin.groovy is not a valid MineralPlugin class")
+                                return null
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    LOGGER.error("Failed to parse plugin.groovy in {}", jarFile.name, e)
+                    return null
+                }
+            }
+        }
+    }
+
+    override val registeredCommands: CommandMapImpl by lazy {
+        object : CommandMapImpl() {
+            init {
+                register(TPSCommand())
+                register(PingCommand())
+                register(VersionCommand())
+                register(KnockbackCommand())
+                register(StopCommand())
+            }
         }
     }
     private var nextEntityId = 0
@@ -134,22 +280,11 @@ class MinecraftServerImpl : SimpleTerminalConsole(), MinecraftServer, CommandExe
         }
     }
 
-    @kotlin.Throws(IllegalStateException::class)
-    fun createWorld(
-        name: String,
-        environment: World.Environment,
-        generator: World.Generator = DEFAULT_GENERATOR
-    ): WorldImpl {
-        val id = (nextWorldId++).toByte()
-        val world = WorldImpl(id, name, environment, generator, this)
-        check(worlds.put(id, world) == null) { "World with id $id already exists." }
-        return world
-    }
-
     override fun start() {
         check(!running) { "Server is already running." }
 
         running = true
+
         val startTime = System.nanoTime()
         LOGGER.info("Starting server...")
 
@@ -160,61 +295,6 @@ class MinecraftServerImpl : SimpleTerminalConsole(), MinecraftServer, CommandExe
             config.configFile.absolutePath,
             (System.nanoTime() - startTime) / 1000000
         )
-
-        this.loadPlugins(File(config.pluginsFolder))
-
-        LOGGER.info(
-            "Loaded {} plugins [{}ms].",
-            this.loadedPlugins.size,
-            (System.nanoTime() - startTime) / 1000000
-        )
-
-        val port = config.port
-        val worldFolder = File(config.worldsFolder)
-
-        worldFolder.mkdirs()
-
-        val files = worldFolder.listFiles()
-
-        if (files != null) for (file in files) {
-            if (file.name.endsWith(".schematic")) {
-                val name = file.name.substring(0, file.name.length - 10)
-                val schematic = Schematic.load(file)
-                LOGGER.info(
-                    "Loaded schematic {} with {} chunks [{}ms].",
-                    name,
-                    schematic.chunkedBlocks.size,
-                    (System.nanoTime() - startTime) / 1000000
-                )
-
-                createWorld(
-                    name, World.Environment.NORMAL
-                ) { world: World, chunkX: Byte, chunkZ: Byte ->
-                    try {
-                        val chunk = ChunkImpl(world, chunkX, chunkZ)
-
-                        val blocks = schematic.getBlocksForChunk(chunkX, chunkZ)
-
-                        for (block in blocks) {
-                            val x = block.x
-                            val y = block.y
-                            val z = block.z
-                            val localX = x and 15
-                            val localZ = z and 15
-                            chunk.setType(localX, localZ, y.toShort(), block.type)
-                            chunk.setMetaData(localX, localZ, y.toShort(), block.data)
-                        }
-
-                        return@createWorld chunk
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        return@createWorld ChunkImpl(world, chunkX, chunkZ)
-                    }
-                }
-            }
-        }
-
-        if (worlds.isEmpty()) createWorld("Spawn", World.Environment.NORMAL)
 
         group = if (Epoll.isAvailable()) EpollEventLoopGroup(NETWORK_THREADS)
         else if (KQueue.isAvailable()) KQueueEventLoopGroup(NETWORK_THREADS)
@@ -231,12 +311,12 @@ class MinecraftServerImpl : SimpleTerminalConsole(), MinecraftServer, CommandExe
                     else
                         NioServerSocketChannel::class.java
             )
-            .localAddress(InetSocketAddress(port))
+            .localAddress(InetSocketAddress(config.port))
             .childHandler(MineralChannelInitializer(this)).bind().sync()
 
         tickLoop.start()
 
-        LOGGER.info("Server started on port {} [{}ms].", port, (System.nanoTime() - startTime) / 1000000)
+        LOGGER.info("Server started on port {} [{}ms].", config.port, (System.nanoTime() - startTime) / 1000000)
 
         super.start()
     }
@@ -291,67 +371,6 @@ class MinecraftServerImpl : SimpleTerminalConsole(), MinecraftServer, CommandExe
         for (cmd in registeredCommands.keys) if (cmd!!.startsWith(buffer)) candidates.add(Candidate(cmd))
     }
 
-    private fun loadPlugins(pluginDirectory: File) {
-        val files = pluginDirectory.listFiles { _: File?, name: String -> name.endsWith(".jar") }
-        if (files == null) return
-
-        for (file in files) {
-            try {
-                loadPlugin(file)
-            } catch (e: Exception) {
-                LOGGER.error("Failed to load plugin from {}", file.name, e)
-            }
-        }
-    }
-
-    @Throws(Exception::class)
-    private fun loadPlugin(jarFile: File) {
-        val loader = URLClassLoader(arrayOf(jarFile.toURI().toURL()), javaClass.classLoader)
-
-        val pluginClass = loadMainClassFromGroovy(loader, jarFile)
-        if (pluginClass == null) {
-            LOGGER.error("Failed to find main class in plugin {}", jarFile.name)
-            return
-        }
-
-        val constructor = pluginClass.getConstructor()
-        val plugin = constructor.newInstance()
-
-        this.loadedPlugins.add(plugin)
-        plugin.onEnable()
-        registeredCommands.registerAll(plugin.commands.values)
-    }
-
-    @kotlin.Throws(CompilationFailedException::class)
-    private fun loadMainClassFromGroovy(loader: URLClassLoader, jarFile: File): Class<out MineralPlugin>? {
-        val resource = loader.findResource("plugin.groovy")
-        if (resource == null) {
-            LOGGER.error("plugin.groovy not found in {}", jarFile.name)
-            return null
-        }
-
-        val binding = Binding()
-        val shell = GroovyShell(loader, binding)
-
-        try {
-            resource.openStream().use { inputStream ->
-                InputStreamReader(inputStream).use { reader ->
-                    shell.evaluate(reader)
-                    val mainClass = binding.getVariable("mainClass")
-                    if (mainClass is Class<*> && MineralPlugin::class.java.isAssignableFrom(mainClass)) {
-                        return mainClass.asSubclass(MineralPlugin::class.java)
-                    } else {
-                        LOGGER.error("mainClass in plugin.groovy is not a valid MineralPlugin class")
-                        return null
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            LOGGER.error("Failed to parse plugin.groovy in {}", jarFile.name, e)
-            return null
-        }
-    }
-
     fun callEvent(event: Event?): Boolean {
         for (plugin in loadedPlugins) for (listener in plugin.listeners) if (listener.onEvent(event)) return true
 
@@ -363,21 +382,25 @@ class MinecraftServerImpl : SimpleTerminalConsole(), MinecraftServer, CommandExe
             MinecraftServerImpl::class.java
         )
 
-        private val permissions: MutableSet<String> = ObjectOpenHashSet(listOf("*"))
+        private val permissions: MutableSet<String> by lazy { ObjectOpenHashSet(listOf("*")) }
 
-        private val NETWORK_THREADS = Runtime.getRuntime().availableProcessors()
+        private val NETWORK_THREADS by lazy { Runtime.getRuntime().availableProcessors() }
 
-        private val asyncExecutor: ExecutorService = Executors.newWorkStealingPool()
+        private val asyncExecutor by lazy { Executors.newWorkStealingPool() }
         private val tickExecutor: ScheduledExecutorService = Executors
             .newSingleThreadScheduledExecutor(TickThreadFactory.INSTANCE)
-        private val DEFAULT_GENERATOR = World.Generator { world: World, chunkX: Byte, chunkZ: Byte ->
-            val chunk = ChunkImpl(world, chunkX, chunkZ)
-            for (x in 0..15) for (z in 0..15) chunk.setType(x, z, 50.toShort(), 1)
-            chunk
+        private val DEFAULT_GENERATOR by lazy {
+            World.Generator { world: World, chunkX: Byte, chunkZ: Byte ->
+                val chunk = ChunkImpl(world, chunkX, chunkZ)
+                for (x in 0..15) for (z in 0..15) chunk.setType(x, z, 50.toShort(), 1)
+                chunk
+            }
         }
 
         @JvmStatic
         fun main(args: Array<String>) =
             MinecraftServerImpl().start()
     }
+
+    fun getMillis() = (System.nanoTime() / 1e6).toLong()
 }

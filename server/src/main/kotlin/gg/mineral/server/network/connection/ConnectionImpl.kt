@@ -8,9 +8,11 @@ import gg.mineral.api.network.packet.registry.PacketRegistry
 import gg.mineral.api.network.packet.rw.ByteWriter
 import gg.mineral.server.MinecraftServerImpl
 import gg.mineral.server.network.login.LoginAuthData
-import gg.mineral.server.network.packet.handler.EncryptionHandler
+import gg.mineral.server.network.packet.handler.PacketDecrypter
+import gg.mineral.server.network.packet.handler.PacketEncrypter
 import gg.mineral.server.network.packet.login.clientbound.EncryptionRequestPacket
 import gg.mineral.server.network.packet.login.clientbound.LoginDisconnectPacket
+import gg.mineral.server.network.packet.login.clientbound.LoginSuccessPacket
 import gg.mineral.server.network.packet.play.bidirectional.KeepAlivePacket
 import gg.mineral.server.network.packet.play.clientbound.DisconnectPacket
 import gg.mineral.server.network.protocol.ProtocolState
@@ -21,8 +23,10 @@ import gg.mineral.server.util.login.LoginUtil
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
+import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import org.apache.logging.log4j.core.config.Configurator
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import javax.crypto.SecretKey
@@ -31,11 +35,18 @@ import javax.crypto.spec.SecretKeySpec
 class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelInboundHandler<Packet.INCOMING>(),
     Connection,
     ByteWriter {
-    private val packetQueue: Queue<Runnable> = ConcurrentLinkedQueue()
-    private var protocolState: PacketRegistry<Packet.INCOMING> = ProtocolState.HANDSHAKE
+    private val packetQueue = ConcurrentLinkedQueue<Runnable>()
+    var protocolState: PacketRegistry<Packet.INCOMING> = ProtocolState.HANDSHAKE
+        set(value) {
+            field = value
+            channel!!.attr(ProtocolState.ATTRIBUTE_KEY).set(protocolState)
+            if (value == ProtocolState.PLAY)
+                this.loginAuthData = null
+        }
     var protocolVersion = ProtocolVersion.V1_7_6
     private var channel: Channel? = null
-    private var lastKeepAlive = System.currentTimeMillis()
+    var lastKeepAlive: Long = 0
+    override var ping = 0
     private var loginAuthData: LoginAuthData? = null
     override var name: String? = null
     override var uuid: UUID? = null
@@ -43,7 +54,7 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
     override val player: Player?
         get() = server.playerConnections[this]
     override val ipAddress: String
-        get() = channel!!.remoteAddress().toString()
+        get() = channel?.remoteAddress().toString()
     private var connected = true
 
     fun attemptLogin(name: String) {
@@ -68,28 +79,31 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
         }
 
         this.uuid = UUIDUtil.fromName(name)
-        this.loggedIn()
+        this.loginSuccess()
+        this.spawnPlayer()
     }
 
-    @Throws(IllegalStateException::class)
-    fun loggedIn() {
-        this.loginAuthData = null
-        this.setProtocolState(ProtocolState.PLAY)
-        server.createPlayer(this).onJoin()
+    fun loginSuccess() {
+        this.queuePacket(LoginSuccessPacket(uuid!!, name!!))
+        this.lastKeepAlive = server.getMillis()
+        this.protocolState = ProtocolState.PLAY
     }
+
+    fun spawnPlayer() =
+        server.createPlayer(this).onJoin()
 
     fun sendPacket(vararg packets: Packet.OUTGOING) {
         for (packet in packets) {
-            channel!!.write(serialize(packet))
+            channel!!.write(packet)
             LOGGER.debug("Packet sent: " + packet.javaClass.simpleName)
         }
 
-        channel!!.flush()
+        channel?.flush()
     }
 
     override fun queuePacket(vararg packets: Packet.OUTGOING) {
         for (packet in packets) {
-            channel!!.write(serialize(packet))
+            channel!!.write(packet)
             packetsQueued = true
             LOGGER.debug("Packet queued: " + packet.javaClass.simpleName)
         }
@@ -105,14 +119,14 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
         close()
     }
 
-    fun authenticate(encryptedSharedSecret: ByteArray, encryptedVerifyToken: ByteArray): Boolean {
+    fun authenticate(encryptedSharedSecret: ByteArray, encryptedVerifyToken: ByteArray): SecretKey? {
         if (!loginAuthData!!.verifyToken.contentEquals(
                 LoginUtil.decryptRsa(
                     loginAuthData!!.keyPair,
                     encryptedVerifyToken
                 )
             )
-        ) return false
+        ) return null
 
         val decryptedSharedSecret = LoginUtil.decryptRsa(
             loginAuthData!!.keyPair,
@@ -131,17 +145,13 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
 
         val json = JsonUtil.getJsonObject(url)
 
-        val id = json.getString("id") ?: return false
+        val id = json.getString("id") ?: return null
 
         val uuid = UUIDUtil.fromString(id)
 
         this.uuid = uuid
 
-        val secretKey = SecretKeySpec(decryptedSharedSecret, "AES")
-
-        enableEncryption(secretKey)
-
-        return true
+        return SecretKeySpec(decryptedSharedSecret, "AES")
     }
 
     @Throws(Exception::class)
@@ -149,13 +159,13 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
         super.channelActive(channelhandlercontext)
         this.channel = channelhandlercontext.channel()
         this.connected = true
-        setProtocolState(ProtocolState.HANDSHAKE)
+        this.protocolState = ProtocolState.HANDSHAKE
     }
 
     @Throws(Exception::class)
     override fun channelInactive(ctx: ChannelHandlerContext) {
         server.disconnected(this)
-        setProtocolState(ProtocolState.HANDSHAKE)
+        this.protocolState = ProtocolState.HANDSHAKE
         this.connected = false
         super.channelInactive(ctx)
     }
@@ -164,16 +174,11 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
         channel?.close()
     }
 
-    fun enableEncryption(secretkey: SecretKey?) {
+    fun enableEncryption(secretkey: SecretKey) {
         channel!!.pipeline().addBefore(
-            "decoder", "encryption",
-            EncryptionHandler(secretkey)
-        )
-    }
-
-    fun setProtocolState(protocolState: PacketRegistry<Packet.INCOMING>) {
-        this.protocolState = protocolState
-        channel!!.attr(ProtocolState.ATTRIBUTE_KEY).set(protocolState)
+            "decoder", "decrypt",
+            PacketDecrypter(secretkey)
+        ).addBefore("prepender", "encrypt", PacketEncrypter(secretkey))
     }
 
     @Throws(Exception::class)
@@ -194,16 +199,16 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
     override fun call(): Void? {
         while (!packetQueue.isEmpty()) packetQueue.poll().run()
 
-        if (protocolState === ProtocolState.PLAY && System.currentTimeMillis() - lastKeepAlive > 17500) { // 17.5
+        if (protocolState === ProtocolState.PLAY && server.getMillis() - lastKeepAlive > 17500) { // 17.5
             // seconds
             // for
             // timeout
             queuePacket(KeepAlivePacket(0))
-            lastKeepAlive = System.currentTimeMillis()
+            lastKeepAlive = server.getMillis()
         }
 
         if (packetsQueued) {
-            channel!!.flush()
+            channel?.flush()
             packetsQueued = false
         }
 
@@ -213,5 +218,9 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
 
     companion object {
         private val LOGGER: Logger = LogManager.getLogger(Connection::class.java)
+
+        init {
+            Configurator.setAllLevels(LOGGER.name, Level.getLevel("debug"))
+        }
     }
 }

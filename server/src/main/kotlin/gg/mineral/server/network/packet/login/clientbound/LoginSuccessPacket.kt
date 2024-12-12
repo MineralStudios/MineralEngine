@@ -8,7 +8,7 @@ import java.util.*
 @JvmRecord
 data class LoginSuccessPacket(val uuid: UUID, val username: String) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) =
-        writeString(os, FastUUID.toString(uuid), username)
+        os.writeString(FastUUID.toString(uuid), username)
 
     override val id: Byte
         get() = 0x02

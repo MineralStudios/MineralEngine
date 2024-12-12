@@ -6,7 +6,7 @@ import io.netty.buffer.ByteBuf
 @JvmRecord
 data class ResponsePacket(val jsonResponse: String) : Packet.OUTGOING {
     override fun serialize(os: ByteBuf) =
-        writeString(os, jsonResponse)
+        os.writeString(jsonResponse)
 
     override val id: Byte
         get() = 0x00

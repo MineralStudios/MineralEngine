@@ -25,8 +25,7 @@ class PlayerAbilitiesPacket(playerAbilities: PlayerAbilities? = null) : Packet.I
 
     override fun serialize(os: ByteBuf) {
         os.writeByte(flags.toInt())
-        os.writeFloat(flyingSpeed)
-        os.writeFloat(walkingSpeed)
+        os.writeFloat(flyingSpeed, walkingSpeed)
     }
 
     override fun received(connection: Connection) {
