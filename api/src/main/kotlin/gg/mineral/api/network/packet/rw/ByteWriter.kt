@@ -28,7 +28,7 @@ interface ByteWriter : ByteRW {
 
     @OptIn(ExperimentalUnsignedTypes::class)
     fun ByteBuf.writeByte(vararg values: UByte) {
-        for (value in values) this.writeByte(value)
+        for (value in values) this.writeByte(value.toInt())
     }
 
     fun ByteBuf.writeFloat(vararg values: Float) {
@@ -36,7 +36,7 @@ interface ByteWriter : ByteRW {
     }
 
     fun ByteBuf.writeShort(vararg values: Short) {
-        for (value in values) this.writeShort(value)
+        for (value in values) this.writeShort(value.toInt())
     }
 
     fun ByteBuf.writeShort(vararg values: Int) {

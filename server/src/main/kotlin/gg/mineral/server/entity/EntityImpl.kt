@@ -37,7 +37,7 @@ abstract class EntityImpl(override val id: Int, world: WorldImpl) : Callable<Ent
         }
 
     override var x: Double = 0.0
-    override var y: Double = 0.0
+    override var y: Double = 70.0
     override var z: Double = 0.0
     override var motX: Double = 0.0
     override var motY: Double = 0.0
@@ -177,8 +177,7 @@ abstract class EntityImpl(override val id: Int, world: WorldImpl) : Callable<Ent
         if (entity is PlayerImpl) entity.connection.queuePacket(statusPacket, velocityPacket)
 
         if (this is PlayerImpl) {
-            val player = this
-            player.connection.queuePacket(
+            this.connection.queuePacket(
                 statusPacket, SoundEffectPacket(
                     "game.player.hurt",
                     toSoundUnits(entity.x), toSoundUnits(entity.y),
