@@ -9,7 +9,7 @@ application {
 
 dependencies {
     implementation project(':api')
-    implementation 'io.netty:netty-all:4.1.115.Final'
+    implementation 'io.netty:netty-all:4.1.116.Final'
     implementation 'com.velocitypowered:velocity-native:3.4.0-20241204.173938-17'
     implementation 'org.json:json:20240303'
     implementation 'com.eatthepath:fast-uuid:0.2.0'
