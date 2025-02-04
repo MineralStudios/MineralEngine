@@ -3,8 +3,7 @@ package gg.mineral.server.network.packet.status.clientbound
 import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
-@JvmRecord
-data class ResponsePacket(val jsonResponse: String) : Packet.OUTGOING {
+data class ResponsePacket(val jsonResponse: String) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) =
         os.writeString(jsonResponse)
 

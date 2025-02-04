@@ -1,9 +1,8 @@
 package gg.mineral.server.entity.living
 
 import gg.mineral.server.entity.LivingImpl
+import gg.mineral.server.snapshot.AsyncServerSnapshotImpl
 import gg.mineral.server.world.WorldImpl
 
-class Guardian(id: Int, world: WorldImpl) : LivingImpl(id, world) {
-    override fun tickAsync() {
-    }
-}
+class Guardian(id: Int, serverSnapshot: AsyncServerSnapshotImpl, world: WorldImpl) :
+    LivingImpl(id, serverSnapshot, world)

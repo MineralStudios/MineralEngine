@@ -4,7 +4,7 @@ import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
 @JvmRecord
-data class ChangeGameStatePacket(val reason: Short, val value: Float) : Packet.OUTGOING {
+data class ChangeGameStatePacket(val reason: Short, val value: Float) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeByte(reason.toInt())
         os.writeFloat(value)

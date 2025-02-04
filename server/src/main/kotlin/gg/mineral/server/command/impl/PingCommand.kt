@@ -1,9 +1,9 @@
 package gg.mineral.server.command.impl
 
-import dev.zerite.craftlib.chat.type.ChatColor
 import gg.mineral.api.command.Command
 import gg.mineral.api.command.CommandExecutor
 import gg.mineral.api.entity.living.human.Player
+import net.md_5.bungee.api.ChatColor
 
 // TODO: add number of players, cached chunks etc....
 class PingCommand : Command("ping", "") {

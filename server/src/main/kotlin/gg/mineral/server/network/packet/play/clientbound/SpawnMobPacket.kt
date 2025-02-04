@@ -18,7 +18,7 @@ data class SpawnMobPacket(
     val velocityY: Short,
     val velocityZ: Short,
     val entries: List<EntityMetadata.Entry>
-) : Packet.OUTGOING {
+) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeVarInt(entityId)
         os.writeByte(type.toInt())

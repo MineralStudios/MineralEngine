@@ -47,7 +47,6 @@ interface ByteWriter : ByteRW {
     /**
      * Writes a Minecraft-style VarInt to the specified `buf`.
      *
-     * @param buf   the buffer to read from
      * @param value the integer to write
      */
     fun ByteBuf.writeVarInt(value: Int) {
@@ -112,7 +111,6 @@ interface ByteWriter : ByteRW {
      * Write an uncompressed compound NBT tag to the buffer.
      * NBTOutputStream
      *
-     * @param buf  The buffer.
      * @param data The tag to write, or null.
      */
     fun ByteBuf.writeCompound(data: CompoundTag?) {
@@ -137,7 +135,6 @@ interface ByteWriter : ByteRW {
     /**
      * Write an item stack to the buffer.
      *
-     * @param buf   The buffer.
      * @param stack The stack to write, or null.
      */
     fun ByteBuf.writeSlot(stack: ItemStack?) {
@@ -157,7 +154,6 @@ interface ByteWriter : ByteRW {
     /**
      * Write a list of mob metadata entries to the buffer.
      *
-     * @param buf     The buffer.
      * @param entries The metadata.
      */
     fun ByteBuf.writeMetadata(entries: List<EntityMetadata.Entry>) {
@@ -215,7 +211,7 @@ interface ByteWriter : ByteRW {
         }
     }
 
-    fun serialize(packet: Packet.OUTGOING): ByteBuf {
+    fun serialize(packet: Packet.Outgoing): ByteBuf {
         val data = Unpooled.buffer()
         data.writeVarInt(packet.id.toInt())
         packet.serialize(data)

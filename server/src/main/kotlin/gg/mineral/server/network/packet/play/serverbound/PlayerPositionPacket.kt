@@ -1,32 +1,27 @@
 package gg.mineral.server.network.packet.play.serverbound
 
-import gg.mineral.api.entity.living.human.Player
 import gg.mineral.api.network.connection.Connection
-import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
-class PlayerPositionPacket(
-    var x: Double = 0.0,
-    var feetY: Double = 0.0,
-    var headY: Double = 0.0,
-    var z: Double = 0.0,
-    var onGround: Boolean = false
-) : Packet.INCOMING {
-    override fun received(connection: Connection) {
-        val player: Player = connection.player ?: return
+open class PlayerPositionPacket(
+    open var x: Double = 0.0,
+    open var feetY: Double = 0.0,
+    open var headY: Double = 0.0,
+    open var z: Double = 0.0,
+    onGround: Boolean = false
+) : PlayerPacket(onGround) {
+    override suspend fun receivedSync(connection: Connection) {
+        connection.player?.let {
+            it.motX = x - it.x
+            it.motY = feetY - it.y
+            it.motZ = z - it.z
+            it.x = x
+            it.y = feetY
+            it.headY = headY
+            it.z = z
+        }
 
-        val newMotX = x - player.x
-        val newMotY = feetY - player.y
-        val newMotZ = z - player.z
-
-        player.motX = newMotX
-        player.motY = newMotY
-        player.motZ = newMotZ
-        player.x = x
-        player.y = feetY
-        player.headY = headY
-        player.z = z
-        player.onGround = onGround
+        super.receivedSync(connection)
     }
 
     override fun deserialize(`is`: ByteBuf) {
@@ -34,6 +29,6 @@ class PlayerPositionPacket(
         feetY = `is`.readDouble()
         headY = `is`.readDouble()
         z = `is`.readDouble()
-        onGround = `is`.readBoolean()
+        super.deserialize(`is`)
     }
 }

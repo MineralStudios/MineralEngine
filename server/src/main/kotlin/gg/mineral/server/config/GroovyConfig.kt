@@ -1,27 +1,27 @@
 package gg.mineral.server.config
 
-import dev.zerite.craftlib.chat.component.BaseChatComponent
-import dev.zerite.craftlib.chat.component.StringChatComponent
-import dev.zerite.craftlib.chat.type.ChatColor
 import groovy.util.ConfigObject
 import groovy.util.ConfigSlurper
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import net.md_5.bungee.api.ChatColor
+import net.md_5.bungee.api.chat.BaseComponent
+import net.md_5.bungee.api.chat.TextComponent
 import java.io.File
 
 class GroovyConfig {
     @Setting("server")
-    val disconnectUnknown: BaseChatComponent = StringChatComponent(
+    val disconnectUnknown: BaseComponent = TextComponent(
         ChatColor.RED.toString() + "You have been disconnected from the server."
     )
     val configFile: File = File("config.groovy")
 
     @Setting("server")
-    val disconnectCanNotAuthenticate: BaseChatComponent = StringChatComponent(
+    val disconnectCanNotAuthenticate: BaseComponent = TextComponent(
         ChatColor.RED.toString() + "Your account was unable to be authenticated."
     )
 
     @Setting("server")
-    val disconnectAlreadyLoggedIn: BaseChatComponent = StringChatComponent(
+    val disconnectAlreadyLoggedIn: BaseComponent = TextComponent(
         ChatColor.RED.toString() + "Your account was already logged in."
     )
 

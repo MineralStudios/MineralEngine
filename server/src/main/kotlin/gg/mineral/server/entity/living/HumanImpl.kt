@@ -5,12 +5,14 @@ import gg.mineral.api.entity.living.human.property.Gamemode
 import gg.mineral.server.entity.LivingImpl
 import gg.mineral.server.entity.living.human.PlayerImpl
 import gg.mineral.server.network.packet.play.bidirectional.AnimationPacket
+import gg.mineral.server.snapshot.AsyncServerSnapshotImpl
 import gg.mineral.server.world.WorldImpl
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import it.unimi.dsi.fastutil.ints.IntSet
 
-open class HumanImpl(id: Int, world: WorldImpl) : LivingImpl(id, world), Human {
+open class HumanImpl(id: Int, serverSnapshot: AsyncServerSnapshotImpl, world: WorldImpl, override val name: String) :
+    LivingImpl(id, serverSnapshot, world), Human {
     protected val entityRemoveIds: IntSet by lazy { IntOpenHashSet() }
 
     val visibleEntities by lazy {
@@ -43,12 +45,12 @@ open class HumanImpl(id: Int, world: WorldImpl) : LivingImpl(id, world), Human {
         this.height = 1.8f
     }
 
-    override fun swingArm() {
+    override suspend fun swingArm() {
         val fastIterator = visibleEntities.int2ObjectEntrySet().fastIterator()
         while (fastIterator.hasNext()) {
             val entry = fastIterator.next()
             val id = entry.intKey
-            val player = server.players[id]
+            val player = world.getPlayer(id)
 
             player?.updateArm(this)
         }

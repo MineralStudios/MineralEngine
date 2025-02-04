@@ -4,7 +4,7 @@ import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
 @JvmRecord
-data class SignEditorOpenPacket(val x: Int, val y: Int, val z: Int) : Packet.OUTGOING {
+data class SignEditorOpenPacket(val x: Int, val y: Int, val z: Int) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) =
         os.writeInt(x, y, z)
 

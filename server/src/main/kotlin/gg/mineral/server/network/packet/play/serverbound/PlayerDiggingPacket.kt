@@ -7,8 +7,8 @@ import gg.mineral.server.network.packet.play.clientbound.BlockChangePacket
 import io.netty.buffer.ByteBuf
 
 class PlayerDiggingPacket(var status: Byte = 0, var face: Byte = 0, var x: Int = 0, var y: Short = 0, var z: Int = 0) :
-    Packet.INCOMING {
-    override fun received(connection: Connection) {
+    Packet.Incoming, Packet.SyncHandler {
+    override suspend fun receivedSync(connection: Connection) {
         val player = connection.player ?: return
 
         if (status.toInt() == 2 || (status.toInt() == 0 && player.gamemode === Gamemode.CREATIVE)) { // done digging

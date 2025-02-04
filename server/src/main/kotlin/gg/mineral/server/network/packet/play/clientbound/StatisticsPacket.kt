@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf
 import it.unimi.dsi.fastutil.objects.Object2IntMap
 
 @JvmRecord
-data class StatisticsPacket(val statistics: Object2IntMap<String>) : Packet.OUTGOING {
+data class StatisticsPacket(val statistics: Object2IntMap<String>) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeVarInt(statistics.size)
 

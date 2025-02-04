@@ -1,6 +1,5 @@
 package gg.mineral.server.network.packet.play.bidirectional
 
-import gg.mineral.api.network.connection.Connection
 import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
@@ -12,16 +11,12 @@ class UpdateSignPacket(
     var line2: String = "",
     var line3: String = "",
     var line4: String = ""
-) : Packet.INCOMING, Packet.OUTGOING {
+) : Packet.Incoming, Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeInt(x)
         os.writeShort(y.toInt())
         os.writeInt(z)
         os.writeString(line1, line2, line3, line4)
-    }
-
-    override fun received(connection: Connection) {
-        // TODO Auto-generated method stub
     }
 
     override fun deserialize(`is`: ByteBuf) {

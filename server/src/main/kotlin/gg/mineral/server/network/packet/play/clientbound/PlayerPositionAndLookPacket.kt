@@ -7,7 +7,7 @@ import io.netty.buffer.ByteBuf
 data class PlayerPositionAndLookPacket(
     val x: Double, val headY: Double, val z: Double, val yaw: Float, val pitch: Float,
     val onGround: Boolean
-) : Packet.OUTGOING {
+) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeDouble(x)
         os.writeDouble(headY)

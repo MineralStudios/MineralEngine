@@ -4,7 +4,7 @@ import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
 @JvmRecord
-data class TimeUpdatePacket(val ageOfWorld: Long, val timeOfDay: Long) : Packet.OUTGOING {
+data class TimeUpdatePacket(val ageOfWorld: Long, val timeOfDay: Long) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeLong(ageOfWorld)
         os.writeLong(timeOfDay)

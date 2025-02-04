@@ -6,7 +6,7 @@ import java.security.PublicKey
 
 @JvmRecord
 data class EncryptionRequestPacket(val serverId: String, val publicKey: PublicKey, val verifyToken: ByteArray) :
-    Packet.OUTGOING {
+    Packet.Outgoing {
     override val id: Byte
         get() = 0x01
 

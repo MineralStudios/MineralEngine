@@ -7,38 +7,54 @@ import gg.mineral.api.math.MathUtil.toPitchUnits
 import gg.mineral.api.math.MathUtil.toRadians
 import gg.mineral.api.math.MathUtil.toSoundUnits
 import gg.mineral.api.math.MathUtil.toVelocityUnits
-import gg.mineral.server.MinecraftServerImpl
 import gg.mineral.server.command.impl.KnockbackCommand
 import gg.mineral.server.entity.living.HumanImpl
 import gg.mineral.server.entity.living.human.PlayerImpl
 import gg.mineral.server.network.packet.play.clientbound.EntityStatusPacket
 import gg.mineral.server.network.packet.play.clientbound.EntityVelocityPacket
 import gg.mineral.server.network.packet.play.clientbound.SoundEffectPacket
+import gg.mineral.server.snapshot.AsyncServerSnapshotImpl
 import gg.mineral.server.world.WorldImpl
+import gg.mineral.server.world.chunk.ChunkImpl
+import kotlinx.coroutines.runBlocking
 import java.util.*
-import java.util.concurrent.Callable
 import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.sqrt
 
-abstract class EntityImpl(override val id: Int, world: WorldImpl) : Callable<EntityImpl>,
-    Entity {
+abstract class EntityImpl(
+    override val id: Int,
+    final override val serverSnapshot: AsyncServerSnapshotImpl,
+    world: WorldImpl
+) : Entity {
 
     override var world = world
         set(value) {
-            val oldWorld: WorldImpl = field
+            if (field === world) return
 
-            if (oldWorld === world) return
+            runBlocking {
+                field.removeEntity(this@EntityImpl.id)
+                world.addEntity(this@EntityImpl)
+                field = value
 
-            oldWorld.removeEntity(this.id)
-            world.addEntity(this)
-            field = value
-
-            if (this is PlayerImpl) this.visibleChunks.clear()
+                if (this is PlayerImpl) this.visibleChunks.clear()
+            }
         }
 
     override var x: Double = 0.0
+        set(value) {
+            val oldChunkKey = ChunkImpl.toKey(field.toInt() shr 4, field.toInt() shr 4)
+            val newChunkKey = ChunkImpl.toKey(value.toInt() shr 4, value.toInt() shr 4)
+            world.updateEntityChunks(oldChunkKey, newChunkKey, this)
+            field = value
+        }
     override var y: Double = 70.0
     override var z: Double = 0.0
+        set(value) {
+            val oldChunkKey = ChunkImpl.toKey(field.toInt() shr 4, field.toInt() shr 4)
+            val newChunkKey = ChunkImpl.toKey(value.toInt() shr 4, value.toInt() shr 4)
+            world.updateEntityChunks(oldChunkKey, newChunkKey, this)
+            field = value
+        }
     override var motX: Double = 0.0
     override var motY: Double = 0.0
     override var motZ: Double = 0.0
@@ -58,64 +74,32 @@ abstract class EntityImpl(override val id: Int, world: WorldImpl) : Callable<Ent
     private var lastYaw: Float = 0f
     private var lastPitch: Float = 0f
     override var onGround: Boolean = false
-    override val viewDistance = 10.toByte() // TODO: viewDistance
+    override var viewDistance = 10.toByte()
     override var currentTick = 0
+    override var currentAsyncTick = 0
+
     var firstTick = true
-    var firstAsyncTick = true
     var chunkUpdateNeeded = true
     private var lastDamaged = 0
 
-    @JvmField
     protected var width: Float = 0f
-
-    @JvmField
     protected var height: Float = 0f
-
-    override val server: MinecraftServerImpl by lazy { world.server }
-
-    init {
-        world.addEntity(this)
-    }
 
     private val random: Random
         get() = ThreadLocalRandom.current()
 
-    open fun tick() {
+    open suspend fun tick() {
         currentTick++
-
-        if (motY < 0.005) motY = 0.0
-
-        if (motX < 0.005) motX = 0.0
-
-        if (motZ < 0.005) motZ = 0.0
-
-        if (motY > 0) {
-            motY -= 0.08
-            motY *= 0.98
-        }
-
-        if (motX > 0) {
-            motX *= 0.91
-            if (onGround) motX *= 0.6
-        }
-
-        if (motZ > 0) {
-            motZ *= 0.91
-            if (onGround) motZ *= 0.6
-        }
     }
 
-    abstract fun tickAsync()
-
-    override fun call(): EntityImpl {
-        tickAsync()
-        return this
+    init {
+        runBlocking { world.addEntity(this@EntityImpl) }
     }
 
-    override fun attack(targetId: Int) {
-        val entity = server.entities[targetId]
+    override suspend fun attack(targetId: Int) {
+        val entity = world.getEntity(targetId) ?: return
 
-        if (entity == null || entity.currentTick - entity.lastDamaged < 10) return
+        if (entity.currentTick - entity.lastDamaged < 10) return
 
         entity.lastDamaged = entity.currentTick
         val statusPacket = EntityStatusPacket(entity.id, 2.toByte())
@@ -191,5 +175,10 @@ abstract class EntityImpl(override val id: Int, world: WorldImpl) : Callable<Ent
         entity.motX = motX
         entity.motY = motY
         entity.motZ = motZ
+    }
+
+    suspend fun cleanup() {
+        world.removeEntity(this.id)
+        if (this is PlayerImpl) this.visibleChunks.clear()
     }
 }

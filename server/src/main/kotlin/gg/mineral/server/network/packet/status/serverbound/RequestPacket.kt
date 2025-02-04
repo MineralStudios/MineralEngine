@@ -8,22 +8,27 @@ import gg.mineral.server.network.packet.status.clientbound.ResponsePacket
 import gg.mineral.server.network.ping.ServerPing
 import io.netty.buffer.ByteBuf
 
-class RequestPacket : Packet.INCOMING {
-    override fun received(connection: Connection) {
-        val server = connection.server
-        if (server is MinecraftServerImpl) {
-            val config: GroovyConfig = server.config
-
-            val serverPing = ServerPing(
-                config.motd,
-                connection.server.onlinePlayers.size,
-                config.maxPlayers, 5,
-                config.brandName, ServerPing.Icon("server-icon.png")
-            )
-            connection.queuePacket(ResponsePacket(serverPing.toJsonString()))
-        }
+class RequestPacket : Packet.Incoming, Packet.EventLoopHandler {
+    companion object {
+        val serverIcon by lazy { ServerPing.Icon("server-icon.png") }
     }
 
-    override fun deserialize(`is`: ByteBuf) {
+    override suspend fun receivedEventLoop(connection: Connection) {
+        val server = connection.serverSnapshot.server
+
+        if (server !is MinecraftServerImpl) return
+
+        val config: GroovyConfig = server.config
+
+        val serverPing = ServerPing(
+            config.motd,
+            server.getOnlineCount(),
+            config.maxPlayers, 5,
+            config.brandName, serverIcon
+        )
+
+        connection.queuePacket(ResponsePacket(serverPing.toJsonString()))
     }
+
+    override fun deserialize(`is`: ByteBuf) {}
 }

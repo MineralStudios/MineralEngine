@@ -1,8 +1,8 @@
 package gg.mineral.server.command.impl
 
-import dev.zerite.craftlib.chat.type.ChatColor
 import gg.mineral.api.command.Command
 import gg.mineral.api.command.CommandExecutor
+import net.md_5.bungee.api.ChatColor
 
 class VersionCommand : Command("version", "") {
     override fun execute(commandExecutor: CommandExecutor, arguments: Array<String?>) {

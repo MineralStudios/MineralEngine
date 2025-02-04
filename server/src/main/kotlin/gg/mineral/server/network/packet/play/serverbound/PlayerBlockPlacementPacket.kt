@@ -1,7 +1,6 @@
 package gg.mineral.server.network.packet.play.serverbound
 
 import gg.mineral.api.inventory.item.ItemStack
-import gg.mineral.api.network.connection.Connection
 import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
@@ -14,11 +13,7 @@ class PlayerBlockPlacementPacket(
     var cursorX: Byte = 0,
     var cursorY: Byte = 0,
     var cursorZ: Byte = 0
-) : Packet.INCOMING {
-    override fun received(connection: Connection) {
-        // TODO Auto-generated method stub
-    }
-
+) : Packet.Incoming {
     override fun deserialize(`is`: ByteBuf) {
         x = `is`.readInt()
         y = `is`.readUnsignedByte()

@@ -109,7 +109,7 @@ class NibbleArray {
      *
      * @param value The value nibble to fill with.
      */
-    fun fill(value: Byte) {
+    private fun fill(value: Byte) {
         var value = value
         value = (value.toInt() and 0xf).toByte()
         Arrays.fill(rawData, (value.toInt() shl 4 or value.toInt()).toByte())

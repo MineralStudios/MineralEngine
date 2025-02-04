@@ -17,7 +17,7 @@ data class SpawnPlayerPacket(
     val playerProperties: List<PlayerProperty>,
     val currentItem: Short,
     val entries: List<EntityMetadata.Entry>
-) : Packet.OUTGOING {
+) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeVarInt(entityId)
         os.writeString(playerUUID, playerName)

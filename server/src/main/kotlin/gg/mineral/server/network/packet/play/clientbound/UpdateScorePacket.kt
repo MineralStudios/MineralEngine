@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf
 
 @JvmRecord
 data class UpdateScorePacket(val itemName: String, val scoreName: String, val updateOrRemove: Byte, val value: Int) :
-    Packet.OUTGOING {
+    Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeString(itemName)
         os.writeByte(updateOrRemove.toInt())

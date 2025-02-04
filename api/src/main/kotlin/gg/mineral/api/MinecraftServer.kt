@@ -1,13 +1,11 @@
 package gg.mineral.api
 
 import gg.mineral.api.command.CommandMap
-import gg.mineral.api.entity.living.human.Player
-import gg.mineral.api.network.connection.Connection
-import gg.mineral.api.tick.TickLoop
-import java.util.concurrent.ExecutorService
+import gg.mineral.api.network.channel.FakeChannel
+import gg.mineral.api.snapshot.ServerSnapshot
 import java.util.concurrent.ScheduledExecutorService
 
-interface MinecraftServer {
+interface MinecraftServer : ServerSnapshot {
     /**
      * Gets the map of registered commands.
      *
@@ -16,39 +14,32 @@ interface MinecraftServer {
     val registeredCommands: CommandMap
 
     /**
-     * Gets the tick loop.
+     * Gets the executor.
      *
-     * @return The tick loop.
+     * @return The executor.
      */
-    val tickLoop: TickLoop
+    val executor: ScheduledExecutorService
 
     /**
-     * Gets the connections.
+     * Gets the server snapshots.
      *
-     * @return The connections.
+     * @return The server snapshots.
      */
-    val connections: Set<Connection>
-
-    /**
-     * Gets the tick executor.
-     *
-     * @return The tick executor.
-     */
-    val tickExecutor: ScheduledExecutorService
-
-    /**
-     * Gets the async executor.
-     *
-     * @return The async executor.
-     */
-    val asyncExecutor: ExecutorService
+    val snapshots: Array<ServerSnapshot>
 
     /**
      * Starts the server.
      *
      * @throws IllegalStateException If the server is already running.
      */
-    fun start()
+    fun start(networkThreads: Int = 1)
+
+    /**
+     * Broadcasts a message to all players.
+     *
+     * @param message The message to broadcast.
+     */
+    suspend fun broadcastMessage(message: String)
 
     /**
      * Stops the server.
@@ -56,27 +47,9 @@ interface MinecraftServer {
     fun shutdown()
 
     /**
-     * Gets all the online players.
+     * Creates a fake channel.
      *
-     * @return All the online players.
+     * @return The fake channel.
      */
-    val onlinePlayers: Collection<Player>
-
-    /**
-     * Gets the player with the specified name.
-     *
-     * @param name The name of the player.
-     *
-     * @return The player with the specified name.
-     */
-    fun getPlayer(name: String): Player?
-
-    /**
-     * Gets the player with the specified entity ID.
-     *
-     * @param entityId The entity ID of the player.
-     *
-     * @return The player with the specified entity ID.
-     */
-    fun getPlayer(entityId: Int): Player?
+    fun createFakeChannel(peerChannel: FakeChannel): FakeChannel
 }

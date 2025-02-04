@@ -12,10 +12,7 @@ class ClientSettingsPacket(
     var chatColors: Boolean = false,
     var difficulty: Difficulty? = null,
     var showCape: Boolean = false
-) : Packet.INCOMING {
-    override fun received(connection: Connection) {
-        // TODO Auto-generated method stub
-    }
+) : Packet.Incoming, Packet.AsyncHandler {
 
     override fun deserialize(`is`: ByteBuf) {
         locale = `is`.readString()
@@ -24,5 +21,11 @@ class ClientSettingsPacket(
         chatColors = `is`.readBoolean()
         difficulty = Difficulty.fromId(`is`.readByte())
         showCape = `is`.readBoolean()
+    }
+
+    override suspend fun receivedAsync(connection: Connection) {
+        connection.player?.let {
+            it.viewDistance = viewDistance.coerceAtLeast(2)
+        }
     }
 }

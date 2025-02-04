@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf
 
 @JvmRecord
 data class SpawnExperienceOrbPacket(val entityId: Int, val x: Int, val y: Int, val z: Int, val count: Short) :
-    Packet.OUTGOING {
+    Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeVarInt(entityId)
         os.writeInt(x, y, z)

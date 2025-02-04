@@ -7,7 +7,7 @@ import io.netty.buffer.ByteBuf
 data class ParticlePacket(
     val particleName: String, val x: Float, val y: Float, val z: Float, val offsetX: Float, val offsetY: Float,
     val offsetZ: Float, val particleData: Float, val numberOfParticles: Int
-) : Packet.OUTGOING {
+) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeString(particleName)
         os.writeFloat(x, y, z, offsetX, offsetY, offsetZ, particleData)

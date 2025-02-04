@@ -9,7 +9,7 @@ data class ExplosionPacket(
     val x: Float, val y: Float, val z: Float, val radius: Float, val records: List<ExplosionRecord>,
     val playerMotionX: Float,
     val playerMotionY: Float, val playerMotionZ: Float
-) : Packet.OUTGOING {
+) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeFloat(x, y, z, radius)
         os.writeInt(records.size)

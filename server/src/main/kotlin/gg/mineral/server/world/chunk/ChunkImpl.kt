@@ -6,21 +6,37 @@ import gg.mineral.server.network.packet.play.clientbound.ChunkDataPacket
 import gg.mineral.server.util.collection.NibbleArray
 import gg.mineral.server.world.block.Block
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicReferenceArray
 import java.util.zip.DeflaterOutputStream
 
 open class ChunkImpl(
     private val world: World,
     override val x: Byte, override val z: Byte
 ) : Chunk {
-    val entities by lazy { IntOpenHashSet() }
+    private val entitiesMutex = Mutex()
+    private val entities by lazy { IntOpenHashSet() }
     private val cache by lazy { arrayOfNulls<ChunkDataPacket>(4) }
+
+    suspend fun removeEntity(entityId: Int) {
+        entitiesMutex.withLock { entities.remove(entityId) }
+    }
+
+    suspend fun addEntity(entityId: Int) {
+        entitiesMutex.withLock { entities.add(entityId) }
+    }
+
+    suspend fun entityIterator(): it.unimi.dsi.fastutil.ints.IntIterator {
+        return entitiesMutex.withLock { entities.iterator() }
+    }
 
     /**
      * The array of chunk sections this chunk contains, or null if it is unloaded.
      */
-    private val sections by lazy { arrayOfNulls<ChunkSection>(DEPTH / SEC_DEPTH) }
+    private val sections by lazy { AtomicReferenceArray<ChunkSection>(DEPTH / SEC_DEPTH) }
 
     /**
      * The array of biomes this chunk contains, or null if it is unloaded.
@@ -50,7 +66,7 @@ open class ChunkImpl(
     // ======== Basic stuff ========
     fun getBlock(x: Int, y: Short, z: Int): Block {
         return Block(
-            this, (this.x.toInt() shl 4) or (x and 0xf), y.toInt() and 0xff, (this.z.toInt() shl 4) or
+            (this.x.toInt() shl 4) or (x and 0xf), y.toInt() and 0xff, (this.z.toInt() shl 4) or
                     (z and 0xf), getType(x, z, y), getMetaData(x, z, y)
         )
     }
@@ -64,7 +80,7 @@ open class ChunkImpl(
      */
     private fun getSection(y: Short): ChunkSection? {
         val idx = y.toInt() shr 4
-        if (y < 0 || y >= DEPTH || idx >= sections.size) return null
+        if (y < 0 || y >= DEPTH || idx >= sections.length()) return null
 
         return sections[idx]
     }
@@ -103,7 +119,7 @@ open class ChunkImpl(
             } else {
                 // create new ChunkSection for this y coordinate
                 val idx = y.toInt() shr 4
-                if (y < 0 || y >= DEPTH || idx >= sections.size) {
+                if (y < 0 || y >= DEPTH || idx >= sections.length()) {
                     // y is out of range somehow
                     return
                 }
@@ -312,10 +328,10 @@ open class ChunkImpl(
     }
 
     class ChunkSection {
-        val types by lazy { ByteArray(ARRAY_SIZE) }
-        val metaData by lazy { NibbleArray(ARRAY_SIZE) }
-        val skyLight by lazy { NibbleArray(ARRAY_SIZE, 0xf.toByte()) }
-        val blockLight by lazy { NibbleArray(ARRAY_SIZE) }
+        val types = ByteArray(ARRAY_SIZE)
+        val metaData = NibbleArray(ARRAY_SIZE)
+        val skyLight = NibbleArray(ARRAY_SIZE, 0xf.toByte())
+        val blockLight = NibbleArray(ARRAY_SIZE)
         var count = 0
 
         /**
@@ -325,7 +341,7 @@ open class ChunkImpl(
             recount()
         }
 
-        fun recount() {
+        private fun recount() {
             count = 0
             for (type in types) if (type.toInt() != 0) count++
         }
@@ -361,7 +377,9 @@ open class ChunkImpl(
         private const val SEC_DEPTH = 16
         private const val ARRAY_SIZE = WIDTH * HEIGHT * SEC_DEPTH
 
-        fun toKey(x: Byte, z: Byte) = ((x.toInt() shl 8) or (z.toInt() and 0xFF)).toShort()
+        fun toKey(x: Byte, z: Byte) = toKey(x.toInt(), z.toInt())
+
+        fun toKey(x: Int, z: Int) = ((x shl 8) or (z and 0xFF)).toShort()
 
         fun xFromKey(key: Short) = ((key.toInt() shr 8) and 0xFF).toByte()
 

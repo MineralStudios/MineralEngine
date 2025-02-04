@@ -4,7 +4,7 @@ import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
 @JvmRecord
-data class DisplayScoreboardPacket(val position: Byte, val scoreName: String) : Packet.OUTGOING {
+data class DisplayScoreboardPacket(val position: Byte, val scoreName: String) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeByte(position.toInt())
         os.writeString(scoreName)

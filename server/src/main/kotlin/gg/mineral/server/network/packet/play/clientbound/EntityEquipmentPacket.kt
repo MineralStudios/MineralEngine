@@ -5,7 +5,7 @@ import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
 @JvmRecord
-data class EntityEquipmentPacket(val entityId: Int, val slot: Short, val itemStack: ItemStack) : Packet.OUTGOING {
+data class EntityEquipmentPacket(val entityId: Int, val slot: Short, val itemStack: ItemStack) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeInt(entityId)
         os.writeShort(slot.toInt())

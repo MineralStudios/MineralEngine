@@ -4,8 +4,8 @@ import gg.mineral.api.network.connection.Connection
 import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
-class PlayerPacket(var onGround: Boolean = false) : Packet.INCOMING {
-    override fun received(connection: Connection) {
+open class PlayerPacket(var onGround: Boolean = false) : Packet.Incoming, Packet.SyncHandler {
+    override suspend fun receivedSync(connection: Connection) {
         connection.player?.onGround = onGround
     }
 

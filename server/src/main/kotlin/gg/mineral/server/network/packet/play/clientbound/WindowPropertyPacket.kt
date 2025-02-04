@@ -4,7 +4,7 @@ import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
 @JvmRecord
-data class WindowPropertyPacket(val windowId: Short, val property: Short, val value: Short) : Packet.OUTGOING {
+data class WindowPropertyPacket(val windowId: Short, val property: Short, val value: Short) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeByte(windowId.toInt())
         os.writeShort(property, value)
