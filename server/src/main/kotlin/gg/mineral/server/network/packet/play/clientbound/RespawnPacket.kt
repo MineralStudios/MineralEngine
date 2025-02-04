@@ -14,7 +14,7 @@ data class RespawnPacket(
     val gamemode: Gamemode,
     val levelType: LevelType
 ) :
-    Packet.OUTGOING {
+    Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeInt(dimension.id.toInt())
         os.writeByte(difficulty.id, gamemode.id)

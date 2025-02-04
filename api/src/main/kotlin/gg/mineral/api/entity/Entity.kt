@@ -1,6 +1,7 @@
 package gg.mineral.api.entity
 
-import gg.mineral.api.MinecraftServer
+
+import gg.mineral.api.snapshot.ServerSnapshot
 import gg.mineral.api.world.World
 
 interface Entity {
@@ -146,23 +147,30 @@ interface Entity {
     val currentTick: Int
 
     /**
+     * Gets the entity's current async tick.
+     *
+     * @return The entity's current async tick.
+     */
+    val currentAsyncTick: Int
+
+    /**
      * Gets the entity's view distance.
      *
      * @return The entity's view distance.
      */
-    val viewDistance: Byte
+    var viewDistance: Byte
 
     /**
-     * Get the server.
+     * Get the entity's server snapshot.
      *
-     * @return The server.
+     * @return The entity's server snapshot.
      */
-    val server: MinecraftServer
+    val serverSnapshot: ServerSnapshot
 
     /**
      * Attacks the target entity.
      *
      * @param targetId The ID of the target entity.
      */
-    fun attack(targetId: Int)
+    suspend fun attack(targetId: Int)
 }

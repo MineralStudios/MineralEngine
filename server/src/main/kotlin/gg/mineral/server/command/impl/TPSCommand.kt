@@ -1,33 +1,67 @@
 package gg.mineral.server.command.impl
 
 import com.sun.management.OperatingSystemMXBean
-import dev.zerite.craftlib.chat.type.ChatColor
 import gg.mineral.api.command.Command
 import gg.mineral.api.command.CommandExecutor
+import gg.mineral.api.tick.TickLoop
+import net.md_5.bungee.api.ChatColor
+import net.md_5.bungee.api.chat.BaseComponent
+import net.md_5.bungee.api.chat.ComponentBuilder
+import net.md_5.bungee.api.chat.HoverEvent
+import net.md_5.bungee.api.chat.TextComponent
 import java.lang.management.ManagementFactory
 import kotlin.math.min
 
 // TODO: add number of players, cached chunks etc....
 class TPSCommand : Command("tps", "") {
     override fun execute(commandExecutor: CommandExecutor, arguments: Array<String?>) {
+
+
+        commandExecutor.msg(
+            ChatColor.UNDERLINE.toString() + "Performance" + ChatColor.GRAY.toString()
+                    + " (CPU Threads)"
+        )
         commandExecutor.msg(
             ChatColor.GRAY.toString() + ChatColor.STRIKETHROUGH.toString() + "-------------------------------"
         )
-        val tickLoop = commandExecutor.server.tickLoop
-        commandExecutor.msg(
-            (ChatColor.UNDERLINE.toString() + "Performance" + ChatColor.GRAY.toString()
-                    + " (1m, 5m, 15m)")
-        )
-        commandExecutor.msg(" ")
-        commandExecutor
-            .msg(
-                (ChatColor.WHITE.toString() + "TPS: "
-                        + getTpsStr(tickLoop.tps1.average) + ChatColor.WHITE.toString() + ", "
-                        + getTpsStr(tickLoop.tps5.average) + ChatColor.WHITE.toString() + ", "
-                        + getTpsStr(tickLoop.tps15.average))
-            )
 
         commandExecutor.msg(" ")
+
+        val components = mutableListOf<BaseComponent>()
+
+        for (snapshot in commandExecutor.serverSnapshot.server.snapshots) {
+            if (snapshot is TickLoop) {
+                val hover = ComponentBuilder(
+                    ChatColor.UNDERLINE.toString() + "Performance" + ChatColor.GRAY.toString()
+                            + " (1m, 5m, 15m) [" + snapshot.name + "]\n\n" +
+                            ChatColor.WHITE.toString() + "TPS: "
+                            + getTpsStr(snapshot.tps1.average) + ChatColor.WHITE.toString() + ", "
+                            + getTpsStr(snapshot.tps5.average) + ChatColor.WHITE.toString() + ", "
+                            + getTpsStr(snapshot.tps15.average)
+                ).create()
+
+                val color = color(snapshot.tps1.average)
+
+                val textComponent = TextComponent("$color\u2B1B")
+                textComponent.hoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)
+                components.add(textComponent)
+            }
+        }
+
+        val array = components.toTypedArray()
+
+        val rowList = mutableListOf<BaseComponent>()
+
+        for (i in array.indices) {
+            rowList.add(TextComponent("  "))
+            rowList.add(array[i])
+            if (i % 8 == 7) {
+                commandExecutor.msg(*rowList.toTypedArray())
+                rowList.clear()
+                commandExecutor.msg(" ")
+            }
+        }
+        
         val osBean = ManagementFactory.getPlatformMXBean(
             OperatingSystemMXBean::class.java
         )
@@ -52,10 +86,6 @@ class TPSCommand : Command("tps", "") {
         commandExecutor.msg(
             (ChatColor.WHITE.toString() + "JVM Total Memory: " + ChatColor.AQUA.toString()
                     + (Runtime.getRuntime().maxMemory() / 1048576) + " MBs")
-        )
-        commandExecutor.msg(
-            (ChatColor.WHITE.toString() + "Active Netty Channels: " + ChatColor.AQUA.toString()
-                    + commandExecutor.server.connections.size)
         )
 
         commandExecutor.msg(

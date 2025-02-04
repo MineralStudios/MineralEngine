@@ -8,7 +8,7 @@ data class TeamsPacket(
     val teamName: String, val teamDisplayName: String, val teamPrefix: String, val teamSuffix: String,
     val mode: Byte,
     val friendlyFire: Byte, val players: List<String>
-) : Packet.OUTGOING {
+) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeString(teamName)
         os.writeByte(mode.toInt())

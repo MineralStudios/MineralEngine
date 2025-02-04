@@ -4,13 +4,7 @@ dependencies {
     compileOnly 'org.apache.logging.log4j:log4j-api:2.24.3'
     compileOnly 'org.apache.groovy:groovy-all:4.0.24'
     compileOnly 'org.apache.commons:commons-lang3:3.17.0'
-    implementation 'dev.zerite.craftlib:craftlib-chat:0.1.4'
-    compileOnly 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.100'
-    annotationProcessor 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.100'
-    annotationProcessor 'com.squareup:javapoet:1.13.0'
-    implementation 'com.squareup:javapoet:1.13.0'
-    annotationProcessor 'com.google.auto.service:auto-service:1.1.1'
-    compileOnly 'com.google.auto.service:auto-service:1.1.1'
+    implementation 'net.md-5:bungeecord-chat:1.21-R0.1-SNAPSHOT'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 

@@ -14,7 +14,7 @@ data class SpawnObjectPacket(
     val yaw: Byte,
     val data: Int
 ) :
-    Packet.OUTGOING {
+    Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeVarInt(entityId)
         os.writeByte(type.toInt())

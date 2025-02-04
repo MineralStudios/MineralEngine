@@ -5,9 +5,10 @@ import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
 
-class EntityActionPacket(var entityId: Int = 0, var actionId: Byte = 0, var jumpBoost: Int = 0) : Packet.INCOMING {
-    override fun received(connection: Connection) {
-        val player = connection.server.getPlayer(entityId) ?: return
+class EntityActionPacket(var entityId: Int = 0, var actionId: Byte = 0, var jumpBoost: Int = 0) : Packet.Incoming,
+    Packet.SyncHandler {
+    override suspend fun receivedSync(connection: Connection) {
+        val player = connection.serverSnapshot.getPlayer(entityId) ?: return
 
         when (actionId.toInt()) {
             0 -> {}

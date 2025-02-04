@@ -6,7 +6,7 @@ import io.netty.buffer.ByteBuf
 import java.util.*
 
 @JvmRecord
-data class LoginSuccessPacket(val uuid: UUID, val username: String) : Packet.OUTGOING {
+data class LoginSuccessPacket(val uuid: UUID, val username: String) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) =
         os.writeString(FastUUID.toString(uuid), username)
 

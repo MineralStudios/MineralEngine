@@ -6,8 +6,8 @@ import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.MessageToByteEncoder
 
-class PacketEncoder : MessageToByteEncoder<Packet.OUTGOING>(), ByteWriter {
-    override fun encode(ctx: ChannelHandlerContext, packet: Packet.OUTGOING, out: ByteBuf) {
+class PacketEncoder : MessageToByteEncoder<Packet.Outgoing>(), ByteWriter {
+    override fun encode(ctx: ChannelHandlerContext, packet: Packet.Outgoing, out: ByteBuf) {
         out.writeVarInt(packet.id.toInt())
         packet.serialize(out)
     }

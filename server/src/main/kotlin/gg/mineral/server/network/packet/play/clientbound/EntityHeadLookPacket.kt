@@ -4,7 +4,7 @@ import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
 @JvmRecord
-data class EntityHeadLookPacket(val entityId: Int, val headYaw: Byte) : Packet.OUTGOING {
+data class EntityHeadLookPacket(val entityId: Int, val headYaw: Byte) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeInt(entityId)
         os.writeByte(headYaw.toInt())

@@ -11,7 +11,7 @@ data class EffectPacket(
     val z: Int,
     val data: Int,
     val disableRelativeVolume: Boolean
-) : Packet.OUTGOING {
+) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeInt(effectId, x)
         os.writeByte(y.toInt())

@@ -3,6 +3,7 @@ package gg.mineral.api.world
 import gg.mineral.api.entity.Entity
 import gg.mineral.api.entity.living.human.Player
 import gg.mineral.api.world.chunk.Chunk
+import kotlin.reflect.KClass
 
 interface World {
     /**
@@ -39,7 +40,7 @@ interface World {
      * @param key The key of the chunk.
      * @return The chunk.
      */
-    fun getChunk(key: Short): Chunk?
+    suspend fun getChunk(key: Short): Chunk?
 
     /**
      * Gets the entity with the specified ID.
@@ -48,7 +49,7 @@ interface World {
      *
      * @return The entity with the specified ID.
      */
-    fun getEntity(entityId: Int): Entity?
+    suspend fun getEntity(entityId: Int): Entity?
 
     /**
      * Gets the player with the specified entity ID.
@@ -57,7 +58,7 @@ interface World {
      *
      * @return The player with the specified entity ID.
      */
-    fun getPlayer(entityId: Int): Player?
+    suspend fun getPlayer(entityId: Int): Player?
 
     /**
      * Get the type of the block at the specified coordinates.
@@ -67,7 +68,7 @@ interface World {
      * @param z The z-coordinate of the block.
      * @return The type of the block at the specified coordinates.
      */
-    fun getType(x: Int, y: Short, z: Int): Int
+    suspend fun getType(x: Int, y: Short, z: Int): Int
 
     /**
      * Get the metadata of the block at the specified coordinates.
@@ -77,21 +78,38 @@ interface World {
      * @param z The z-coordinate of the block.
      * @return The metadata of the block at the specified coordinates.
      */
-    fun getMetaData(x: Int, y: Short, z: Int): Int
+    suspend fun getMetaData(x: Int, y: Short, z: Int): Int
 
     /**
      * Remove the entity with the specified ID.
      *
      * @param id The ID of the entity to remove.
      */
-    fun removeEntity(id: Int)
+    suspend fun removeEntity(id: Int)
 
     /**
      * Add an entity to the world.
      *
      * @param entity The entity to add.
      */
-    fun addEntity(entity: Entity)
+    suspend fun addEntity(entity: Entity)
+
+    /**
+     * Get all the entities in the world.
+     *
+     * @return All the entities in the world.
+     */
+    suspend fun getEntities(): Collection<Entity>
+
+    /**
+     * Get the number of entities in the world.
+     *
+     * @return The number of entities in the world.
+     */
+    suspend fun <E : Entity> entityCount(kclass: KClass<E>): Int
+
+    suspend fun broadcastMessage(message: String)
+
 
     fun interface Generator {
         /**

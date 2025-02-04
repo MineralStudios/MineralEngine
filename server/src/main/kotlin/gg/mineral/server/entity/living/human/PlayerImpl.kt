@@ -1,7 +1,5 @@
 package gg.mineral.server.entity.living.human
 
-import dev.zerite.craftlib.chat.component.BaseChatComponent
-import dev.zerite.craftlib.chat.component.StringChatComponent
 import gg.mineral.api.entity.attribute.Attribute
 import gg.mineral.api.entity.attribute.AttributeInstance
 import gg.mineral.api.entity.living.human.Player
@@ -13,6 +11,7 @@ import gg.mineral.api.math.MathUtil.floor
 import gg.mineral.api.math.MathUtil.toFixedPointInt
 import gg.mineral.api.plugin.event.player.PlayerJoinEvent
 import gg.mineral.api.world.World
+import gg.mineral.api.world.chunk.Chunk
 import gg.mineral.api.world.property.Difficulty
 import gg.mineral.api.world.property.Dimension
 import gg.mineral.api.world.property.LevelType
@@ -25,24 +24,29 @@ import gg.mineral.server.network.packet.play.bidirectional.PlayerAbilitiesPacket
 import gg.mineral.server.network.packet.play.clientbound.*
 import gg.mineral.server.world.WorldImpl
 import gg.mineral.server.world.chunk.ChunkImpl
+import gg.mineral.server.world.chunk.ChunkImpl.Companion.toKey
+import gg.mineral.server.world.chunk.ChunkImpl.Companion.xFromKey
+import gg.mineral.server.world.chunk.ChunkImpl.Companion.zFromKey
+import gg.mineral.server.world.chunk.EmptyChunkImpl
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import it.unimi.dsi.fastutil.shorts.Short2IntLinkedOpenHashMap
 import it.unimi.dsi.fastutil.shorts.ShortOpenHashSet
+import net.md_5.bungee.api.chat.BaseComponent
+import net.md_5.bungee.api.chat.TextComponent
 import org.apache.logging.log4j.LogManager
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
 
-open class PlayerImpl(override val connection: ConnectionImpl, id: Int, world: WorldImpl) :
-    HumanImpl(id, world), Player {
-    val chunkUpdateTracker by lazy { Short2IntLinkedOpenHashMap() }
+open class PlayerImpl(
+    override val connection: ConnectionImpl, id: Int, world: WorldImpl
+) :
+    HumanImpl(id, connection.serverSnapshot, world, connection.name.toString()), Player {
+    private val chunkUpdateTracker by lazy { Short2IntLinkedOpenHashMap() }
     val visibleChunks by lazy { ShortOpenHashSet() }
     override val permissions: MutableSet<String> by lazy { ObjectOpenHashSet() }
     private val attributeModifiers: MutableMap<String, AttributeInstance> by lazy { ConcurrentHashMap() }
-
-    val name: String
-        get() = connection.name.toString()
 
     val uuid: UUID?
         get() = connection.uuid
@@ -52,32 +56,25 @@ open class PlayerImpl(override val connection: ConnectionImpl, id: Int, world: W
         connection.queuePacket(EntityEffectPacket(id, PotionEffect.SPEED.id, amplifier, duration))
     }
 
-    fun disconnect(chatComponent: BaseChatComponent) {
+    fun disconnect(chatComponent: BaseComponent) {
         connection.disconnect(chatComponent)
     }
 
-    override fun tickAsync() {
-        if (chunkUpdateNeeded || firstAsyncTick) world.updateChunks(this)
-
-        firstAsyncTick = false
-    }
-
-    override fun tick() {
+    override suspend fun tick() {
         super.tick()
+
+        if (chunkUpdateNeeded || firstTick) updateChunks()
+
+        tickArm()
 
         world.updatePosition(this)
 
-        if (!firstTick && currentTick % server.config.relativeMoveFrequency == 0) updateVisibleEntities()
-
-        tickArm()
+        if (!firstTick && currentTick % serverSnapshot.server.config.relativeMoveFrequency == 0) updateVisibleEntities()
 
         firstTick = false
     }
 
-    private fun updateVisibleEntities() {
-        for (entry in visibleEntities.int2ObjectEntrySet()) if (world.getEntity(entry.intKey) == null) visibleEntities.remove(
-            entry.intKey
-        )
+    private suspend fun updateVisibleEntities() {
 
         if (!entityRemoveIds.isEmpty()) {
             val ids = entityRemoveIds.toIntArray()
@@ -85,10 +82,13 @@ open class PlayerImpl(override val connection: ConnectionImpl, id: Int, world: W
             connection.queuePacket(DestroyEntitiesPacket(ids))
         }
 
+        // Sync visible entities to one thread
         for (e in visibleEntities.int2ObjectEntrySet()) {
             val entity = world.getEntity(e.intKey)
-
-            checkNotNull(entity) { "Entity with id " + e.intKey + " is not in the world" }
+            if (entity == null) {
+                visibleEntities.remove(e.intKey)
+                continue
+            }
 
             val x = toFixedPointInt(entity.x)
             val y = toFixedPointInt(entity.y)
@@ -150,9 +150,7 @@ open class PlayerImpl(override val connection: ConnectionImpl, id: Int, world: W
             val key = fastKeyIterator.nextShort()
             val chunk = world.getChunk(key)
             if (chunk is ChunkImpl) {
-                val newlyVisible = chunk.entities
-
-                val fastIterator = newlyVisible.iterator()
+                val fastIterator = chunk.entityIterator()
                 while (fastIterator.hasNext()) {
                     val entityId = fastIterator.nextInt()
                     if (entityId == this.id) continue
@@ -181,6 +179,7 @@ open class PlayerImpl(override val connection: ConnectionImpl, id: Int, world: W
                     )
                     visibleEntities.put(player.id, intArrayOf(x, y, z, yaw.toInt(), pitch.toInt()))
                 }
+
             }
         }
     }
@@ -188,8 +187,8 @@ open class PlayerImpl(override val connection: ConnectionImpl, id: Int, world: W
     fun onJoin() {
         val playerJoinEvent = PlayerJoinEvent(this)
 
-        if (server.callEvent(playerJoinEvent)) {
-            disconnect(server.config.disconnectUnknown)
+        if (serverSnapshot.server.callEvent(playerJoinEvent)) {
+            disconnect(serverSnapshot.server.config.disconnectUnknown)
             return
         }
 
@@ -295,7 +294,75 @@ open class PlayerImpl(override val connection: ConnectionImpl, id: Int, world: W
     override fun hashCode() = connection.hashCode()
 
     override fun msg(message: String) =
-        connection.queuePacket(ChatMessagePacket(StringChatComponent(message)))
+        connection.queuePacket(ChatMessagePacket(arrayOf(TextComponent(message))))
+
+    override fun msg(vararg baseComponents: BaseComponent) {
+        connection.queuePacket(ChatMessagePacket(baseComponents))
+    }
+
+    private suspend fun updateChunks() {
+        this.chunkUpdateNeeded = false
+        val chunks = getChunkLoadUpdates()
+
+        val iterator = this.chunkUpdateTracker.short2IntEntrySet().fastIterator()
+
+        val currentTick = this.currentTick
+
+        while (iterator.hasNext()) {
+            val entry = iterator.next()
+            if (currentTick - entry.intValue > 100) { // linked hashmap to order by eldest entry
+                val key = entry.shortKey
+                if (this.visibleChunks.remove(key)) {
+                    chunks.add(EmptyChunkImpl(world, xFromKey(key), zFromKey(key)))
+
+                    val chunk = world.getChunk(key)
+                    if (chunk is ChunkImpl) {
+                        val fastIterator = chunk.entityIterator()
+                        while (fastIterator.hasNext()) {
+                            val playerId = fastIterator.nextInt()
+                            if (playerId != id) this.visibleEntities.remove(
+                                playerId
+                            )
+                        }
+                    }
+
+                    iterator.remove()
+                }
+                continue
+            }
+
+            break
+        }
+
+        if (chunks.isEmpty()) return
+
+        if (chunks.size == 1) {
+            val chunk = chunks.first()
+            if (chunk is ChunkImpl) this.connection.queuePacket(chunk.toPacket(true))
+        } else this.connection
+            .queuePacket(MapChunkBulkPacket(world.environment == World.Environment.NORMAL, chunks))
+    }
+
+    private suspend fun getChunkLoadUpdates(): MutableList<Chunk> {
+        val viewDistance = this.viewDistance
+        val chunkX = floor(this.x / 16).toByte()
+        val chunkZ = floor(this.z / 16).toByte()
+        val chunks = ArrayList<Chunk>()
+
+        for (xOffset in -viewDistance..viewDistance) {
+            val cX = (chunkX + xOffset).toByte()
+            for (zOffset in -viewDistance..viewDistance) {
+                val key = toKey(cX, (chunkZ + zOffset).toByte())
+                this.chunkUpdateTracker.put(key, this.currentTick)
+                if (!this.visibleChunks.contains(key)) {
+                    this.visibleChunks.add(key)
+                    val chunk = world.getChunk(key)
+                    chunks.add(chunk)
+                }
+            }
+        }
+        return chunks
+    }
 
     companion object {
         private val LOGGER = LogManager.getLogger(Player::class.java)

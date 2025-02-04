@@ -11,7 +11,7 @@ data class SoundEffectPacket(
     val z: Int,
     val volume: Float,
     val pitch: Short
-) : Packet.OUTGOING {
+) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeString(soundName)
         os.writeInt(x, y, z)

@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf
 
 @JvmRecord
 data class SpawnGlobalEntityPacket(val entityId: Int, val type: Byte, val x: Int, val y: Int, val z: Int) :
-    Packet.OUTGOING {
+    Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeVarInt(entityId)
         os.writeByte(type.toInt())

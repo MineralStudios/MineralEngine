@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf
 
 @JvmRecord
 data class EntityEffectPacket(val entityId: Int, val effectId: Byte, val amplifier: Byte, val duration: Short) :
-    Packet.OUTGOING {
+    Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeInt(entityId)
         os.writeByte(effectId.toInt())

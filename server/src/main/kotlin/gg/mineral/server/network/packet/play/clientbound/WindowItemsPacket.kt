@@ -5,7 +5,7 @@ import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
 @JvmRecord
-data class WindowItemsPacket(val windowId: UByte, val itemstacks: Array<ItemStack>) : Packet.OUTGOING {
+data class WindowItemsPacket(val windowId: UByte, val itemstacks: Array<ItemStack>) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeByte(windowId.toInt())
         os.writeShort(itemstacks.size)

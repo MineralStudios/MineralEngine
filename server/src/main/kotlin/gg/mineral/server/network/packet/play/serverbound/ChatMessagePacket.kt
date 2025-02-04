@@ -1,30 +1,28 @@
 package gg.mineral.server.network.packet.play.serverbound
 
-import dev.zerite.craftlib.chat.type.ChatColor
 import gg.mineral.api.command.Command
-import gg.mineral.api.entity.living.human.Player
 import gg.mineral.api.network.connection.Connection
 import gg.mineral.api.network.packet.Packet
 import gg.mineral.server.MinecraftServerImpl
 import io.netty.buffer.ByteBuf
+import net.md_5.bungee.api.ChatColor
 import java.util.*
-import java.util.function.Consumer
 
-class ChatMessagePacket(private var message: String? = null) : Packet.ASYNC_INCOMING {
-    override fun receivedAsync(connection: Connection) {
+class ChatMessagePacket(private var message: String? = null) : Packet.Incoming, Packet.AsyncHandler,
+    Packet.SyncHandler {
+    override suspend fun receivedAsync(connection: Connection) {
         if (message!!.startsWith("/"))  // TODO: async command support
             return
-        val server = connection.server
+        val server = connection.serverSnapshot.server
         val chatMsg = ChatColor.GREEN.toString() + connection.name + ChatColor.RESET + ": " + message
         if (server is MinecraftServerImpl) server.msg(chatMsg)
-        server.onlinePlayers.forEach(
-            Consumer { player: Player -> player.msg(chatMsg) })
+        server.broadcastMessage(chatMsg)
     }
 
-    override fun received(connection: Connection) {
-        if (!message!!.startsWith("/")) return
+    override suspend fun receivedSync(connection: Connection) {
+        if (message?.startsWith("/") == false) return
 
-        val server = connection.server
+        val server = connection.serverSnapshot.server
 
         val player = connection.player ?: return
 

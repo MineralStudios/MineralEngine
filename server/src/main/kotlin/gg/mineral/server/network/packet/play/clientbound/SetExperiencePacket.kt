@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf
 
 @JvmRecord
 data class SetExperiencePacket(val experienceBar: Float, val level: Short, val totalExperience: Short) :
-    Packet.OUTGOING {
+    Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeFloat(experienceBar)
         os.writeShort(level, totalExperience)

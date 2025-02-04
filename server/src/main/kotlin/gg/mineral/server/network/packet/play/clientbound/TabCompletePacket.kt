@@ -4,7 +4,7 @@ import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
 @JvmRecord
-data class TabCompletePacket(val completions: List<String>) : Packet.OUTGOING {
+data class TabCompletePacket(val completions: List<String>) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeVarInt(completions.size)
         for (completion in completions) os.writeString(completion)

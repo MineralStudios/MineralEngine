@@ -11,7 +11,7 @@ data class BlockActionPacket(
     val blockType: Int,
     val byte1: UByte,
     val byte2: UByte
-) : Packet.OUTGOING {
+) : Packet.Outgoing {
     @OptIn(ExperimentalUnsignedTypes::class)
     override fun serialize(os: ByteBuf) {
         os.writeInt(x)

@@ -8,7 +8,7 @@ import io.netty.buffer.ByteBuf
 
 @JvmRecord
 data class MapChunkBulkPacket(val skyLight: Boolean, val chunks: List<Chunk>) :
-    Packet.OUTGOING {
+    Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         val amount = chunks.size
         val bytes = ByteArray(196864 * amount)

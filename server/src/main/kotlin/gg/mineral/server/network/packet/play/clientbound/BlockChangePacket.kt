@@ -11,7 +11,7 @@ data class BlockChangePacket(
     @JvmField val blockId: Int,
     @JvmField val blockMetadata: Short
 ) :
-    Packet.OUTGOING {
+    Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeInt(x)
         os.writeByte(y.toInt())

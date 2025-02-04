@@ -6,7 +6,7 @@ import io.netty.buffer.ByteBuf
 
 @JvmRecord
 data class EntityMetadataPacket(val entityId: Int, val entries: List<EntityMetadata.Entry>) :
-    Packet.OUTGOING {
+    Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeInt(entityId)
         os.writeMetadata(entries)

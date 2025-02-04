@@ -1,12 +1,11 @@
 package gg.mineral.server.network.connection
 
-import dev.zerite.craftlib.chat.component.BaseChatComponent
 import gg.mineral.api.entity.living.human.Player
 import gg.mineral.api.network.connection.Connection
 import gg.mineral.api.network.packet.Packet
 import gg.mineral.api.network.packet.registry.PacketRegistry
 import gg.mineral.api.network.packet.rw.ByteWriter
-import gg.mineral.server.MinecraftServerImpl
+import gg.mineral.server.network.channel.FakeChannelImpl
 import gg.mineral.server.network.login.LoginAuthData
 import gg.mineral.server.network.packet.handler.PacketDecrypter
 import gg.mineral.server.network.packet.handler.PacketEncrypter
@@ -17,26 +16,29 @@ import gg.mineral.server.network.packet.play.bidirectional.KeepAlivePacket
 import gg.mineral.server.network.packet.play.clientbound.DisconnectPacket
 import gg.mineral.server.network.protocol.ProtocolState
 import gg.mineral.server.network.protocol.ProtocolVersion
+import gg.mineral.server.snapshot.AsyncServerSnapshotImpl
 import gg.mineral.server.util.datatypes.UUIDUtil
 import gg.mineral.server.util.json.JsonUtil
 import gg.mineral.server.util.login.LoginUtil
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import net.md_5.bungee.api.chat.BaseComponent
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.apache.logging.log4j.core.config.Configurator
 import java.util.*
-import java.util.concurrent.ConcurrentLinkedQueue
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 
-class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelInboundHandler<Packet.INCOMING>(),
+class ConnectionImpl(override val serverSnapshot: AsyncServerSnapshotImpl) :
+    SimpleChannelInboundHandler<Packet.Incoming>(),
     Connection,
     ByteWriter {
-    private val packetQueue = ConcurrentLinkedQueue<Runnable>()
-    var protocolState: PacketRegistry<Packet.INCOMING> = ProtocolState.HANDSHAKE
+    var protocolState: PacketRegistry<Packet.Incoming> = ProtocolState.HANDSHAKE
         set(value) {
             field = value
             channel!!.attr(ProtocolState.ATTRIBUTE_KEY).set(protocolState)
@@ -52,7 +54,7 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
     override var uuid: UUID? = null
     private var packetsQueued = false
     override val player: Player?
-        get() = server.playerConnections[this]
+        get() = serverSnapshot.playerConnections[this]
     override val ipAddress: String
         get() = channel?.remoteAddress().toString()
     private var connected = true
@@ -60,14 +62,14 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
     fun attemptLogin(name: String) {
         this.name = name
 
-        val player = server.playerNames[name]
+        val player = serverSnapshot.playerNames[name]
 
         if (player != null) {
-            disconnect(server.config.disconnectAlreadyLoggedIn)
+            disconnect(serverSnapshot.server.config.disconnectAlreadyLoggedIn)
             return
         }
 
-        if (server.config.onlineMode) {
+        if (serverSnapshot.server.config.onlineMode && channel !is FakeChannelImpl) {
             this.loginAuthData = LoginAuthData()
             queuePacket(
                 EncryptionRequestPacket(
@@ -85,14 +87,14 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
 
     fun loginSuccess() {
         this.queuePacket(LoginSuccessPacket(uuid!!, name!!))
-        this.lastKeepAlive = server.getMillis()
+        this.lastKeepAlive = serverSnapshot.millis
         this.protocolState = ProtocolState.PLAY
     }
 
     fun spawnPlayer() =
-        server.createPlayer(this).onJoin()
+        serverSnapshot.createPlayer(this).onJoin()
 
-    fun sendPacket(vararg packets: Packet.OUTGOING) {
+    fun sendPacket(vararg packets: Packet.Outgoing) {
         for (packet in packets) {
             channel!!.write(packet)
             LOGGER.debug("Packet sent: " + packet.javaClass.simpleName)
@@ -101,7 +103,7 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
         channel?.flush()
     }
 
-    override fun queuePacket(vararg packets: Packet.OUTGOING) {
+    override fun queuePacket(vararg packets: Packet.Outgoing) {
         for (packet in packets) {
             channel!!.write(packet)
             packetsQueued = true
@@ -109,12 +111,12 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
         }
     }
 
-    override fun disconnect(disconnectMessage: BaseChatComponent) {
+    override fun disconnect(vararg components: BaseComponent) {
         queuePacket(
             if (protocolState === ProtocolState.LOGIN)
-                LoginDisconnectPacket(disconnectMessage)
+                LoginDisconnectPacket(components)
             else
-                DisconnectPacket(disconnectMessage)
+                DisconnectPacket(components)
         )
         close()
     }
@@ -138,10 +140,7 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
             decryptedSharedSecret
         )
 
-        val url = ("https://sessionserver.mojang.com/session/minecraft/hasJoined?username=" +
-                this.name
-                + "&serverId="
-                + serverId)
+        val url = "https://sessionserver.mojang.com/session/minecraft/hasJoined?username=$name&serverId=$serverId"
 
         val json = JsonUtil.getJsonObject(url)
 
@@ -164,7 +163,9 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
 
     @Throws(Exception::class)
     override fun channelInactive(ctx: ChannelHandlerContext) {
-        server.disconnected(this)
+        runBlocking {
+            serverSnapshot.disconnected(this@ConnectionImpl)
+        }
         this.protocolState = ProtocolState.HANDSHAKE
         this.connected = false
         super.channelInactive(ctx)
@@ -182,29 +183,33 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
     }
 
     @Throws(Exception::class)
-    override fun channelRead0(ctx: ChannelHandlerContext, received: Packet.INCOMING) {
+    override fun channelRead0(ctx: ChannelHandlerContext, received: Packet.Incoming) {
         LOGGER.debug("Packet received: " + received.javaClass.simpleName)
-        if (protocolState === ProtocolState.PLAY || protocolState === ProtocolState.LOGIN) packetQueue.add(Runnable {
-            received.received(
-                this
-            )
-        })
-        else received.received(this)
 
-        if (received is Packet.ASYNC_INCOMING) server.asyncExecutor.submit {
-            received.receivedAsync(this)
+        if (received is Packet.SyncHandler) {
+            serverSnapshot.execute {
+                runBlocking {
+                    received.receivedSync(
+                        this@ConnectionImpl
+                    )
+                }
+            }
+        }
+
+        if (received is Packet.EventLoopHandler) runBlocking { received.receivedEventLoop(this@ConnectionImpl) }
+
+        if (received is Packet.AsyncHandler) serverSnapshot.scope.launch {
+            received.receivedAsync(this@ConnectionImpl)
         }
     }
 
     override fun call(): Void? {
-        while (!packetQueue.isEmpty()) packetQueue.poll().run()
-
-        if (protocolState === ProtocolState.PLAY && server.getMillis() - lastKeepAlive > 17500) { // 17.5
+        if (protocolState === ProtocolState.PLAY && serverSnapshot.millis - lastKeepAlive > 17500) { // 17.5
             // seconds
             // for
             // timeout
             queuePacket(KeepAlivePacket(0))
-            lastKeepAlive = server.getMillis()
+            lastKeepAlive = serverSnapshot.millis
         }
 
         if (packetsQueued) {
@@ -212,7 +217,7 @@ class ConnectionImpl(override val server: MinecraftServerImpl) : SimpleChannelIn
             packetsQueued = false
         }
 
-        if (!connected) server.connections.remove(this)
+        if (!connected) serverSnapshot.connections.remove(this)
         return null
     }
 

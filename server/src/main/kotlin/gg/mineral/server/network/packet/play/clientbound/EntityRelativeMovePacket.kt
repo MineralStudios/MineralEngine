@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf
 
 @JvmRecord
 data class EntityRelativeMovePacket(val entityId: Int, val deltaX: Byte, val deltaY: Byte, val deltaZ: Byte) :
-    Packet.OUTGOING {
+    Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeInt(entityId)
         os.writeByte(deltaX, deltaY, deltaZ)

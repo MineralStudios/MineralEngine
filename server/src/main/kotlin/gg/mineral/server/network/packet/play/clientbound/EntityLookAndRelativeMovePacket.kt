@@ -7,7 +7,7 @@ import io.netty.buffer.ByteBuf
 data class EntityLookAndRelativeMovePacket(
     val entityId: Int, val deltaX: Byte, val deltaY: Byte, val deltaZ: Byte, val yaw: Byte,
     val pitch: Byte
-) : Packet.OUTGOING {
+) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeInt(entityId)
         os.writeByte(deltaX, deltaY, deltaZ, yaw, pitch)

@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf
 
 @JvmRecord
 data class UpdateBlockEntityPacket(val x: Int, val y: Short, val z: Int, val action: Short, val nbtData: ByteArray) :
-    Packet.OUTGOING {
+    Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeInt(x)
         os.writeShort(y.toInt())

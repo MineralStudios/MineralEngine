@@ -7,7 +7,7 @@ import io.netty.buffer.ByteBuf
 data class OpenWindowPacket(
     val windowId: UByte, val inventoryType: UByte, val windowTitle: String, val numberOfSlots: UByte,
     val useProvidedWindowTitle: Boolean, val entityId: Int
-) : Packet.OUTGOING {
+) : Packet.Outgoing {
     @OptIn(ExperimentalUnsignedTypes::class)
     override fun serialize(os: ByteBuf) {
         os.writeByte(windowId, inventoryType)

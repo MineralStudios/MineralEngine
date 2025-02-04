@@ -7,7 +7,7 @@ interface Human : Living {
     /**
      * Forces the player to swing their arm.
      */
-    fun swingArm()
+    suspend fun swingArm()
 
     /**
      * Gets if the player is sprinting.
@@ -39,4 +39,11 @@ interface Human : Living {
      * @return The player's gamemode.
      */
     var gamemode: Gamemode
+
+    /**
+     * Gets the player's name
+     *
+     * @return The player's name
+     */
+    val name: String
 }

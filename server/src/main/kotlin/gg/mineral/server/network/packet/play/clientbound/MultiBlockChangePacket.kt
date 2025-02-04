@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf
 
 @JvmRecord
 data class MultiBlockChangePacket(val chunkX: Int, val chunkZ: Int, val records: List<BlockChangePacket>) :
-    Packet.OUTGOING {
+    Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeInt(chunkX, chunkZ)
         os.writeShort(records.size)

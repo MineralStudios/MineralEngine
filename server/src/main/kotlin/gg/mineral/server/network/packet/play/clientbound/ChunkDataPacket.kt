@@ -8,7 +8,7 @@ data class ChunkDataPacket(
     val chunkX: Int, val chunkZ: Int, val groundUpContinuous: Boolean, @JvmField val primaryBitMap: Int,
     @JvmField val addBitMap: Int,
     @JvmField val compressedData: ByteArray
-) : Packet.OUTGOING {
+) : Packet.Outgoing {
     constructor(chunkX: Int, chunkZ: Int) : this(chunkX, chunkZ, true, 0, 0, ByteArray(0))
 
     override fun serialize(os: ByteBuf) {

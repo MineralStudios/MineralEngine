@@ -5,8 +5,8 @@ import gg.mineral.api.network.packet.Packet
 import gg.mineral.server.network.connection.ConnectionImpl
 import io.netty.buffer.ByteBuf
 
-class LoginStartPacket(var name: String? = null) : Packet.INCOMING {
-    override fun received(connection: Connection) {
+class LoginStartPacket(var name: String? = null) : Packet.Incoming, Packet.SyncHandler {
+    override suspend fun receivedSync(connection: Connection) {
         if (connection is ConnectionImpl) connection.attemptLogin(name ?: "")
     }
 

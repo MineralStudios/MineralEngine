@@ -11,7 +11,7 @@ import io.netty.buffer.ByteBuf
 data class JoinGamePacket(
     val entityId: Int, val gamemode: Gamemode, val dimension: Dimension, val difficulty: Difficulty,
     val maxPlayers: Short, val levelType: LevelType
-) : Packet.OUTGOING {
+) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeInt(entityId)
         os.writeByte(gamemode.id, dimension.id, difficulty.id, maxPlayers.toByte())

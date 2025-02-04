@@ -13,23 +13,23 @@ import gg.mineral.server.network.packet.status.serverbound.RequestPacket
 import io.netty.util.AttributeKey
 
 object ProtocolState {
-    val ATTRIBUTE_KEY: AttributeKey<PacketRegistry<Packet.INCOMING>> = AttributeKey
+    val ATTRIBUTE_KEY: AttributeKey<PacketRegistry<Packet.Incoming>> = AttributeKey
         .valueOf("protocol_state")
 
-    val HANDSHAKE: PacketRegistryImpl<Packet.INCOMING> = object : PacketRegistryImpl<Packet.INCOMING>() {
+    val HANDSHAKE: PacketRegistryImpl<Packet.Incoming> = object : PacketRegistryImpl<Packet.Incoming>() {
         init {
             put(0x00.toByte(), ::HandshakePacket)
         }
     }
 
-    val LOGIN: PacketRegistryImpl<Packet.INCOMING> = object : PacketRegistryImpl<Packet.INCOMING>() {
+    val LOGIN: PacketRegistryImpl<Packet.Incoming> = object : PacketRegistryImpl<Packet.Incoming>() {
         init {
             put(0x00.toByte(), ::LoginStartPacket)
             put(0x01.toByte(), ::EncryptionKeyResponsePacket)
         }
     }
 
-    val PLAY: PacketRegistryImpl<Packet.INCOMING> = object : PacketRegistryImpl<Packet.INCOMING>() {
+    val PLAY: PacketRegistryImpl<Packet.Incoming> = object : PacketRegistryImpl<Packet.Incoming>() {
         init {
             put(0x0A.toByte(), ::AnimationPacket)
             put(0x01.toByte(), ::ChatMessagePacket)
@@ -58,14 +58,14 @@ object ProtocolState {
         }
     }
 
-    val STATUS: PacketRegistryImpl<Packet.INCOMING> = object : PacketRegistryImpl<Packet.INCOMING>() {
+    val STATUS: PacketRegistryImpl<Packet.Incoming> = object : PacketRegistryImpl<Packet.Incoming>() {
         init {
             put(0x00.toByte(), ::RequestPacket)
             put(0x01.toByte(), ::PingPacket)
         }
     }
 
-    fun getState(i: Int): PacketRegistryImpl<Packet.INCOMING> {
+    fun getState(i: Int): PacketRegistryImpl<Packet.Incoming> {
         return if (i == 1) STATUS else LOGIN
     }
 }

@@ -1,7 +1,6 @@
 package gg.mineral.api.nbt
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
-import java.util.stream.Collectors
 
 /**
  * The `TAG_Compound` tag.
@@ -88,8 +87,8 @@ class CompoundTag
         val original = getTagList(key, type)
         val result: MutableList<V> = ArrayList(original.size)
         result.addAll(
-            original.stream().map { item: Tag<*> -> item.value as V }
-                .collect(Collectors.toList()))
+            original.map { item -> item.value as V }.toList()
+        )
         return result
     }
 

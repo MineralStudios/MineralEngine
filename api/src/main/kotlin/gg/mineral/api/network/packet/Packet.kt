@@ -6,7 +6,7 @@ import gg.mineral.api.network.packet.rw.ByteWriter
 import io.netty.buffer.ByteBuf
 
 interface Packet {
-    interface OUTGOING : Packet, ByteWriter {
+    interface Outgoing : Packet, ByteWriter {
         /**
          * Serialize the packet to the output stream.
          *
@@ -22,14 +22,7 @@ interface Packet {
         val id: Byte
     }
 
-    interface INCOMING : Packet, ByteReader {
-        /**
-         * Handle the packet when it is received.
-         *
-         * @param connection
-         */
-        fun received(connection: Connection)
-
+    interface Incoming : Packet, ByteReader {
         /**
          * Deserialize the packet from the input stream.
          *
@@ -38,12 +31,30 @@ interface Packet {
         fun deserialize(`is`: ByteBuf)
     }
 
-    interface ASYNC_INCOMING : INCOMING {
+    interface SyncHandler {
+        /**
+         * Handle the packet when it is received.
+         *
+         * @param connection
+         */
+        suspend fun receivedSync(connection: Connection)
+    }
+
+    interface AsyncHandler {
         /**
          * Handle the packet when it is received asynchronously.
          *
          * @param connection
          */
-        fun receivedAsync(connection: Connection)
+        suspend fun receivedAsync(connection: Connection)
+    }
+
+    interface EventLoopHandler {
+        /**
+         * Handle the packet when it is received on the event loop.
+         *
+         * @param connection
+         */
+        suspend fun receivedEventLoop(connection: Connection)
     }
 }

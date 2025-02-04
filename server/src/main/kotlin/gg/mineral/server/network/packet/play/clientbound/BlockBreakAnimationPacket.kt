@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf
 
 @JvmRecord
 data class BlockBreakAnimationPacket(val entityId: Int, val x: Int, val y: Int, val z: Int, val destroyStage: Byte) :
-    Packet.OUTGOING {
+    Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeVarInt(entityId)
         os.writeInt(x, y, z)

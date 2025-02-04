@@ -1,18 +1,18 @@
 package gg.mineral.api.network.connection
 
-import dev.zerite.craftlib.chat.component.BaseChatComponent
-import gg.mineral.api.MinecraftServer
 import gg.mineral.api.entity.living.human.Player
 import gg.mineral.api.network.packet.Packet
+import gg.mineral.api.snapshot.AsyncServerSnapshot
+import net.md_5.bungee.api.chat.BaseComponent
 import java.util.*
 
 interface Connection : PreLoginConnection {
     /**
      * Disconnects the connection.
      *
-     * @param disconnectMessage
+     * @param components The components to send to the client.
      */
-    fun disconnect(disconnectMessage: BaseChatComponent)
+    fun disconnect(vararg components: BaseComponent)
 
     /**
      * Gets the player attached to the connection.
@@ -29,18 +29,18 @@ interface Connection : PreLoginConnection {
     val uuid: UUID?
 
     /**
-     * Gets the server.
+     * Gets the AsyncServerRunnable.
      *
-     * @return The server.
+     * @return The AsyncServerRunnable.
      */
-    val server: MinecraftServer
+    val serverSnapshot: AsyncServerSnapshot
 
     /**
      * Queues packets to be sent to the client.
      *
      * @param packets
      */
-    fun queuePacket(vararg packets: Packet.OUTGOING)
+    fun queuePacket(vararg packets: Packet.Outgoing)
 
     /**
      * Gets the current ping of the connection.

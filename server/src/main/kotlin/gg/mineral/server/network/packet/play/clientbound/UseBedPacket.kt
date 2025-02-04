@@ -4,7 +4,7 @@ import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
 @JvmRecord
-data class UseBedPacket(val entityId: Int, val x: Int, val y: Short, val z: Int) : Packet.OUTGOING {
+data class UseBedPacket(val entityId: Int, val x: Int, val y: Short, val z: Int) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeInt(entityId, x)
         os.writeByte(y.toInt())

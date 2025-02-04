@@ -2,11 +2,17 @@ package gg.mineral.server.tick
 
 import gg.mineral.api.tick.TickLoop
 import gg.mineral.server.MinecraftServerImpl
-import gg.mineral.server.entity.EntityImpl
-import it.unimi.dsi.fastutil.objects.ObjectCollection
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.runBlocking
+import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
-class TickLoopImpl(private val server: MinecraftServerImpl) : TickLoop {
+open class TickLoopImpl(
+    val server: MinecraftServerImpl,
+    val executor: ScheduledExecutorService = server.executor,
+    val scope: CoroutineScope = CoroutineScope(executor.asCoroutineDispatcher())
+) : TickLoop {
     private var currentTicks = 0
     private var tickSection: Long = 0
     private var curTime: Long = 0
@@ -18,22 +24,14 @@ class TickLoopImpl(private val server: MinecraftServerImpl) : TickLoop {
     fun start() {
         tickSection = System.nanoTime()
 
-        server.tickExecutor.scheduleAtFixedRate(
-            { tick() }, 50, 50,
+        executor.scheduleAtFixedRate(
+            { runBlocking { tick() } }, 50, 50,
             TimeUnit.MILLISECONDS
         )
     }
 
-    private fun tick() {
+    open suspend fun tick() {
         try {
-            val entities: ObjectCollection<EntityImpl> = server.entities.values
-
-            for (entity in entities) entity.tick()
-
-            server.asyncExecutor.invokeAll(entities)
-
-            for (connection in server.connections) connection.call()
-
             curTime = System.nanoTime()
             if (++currentTicks % SAMPLE_INTERVAL == 0) {
                 val diff = curTime - tickSection

@@ -4,13 +4,14 @@ import gg.mineral.api.network.connection.Connection
 import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
-class AnimationPacket(var entityId: Int = 0, var animationId: Short = 0) : Packet.INCOMING, Packet.OUTGOING {
+class AnimationPacket(var entityId: Int = 0, var animationId: Short = 0) : Packet.Incoming, Packet.SyncHandler,
+    Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeVarInt(entityId)
         os.writeByte(animationId.toInt())
     }
 
-    override fun received(connection: Connection) {
+    override suspend fun receivedSync(connection: Connection) {
         if (animationId.toInt() == 1)
             connection.player?.swingArm()
     }

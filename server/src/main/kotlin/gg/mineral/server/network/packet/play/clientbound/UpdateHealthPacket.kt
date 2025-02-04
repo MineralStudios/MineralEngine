@@ -4,7 +4,7 @@ import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
 @JvmRecord
-data class UpdateHealthPacket(val health: Float, val hunger: Short, val saturation: Float) : Packet.OUTGOING {
+data class UpdateHealthPacket(val health: Float, val hunger: Short, val saturation: Float) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) {
         os.writeFloat(health)
         os.writeShort(hunger.toInt())
