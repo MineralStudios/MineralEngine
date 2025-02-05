@@ -16,7 +16,7 @@ import gg.mineral.server.network.packet.play.clientbound.SoundEffectPacket
 import gg.mineral.server.snapshot.AsyncServerSnapshotImpl
 import gg.mineral.server.world.WorldImpl
 import gg.mineral.server.world.chunk.ChunkImpl
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.sqrt
@@ -31,7 +31,7 @@ abstract class EntityImpl(
         set(value) {
             if (field === world) return
 
-            runBlocking {
+            serverSnapshot.server.syncScope.launch {
                 field.removeEntity(this@EntityImpl.id)
                 world.addEntity(this@EntityImpl)
                 field = value
@@ -88,12 +88,14 @@ abstract class EntityImpl(
     private val random: Random
         get() = ThreadLocalRandom.current()
 
-    open suspend fun tick() {
+    open fun tick() {
         currentTick++
+
+        serverSnapshot.server.syncScope.launch { world.updatePosition(this@EntityImpl) }
     }
 
     init {
-        runBlocking { world.addEntity(this@EntityImpl) }
+        serverSnapshot.server.syncScope.launch { world.addEntity(this@EntityImpl) }
     }
 
     override suspend fun attack(targetId: Int) {
@@ -177,8 +179,5 @@ abstract class EntityImpl(
         entity.motZ = motZ
     }
 
-    suspend fun cleanup() {
-        world.removeEntity(this.id)
-        if (this is PlayerImpl) this.visibleChunks.clear()
-    }
+    suspend fun cleanup() = world.removeEntity(this.id)
 }

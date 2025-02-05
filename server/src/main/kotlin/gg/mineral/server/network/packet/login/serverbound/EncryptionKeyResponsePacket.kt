@@ -11,7 +11,7 @@ class EncryptionKeyResponsePacket(
     var sharedSecretBytes: ByteArray? = null,
     var verifyToken: ByteArray? = null
 ) : Packet.Incoming, Packet.SyncHandler {
-    override suspend fun receivedSync(connection: Connection) {
+    override fun receivedSync(connection: Connection) {
         if (connection !is ConnectionImpl) return
         connection.serverSnapshot.scope.launch {
             val secretKey = connection.authenticate(sharedSecretBytes!!, verifyToken!!)

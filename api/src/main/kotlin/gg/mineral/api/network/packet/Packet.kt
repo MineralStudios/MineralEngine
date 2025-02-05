@@ -31,13 +31,22 @@ interface Packet {
         fun deserialize(`is`: ByteBuf)
     }
 
+    interface GlobalSyncHandler {
+        /**
+         * Handle the packet when it is received.
+         *
+         * @param connection
+         */
+        suspend fun receivedGlobalSync(connection: Connection)
+    }
+
     interface SyncHandler {
         /**
          * Handle the packet when it is received.
          *
          * @param connection
          */
-        suspend fun receivedSync(connection: Connection)
+        fun receivedSync(connection: Connection)
     }
 
     interface AsyncHandler {
@@ -55,6 +64,6 @@ interface Packet {
          *
          * @param connection
          */
-        suspend fun receivedEventLoop(connection: Connection)
+        fun receivedEventLoop(connection: Connection)
     }
 }

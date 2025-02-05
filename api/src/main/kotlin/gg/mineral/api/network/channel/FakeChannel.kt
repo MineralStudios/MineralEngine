@@ -9,9 +9,4 @@ interface FakeChannel {
      * @return The connection associated with this channel.
      */
     val connection: Connection
-
-    /**
-     * The peer channel.
-     */
-    var peer: FakeChannel?
 }

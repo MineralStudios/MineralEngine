@@ -33,6 +33,9 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.sync.withLock
 import net.md_5.bungee.api.chat.BaseComponent
 import net.minecrell.terminalconsole.SimpleTerminalConsole
 import org.apache.logging.log4j.LogManager
@@ -53,6 +56,7 @@ class MinecraftServerImpl(
         cores,
         TickThreadFactory.INSTANCE
     ),
+    val syncScope: CoroutineScope = CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher()),
     override val permissions: MutableSet<String> = ObjectOpenHashSet(listOf("*")),
     override val name: String = "Mineral-main"
 ) : SimpleTerminalConsole(), MinecraftServer,
@@ -341,9 +345,9 @@ class MinecraftServerImpl(
         return false
     }
 
-    fun newConnection(): ConnectionImpl = currentSnapshot.let {
+    suspend fun newConnection(): ConnectionImpl = currentSnapshot.let {
         check(it is AsyncServerSnapshotImpl) { "Current snapshot is not an AsyncServerSnapshotImpl." }
-        return ConnectionImpl(it).also { connection -> it.connections.add(connection) }
+        return ConnectionImpl(it).also { connection -> it.connectionsMutex.withLock { it.connections.add(connection) } }
     }
 
     companion object {

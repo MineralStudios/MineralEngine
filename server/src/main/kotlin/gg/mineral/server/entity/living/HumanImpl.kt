@@ -9,11 +9,11 @@ import gg.mineral.server.snapshot.AsyncServerSnapshotImpl
 import gg.mineral.server.world.WorldImpl
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
-import it.unimi.dsi.fastutil.ints.IntSet
+import kotlinx.coroutines.launch
 
 open class HumanImpl(id: Int, serverSnapshot: AsyncServerSnapshotImpl, world: WorldImpl, override val name: String) :
     LivingImpl(id, serverSnapshot, world), Human {
-    protected val entityRemoveIds: IntSet by lazy { IntOpenHashSet() }
+    protected val entityRemoveIds = IntOpenHashSet()
 
     val visibleEntities by lazy {
         object : Int2ObjectOpenHashMap<IntArray>() {
@@ -45,14 +45,15 @@ open class HumanImpl(id: Int, serverSnapshot: AsyncServerSnapshotImpl, world: Wo
         this.height = 1.8f
     }
 
-    override suspend fun swingArm() {
-        val fastIterator = visibleEntities.int2ObjectEntrySet().fastIterator()
-        while (fastIterator.hasNext()) {
-            val entry = fastIterator.next()
-            val id = entry.intKey
-            val player = world.getPlayer(id)
-
-            player?.updateArm(this)
+    override fun swingArm() {
+        serverSnapshot.server.syncScope.launch {
+            val fastIterator = visibleEntities.int2ObjectEntrySet().fastIterator()
+            while (fastIterator.hasNext()) {
+                val entry = fastIterator.next()
+                val id = entry.intKey
+                
+                world.getPlayer(id)?.updateArm(this@HumanImpl)
+            }
         }
     }
 

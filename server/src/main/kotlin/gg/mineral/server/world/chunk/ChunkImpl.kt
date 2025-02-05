@@ -2,15 +2,18 @@ package gg.mineral.server.world.chunk
 
 import gg.mineral.api.world.World
 import gg.mineral.api.world.chunk.Chunk
+import gg.mineral.server.entity.living.human.PlayerImpl
 import gg.mineral.server.network.packet.play.clientbound.ChunkDataPacket
 import gg.mineral.server.util.collection.NibbleArray
 import gg.mineral.server.world.block.Block
+import it.unimi.dsi.fastutil.ints.IntConsumer
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicReferenceArray
+import java.util.function.Consumer
 import java.util.zip.DeflaterOutputStream
 
 open class ChunkImpl(
@@ -29,8 +32,17 @@ open class ChunkImpl(
         entitiesMutex.withLock { entities.add(entityId) }
     }
 
-    suspend fun entityIterator(): it.unimi.dsi.fastutil.ints.IntIterator {
-        return entitiesMutex.withLock { entities.iterator() }
+    suspend fun iteratePlayers(consumer: Consumer<PlayerImpl>) {
+        entitiesMutex.withLock {
+            entities.forEach { entityId ->
+                val player = world.getPlayer(entityId)
+                if (player != null && player is PlayerImpl) consumer.accept(player)
+            }
+        }
+    }
+
+    suspend fun iterateEntityIds(consumer: IntConsumer) {
+        entitiesMutex.withLock { entities.forEach { consumer.accept(it) } }
     }
 
     /**

@@ -4,7 +4,6 @@ import gg.mineral.api.tick.TickLoop
 import gg.mineral.server.MinecraftServerImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.runBlocking
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
@@ -25,12 +24,18 @@ open class TickLoopImpl(
         tickSection = System.nanoTime()
 
         executor.scheduleAtFixedRate(
-            { runBlocking { tick() } }, 50, 50,
+            {
+                try {
+                    tick()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }, 50, 50,
             TimeUnit.MILLISECONDS
         )
     }
 
-    open suspend fun tick() {
+    open fun tick() {
         try {
             curTime = System.nanoTime()
             if (++currentTicks % SAMPLE_INTERVAL == 0) {

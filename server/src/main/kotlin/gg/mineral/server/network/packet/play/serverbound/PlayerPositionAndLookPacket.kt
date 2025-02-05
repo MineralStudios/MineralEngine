@@ -13,7 +13,7 @@ class PlayerPositionAndLookPacket(
     onGround: Boolean = false
 ) : PlayerPositionPacket(x, feetY, headY, z, onGround) {
 
-    override suspend fun receivedSync(connection: Connection) {
+    override fun receivedSync(connection: Connection) {
         super.receivedSync(connection)
 
         connection.player?.let {

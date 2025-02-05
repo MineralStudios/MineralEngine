@@ -8,6 +8,7 @@ import io.netty.channel.ChannelOption
 import io.netty.channel.socket.SocketChannel
 import io.netty.handler.flush.FlushConsolidationHandler
 import io.netty.handler.timeout.ReadTimeoutHandler
+import kotlinx.coroutines.runBlocking
 
 
 class ServerChannelInitializer(private val server: MinecraftServerImpl) : MineralChannelInitializer() {
@@ -28,8 +29,6 @@ class ServerChannelInitializer(private val server: MinecraftServerImpl) : Minera
             .addLast("encoder", PacketEncoder())
             .addLast("flow_handler", AutoReadHolderHandler())
 
-        val connection = server.newConnection()
-
-        pipeline.addLast("packet_handler", connection)
+        runBlocking { pipeline.addLast("packet_handler", server.newConnection()) }
     }
 }

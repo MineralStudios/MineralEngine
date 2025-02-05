@@ -40,7 +40,7 @@ interface World {
      * @param key The key of the chunk.
      * @return The chunk.
      */
-    suspend fun getChunk(key: Short): Chunk?
+    fun getChunk(key: Short): Chunk?
 
     /**
      * Gets the entity with the specified ID.

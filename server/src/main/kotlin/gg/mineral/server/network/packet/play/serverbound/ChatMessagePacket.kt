@@ -19,7 +19,7 @@ class ChatMessagePacket(private var message: String? = null) : Packet.Incoming, 
         server.broadcastMessage(chatMsg)
     }
 
-    override suspend fun receivedSync(connection: Connection) {
+    override fun receivedSync(connection: Connection) {
         if (message?.startsWith("/") == false) return
 
         val server = connection.serverSnapshot.server
@@ -39,7 +39,12 @@ class ChatMessagePacket(private var message: String? = null) : Packet.Incoming, 
         val command: Command? = commandMap.get(commandName)
 
         if (server is MinecraftServerImpl) server.msg(connection.name + " executed command: " + message)
-        command?.execute(player, args)
+        try {
+            command?.execute(player, args) ?: player.msg(ChatColor.RED.toString() + "Unknown command.")
+        } catch (e: Exception) {
+            player.msg(ChatColor.RED.toString() + "An error occurred while executing the command.")
+            e.printStackTrace()
+        }
     }
 
     override fun deserialize(`is`: ByteBuf) {

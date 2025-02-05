@@ -30,7 +30,6 @@ class WorldImpl(
     val server: MinecraftServerImpl
 ) :
     World {
-    private val generatorMutex = Mutex()
     private val chunkPositionsMutex = Mutex()
     private val entitiesMutex = Mutex()
 
@@ -52,13 +51,13 @@ class WorldImpl(
         }
     }
 
-    override suspend fun getChunk(key: Short): Chunk {
+    override fun getChunk(key: Short): Chunk {
         val unsignedKey = unsigned(key)
         return chunkCache[unsignedKey] ?: run {
             val x = xFromKey(key)
             val z = zFromKey(key)
             val newChunk =
-                generatorMutex.withLock { generator?.generate(this@WorldImpl, x, z) } ?: EmptyChunkImpl(
+                generator?.generate(this@WorldImpl, x, z) ?: EmptyChunkImpl(
                     this@WorldImpl,
                     x,
                     z

@@ -6,8 +6,8 @@ import io.netty.buffer.ByteBuf
 
 
 class EntityActionPacket(var entityId: Int = 0, var actionId: Byte = 0, var jumpBoost: Int = 0) : Packet.Incoming,
-    Packet.SyncHandler {
-    override suspend fun receivedSync(connection: Connection) {
+    Packet.GlobalSyncHandler {
+    override suspend fun receivedGlobalSync(connection: Connection) {
         val player = connection.serverSnapshot.getPlayer(entityId) ?: return
 
         when (actionId.toInt()) {

@@ -4,16 +4,13 @@ import gg.mineral.api.network.connection.Connection
 import gg.mineral.api.network.packet.Packet
 import gg.mineral.server.network.connection.ConnectionImpl
 import io.netty.buffer.ByteBuf
-import java.util.*
 
-class LoginStartPacket(var name: String? = null, var uuid: UUID? = null) : Packet.Incoming, Packet.SyncHandler {
-    override suspend fun receivedSync(connection: Connection) {
-        if (connection is ConnectionImpl) connection.attemptLogin(name ?: "", uuid)
+class LoginStartPacket(var name: String? = null) : Packet.Incoming, Packet.SyncHandler {
+    override fun receivedSync(connection: Connection) {
+        if (connection is ConnectionImpl) connection.attemptLogin(name ?: "")
     }
 
     override fun deserialize(`is`: ByteBuf) {
         this.name = `is`.readString()
-        if (`is`.readableBytes() == 0) return
-        this.uuid = `is`.readUuid()
     }
 }

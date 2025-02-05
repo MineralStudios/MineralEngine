@@ -7,27 +7,30 @@ import gg.mineral.server.config.GroovyConfig
 import gg.mineral.server.network.packet.status.clientbound.ResponsePacket
 import gg.mineral.server.network.ping.ServerPing
 import io.netty.buffer.ByteBuf
+import kotlinx.coroutines.launch
 
 class RequestPacket : Packet.Incoming, Packet.EventLoopHandler {
     companion object {
         val serverIcon by lazy { ServerPing.Icon("server-icon.png") }
     }
 
-    override suspend fun receivedEventLoop(connection: Connection) {
+    override fun receivedEventLoop(connection: Connection) {
         val server = connection.serverSnapshot.server
 
         if (server !is MinecraftServerImpl) return
 
         val config: GroovyConfig = server.config
 
-        val serverPing = ServerPing(
-            config.motd,
-            server.getOnlineCount(),
-            config.maxPlayers, 5,
-            config.brandName, serverIcon
-        )
+        server.syncScope.launch {
+            val serverPing = ServerPing(
+                config.motd,
+                server.getOnlineCount(),
+                config.maxPlayers, 5,
+                config.brandName, serverIcon
+            )
 
-        connection.queuePacket(ResponsePacket(serverPing.toJsonString()))
+            connection.queuePacket(ResponsePacket(serverPing.toJsonString()))
+        }
     }
 
     override fun deserialize(`is`: ByteBuf) {}

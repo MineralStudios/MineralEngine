@@ -8,7 +8,7 @@ class PingPacket(var time: Long = 0) : Packet.Incoming, Packet.Outgoing, Packet.
     override val id: Byte
         get() = 0x01
 
-    override suspend fun receivedEventLoop(connection: Connection) =
+    override fun receivedEventLoop(connection: Connection) =
         connection.queuePacket(this)
 
     override fun deserialize(`is`: ByteBuf) {

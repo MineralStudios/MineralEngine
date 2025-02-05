@@ -6,11 +6,13 @@ import gg.mineral.api.snapshot.AsyncServerSnapshot
 import gg.mineral.server.MinecraftServerImpl
 import gg.mineral.server.entity.EntityImpl
 import gg.mineral.server.entity.living.human.PlayerImpl
+import gg.mineral.server.network.channel.FakeChannelImpl
 import gg.mineral.server.network.connection.ConnectionImpl
 import gg.mineral.server.tick.TickLoopImpl
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
+import kotlinx.coroutines.sync.Mutex
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.util.*
@@ -31,6 +33,7 @@ class AsyncServerSnapshotImpl(serverImpl: MinecraftServerImpl) : AsyncServerSnap
     val players = Int2ObjectOpenHashMap<PlayerImpl?>()
     val playerNames = Object2ObjectOpenHashMap<String, PlayerImpl?>()
     val playerConnections = Object2ObjectOpenHashMap<ConnectionImpl, PlayerImpl?>()
+    val connectionsMutex = Mutex()
     override val connections: MutableSet<Connection> = ObjectOpenHashSet()
     private val syncedTaskQueue = ConcurrentLinkedQueue<Runnable>()
     val millis: Long
@@ -41,7 +44,7 @@ class AsyncServerSnapshotImpl(serverImpl: MinecraftServerImpl) : AsyncServerSnap
         start()
     }
 
-    override suspend fun tick() {
+    override fun tick() {
         super.tick()
 
         while (!syncedTaskQueue.isEmpty()) syncedTaskQueue.poll().run()
@@ -63,6 +66,7 @@ class AsyncServerSnapshotImpl(serverImpl: MinecraftServerImpl) : AsyncServerSnap
         checkNotNull(spawnWorld) { "Spawn world not found for player." }
 
         val player = PlayerImpl(connection, server.nextEntityId.getAndIncrement(), spawnWorld)
+        if (!player.onJoin()) return player
         addPlayer(connection, player)
         return player
     }
@@ -77,7 +81,12 @@ class AsyncServerSnapshotImpl(serverImpl: MinecraftServerImpl) : AsyncServerSnap
                 player
             ) == null
         ) { "Player with connection $connection already exists." }
-        check(playerNames.put(player.name, player) == null) { "Player with name " + player.name + " already exists." }
+        check(
+            connection.channel is FakeChannelImpl || playerNames.put(
+                player.name,
+                player
+            ) == null
+        ) { "Player with name " + player.name + " already exists." }
         addEntity(player)
     }
 

@@ -11,7 +11,7 @@ class AnimationPacket(var entityId: Int = 0, var animationId: Short = 0) : Packe
         os.writeByte(animationId.toInt())
     }
 
-    override suspend fun receivedSync(connection: Connection) {
+    override fun receivedSync(connection: Connection) {
         if (animationId.toInt() == 1)
             connection.player?.swingArm()
     }
