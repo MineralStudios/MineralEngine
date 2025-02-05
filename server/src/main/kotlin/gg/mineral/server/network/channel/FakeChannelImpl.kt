@@ -6,7 +6,7 @@ import gg.mineral.api.network.connection.Connection
 import io.netty.channel.Channel
 import io.netty.channel.embedded.EmbeddedChannel
 
-class FakeChannelImpl(mineralChannelInitializer: MineralChannelInitializer, var peer: FakeChannelImpl? = null) :
+class FakeChannelImpl(mineralChannelInitializer: MineralChannelInitializer, override var peer: FakeChannel? = null) :
     EmbeddedChannel(),
     FakeChannel {
     override val connection: Connection
@@ -26,7 +26,9 @@ class FakeChannelImpl(mineralChannelInitializer: MineralChannelInitializer, var 
     private fun transferToPeer() {
         while (true) {
             val outbound = this.readOutbound<Any>() ?: break
-            peer?.writeInbound(outbound)
+            peer?.let {
+                if (it is EmbeddedChannel) it.writeInbound(outbound)
+            }
         }
     }
 }
