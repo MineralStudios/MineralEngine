@@ -307,10 +307,10 @@ class MinecraftServerImpl(
         if (group != null) group!!.shutdownGracefully().sync()
     }
 
-    override fun createFakeChannel(initializer: MineralChannelInitializer, peerChannel: FakeChannel) =
+    override fun createFakeChannel(initializer: MineralChannelInitializer, peerChannel: FakeChannel?) =
         FakeChannelImpl(initializer, if (peerChannel is FakeChannelImpl) peerChannel else null)
 
-    override fun createFakeServerChannel(peerChannel: FakeChannel) = createFakeChannel(channelInitializer, peerChannel)
+    override fun createFakeServerChannel(peerChannel: FakeChannel?) = createFakeChannel(channelInitializer, peerChannel)
 
     override suspend fun getOnlinePlayers() = worlds.map { it.value.getEntities().filterIsInstance<Player>() }.flatten()
 

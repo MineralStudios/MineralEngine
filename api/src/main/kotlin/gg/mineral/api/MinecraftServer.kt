@@ -54,7 +54,7 @@ interface MinecraftServer : ServerSnapshot {
      *
      * @return The fake channel.
      */
-    fun createFakeChannel(initializer: MineralChannelInitializer, peerChannel: FakeChannel): FakeChannel
+    fun createFakeChannel(initializer: MineralChannelInitializer, peerChannel: FakeChannel? = null): FakeChannel
 
     /**
      * Creates a fake server channel.
@@ -63,5 +63,5 @@ interface MinecraftServer : ServerSnapshot {
      *
      * @return The fake server channel.
      */
-    fun createFakeServerChannel(peerChannel: FakeChannel): FakeChannel
+    fun createFakeServerChannel(peerChannel: FakeChannel? = null): FakeChannel
 }
