@@ -6,12 +6,12 @@ import gg.mineral.api.network.connection.Connection
 import io.netty.channel.Channel
 import io.netty.channel.embedded.EmbeddedChannel
 
-class FakeChannelImpl(mineralChannelInitializer: MineralChannelInitializer, private val peer: FakeChannelImpl? = null) :
+class FakeChannelImpl(mineralChannelInitializer: MineralChannelInitializer, private var peer: FakeChannelImpl? = null) :
     EmbeddedChannel(),
     FakeChannel {
     override val connection: Connection
         get() = this.pipeline().get("packet_handler") as Connection
-
+    
     init {
         mineralChannelInitializer.initChannel(this)
         this.pipeline().fireChannelActive()
