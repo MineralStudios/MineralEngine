@@ -1,6 +1,7 @@
 package gg.mineral.server.network.channel
 
 import gg.mineral.api.network.channel.FakeChannel
+import gg.mineral.api.network.channel.MineralChannelInitializer
 import gg.mineral.api.network.connection.Connection
 import io.netty.channel.Channel
 import io.netty.channel.embedded.EmbeddedChannel

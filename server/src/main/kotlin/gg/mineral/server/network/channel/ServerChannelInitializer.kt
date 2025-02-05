@@ -1,5 +1,6 @@
 package gg.mineral.server.network.channel
 
+import gg.mineral.api.network.channel.MineralChannelInitializer
 import gg.mineral.server.MinecraftServerImpl
 import gg.mineral.server.network.packet.handler.*
 import io.netty.channel.Channel

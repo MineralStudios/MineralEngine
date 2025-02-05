@@ -4,6 +4,7 @@ import gg.mineral.api.MinecraftServer
 import gg.mineral.api.command.CommandExecutor
 import gg.mineral.api.entity.living.human.Player
 import gg.mineral.api.network.channel.FakeChannel
+import gg.mineral.api.network.channel.MineralChannelInitializer
 import gg.mineral.api.plugin.MineralPlugin
 import gg.mineral.api.plugin.event.Event
 import gg.mineral.api.snapshot.ServerSnapshot
@@ -182,6 +183,7 @@ class MinecraftServerImpl(
 
                 val constructor = pluginClass.getConstructor()
                 val plugin = constructor.newInstance()
+                plugin.server = this@MinecraftServerImpl
 
                 this.add(plugin)
                 plugin.onEnable()
@@ -305,8 +307,10 @@ class MinecraftServerImpl(
         if (group != null) group!!.shutdownGracefully().sync()
     }
 
-    override fun createFakeChannel(peerChannel: FakeChannel) =
-        FakeChannelImpl(channelInitializer, if (peerChannel is FakeChannelImpl) peerChannel else null)
+    override fun createFakeChannel(initializer: MineralChannelInitializer, peerChannel: FakeChannel) =
+        FakeChannelImpl(initializer, if (peerChannel is FakeChannelImpl) peerChannel else null)
+
+    override fun createFakeServerChannel(peerChannel: FakeChannel) = createFakeChannel(channelInitializer, peerChannel)
 
     override suspend fun getOnlinePlayers() = worlds.map { it.value.getEntities().filterIsInstance<Player>() }.flatten()
 

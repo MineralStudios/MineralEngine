@@ -2,6 +2,7 @@ package gg.mineral.api
 
 import gg.mineral.api.command.CommandMap
 import gg.mineral.api.network.channel.FakeChannel
+import gg.mineral.api.network.channel.MineralChannelInitializer
 import gg.mineral.api.snapshot.ServerSnapshot
 import java.util.concurrent.ScheduledExecutorService
 
@@ -49,7 +50,18 @@ interface MinecraftServer : ServerSnapshot {
     /**
      * Creates a fake channel.
      *
+     * @param initializer The initializer.
+     *
      * @return The fake channel.
      */
-    fun createFakeChannel(peerChannel: FakeChannel): FakeChannel
+    fun createFakeChannel(initializer: MineralChannelInitializer, peerChannel: FakeChannel): FakeChannel
+
+    /**
+     * Creates a fake server channel.
+     *
+     * @param peerChannel The peer channel.
+     *
+     * @return The fake server channel.
+     */
+    fun createFakeServerChannel(peerChannel: FakeChannel): FakeChannel
 }
