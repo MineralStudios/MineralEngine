@@ -26,10 +26,8 @@ import io.netty.channel.SimpleChannelInboundHandler
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import net.md_5.bungee.api.chat.BaseComponent
-import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.apache.logging.log4j.core.config.Configurator
 import java.util.*
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
@@ -59,12 +57,12 @@ class ConnectionImpl(override val serverSnapshot: AsyncServerSnapshotImpl) :
         get() = channel?.remoteAddress().toString()
     private var connected = true
 
-    fun attemptLogin(name: String) {
+    fun attemptLogin(name: String, uuid: UUID? = null) {
         this.name = name
 
         val player = serverSnapshot.playerNames[name]
 
-        if (player != null) {
+        if (player != null && channel !is FakeChannelImpl) {
             disconnect(serverSnapshot.server.config.disconnectAlreadyLoggedIn)
             return
         }
@@ -80,7 +78,7 @@ class ConnectionImpl(override val serverSnapshot: AsyncServerSnapshotImpl) :
             return
         }
 
-        this.uuid = UUIDUtil.fromName(name)
+        this.uuid = uuid ?: UUIDUtil.fromName(name)
         this.loginSuccess()
         this.spawnPlayer()
     }
@@ -225,7 +223,7 @@ class ConnectionImpl(override val serverSnapshot: AsyncServerSnapshotImpl) :
         private val LOGGER: Logger = LogManager.getLogger(Connection::class.java)
 
         init {
-            Configurator.setAllLevels(LOGGER.name, Level.getLevel("debug"))
+            //Configurator.setAllLevels(LOGGER.name, Level.getLevel("debug"))
         }
     }
 }

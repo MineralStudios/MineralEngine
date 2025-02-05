@@ -274,6 +274,8 @@ class MinecraftServerImpl(
 
         LOGGER.info("Server started on port {} [{}ms].", config.port, (System.nanoTime() - startTime) / 1000000)
 
+        LOGGER.info(loadedPlugins.size.toString() + " plugins loaded.")
+
         super.start()
     }
 
