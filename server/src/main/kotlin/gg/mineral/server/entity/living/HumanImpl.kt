@@ -5,32 +5,15 @@ import gg.mineral.api.entity.living.human.property.Gamemode
 import gg.mineral.server.entity.LivingImpl
 import gg.mineral.server.entity.living.human.PlayerImpl
 import gg.mineral.server.network.packet.play.bidirectional.AnimationPacket
-import gg.mineral.server.snapshot.AsyncServerSnapshotImpl
 import gg.mineral.server.world.WorldImpl
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
-import it.unimi.dsi.fastutil.ints.IntSet
 
-open class HumanImpl(id: Int, serverSnapshot: AsyncServerSnapshotImpl, world: WorldImpl, override val name: String) :
-    LivingImpl(id, serverSnapshot, world), Human {
-    protected val entityRemoveIds: IntSet by lazy { IntOpenHashSet() }
+open class HumanImpl(id: Int, world: WorldImpl, override val name: String) :
+    LivingImpl(id, world), Human {
+    val entityRemoveIds = IntOpenHashSet()
 
-    val visibleEntities by lazy {
-        object : Int2ObjectOpenHashMap<IntArray>() {
-            override fun remove(key: Int): IntArray {
-                val value = super.remove(key)
-                if (value != null) entityRemoveIds.add(key)
-                return value
-            }
-
-            override fun get(key: Int): IntArray? = super.get(key)
-
-            override fun getOrDefault(key: Int, defaultValue: IntArray): IntArray =
-                super.getOrDefault(key, defaultValue)
-
-            override fun containsKey(key: Int): Boolean = super.containsKey(key)
-        }
-    }
+    val visibleEntities = Int2ObjectOpenHashMap<IntArray>()
 
     override var extraKnockback: Boolean = false
 
@@ -45,14 +28,13 @@ open class HumanImpl(id: Int, serverSnapshot: AsyncServerSnapshotImpl, world: Wo
         this.height = 1.8f
     }
 
-    override suspend fun swingArm() {
+    override fun swingArm() {
         val fastIterator = visibleEntities.int2ObjectEntrySet().fastIterator()
         while (fastIterator.hasNext()) {
             val entry = fastIterator.next()
             val id = entry.intKey
-            val player = world.getPlayer(id)
 
-            player?.updateArm(this)
+            world.getPlayer(id)?.updateArm(this@HumanImpl)
         }
     }
 

@@ -1,5 +1,6 @@
 package gg.mineral.api.plugin
 
+import gg.mineral.api.MinecraftServer
 import gg.mineral.api.command.Command
 import gg.mineral.api.plugin.listener.Listener
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
@@ -7,6 +8,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 abstract class MineralPlugin {
     val listeners: MutableList<Listener> = ArrayList()
     val commands: MutableMap<String, Command> = Object2ObjectOpenHashMap()
+    lateinit var server: MinecraftServer
 
     fun registerListener(vararg listenerClasses: Class<*>) {
         for (listenerClass in listenerClasses) {

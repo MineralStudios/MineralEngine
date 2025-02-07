@@ -2,42 +2,43 @@ package gg.mineral.server.entity
 
 import gg.mineral.api.entity.Entity
 import gg.mineral.api.math.MathUtil.cos
+import gg.mineral.api.math.MathUtil.floor
 import gg.mineral.api.math.MathUtil.sin
 import gg.mineral.api.math.MathUtil.toPitchUnits
 import gg.mineral.api.math.MathUtil.toRadians
 import gg.mineral.api.math.MathUtil.toSoundUnits
 import gg.mineral.api.math.MathUtil.toVelocityUnits
+import gg.mineral.server.MinecraftServerImpl
 import gg.mineral.server.command.impl.KnockbackCommand
 import gg.mineral.server.entity.living.HumanImpl
 import gg.mineral.server.entity.living.human.PlayerImpl
 import gg.mineral.server.network.packet.play.clientbound.EntityStatusPacket
 import gg.mineral.server.network.packet.play.clientbound.EntityVelocityPacket
 import gg.mineral.server.network.packet.play.clientbound.SoundEffectPacket
-import gg.mineral.server.snapshot.AsyncServerSnapshotImpl
 import gg.mineral.server.world.WorldImpl
 import gg.mineral.server.world.chunk.ChunkImpl
-import kotlinx.coroutines.runBlocking
+import gg.mineral.server.world.chunk.ChunkImpl.Companion.toKey
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.sqrt
 
 abstract class EntityImpl(
     override val id: Int,
-    final override val serverSnapshot: AsyncServerSnapshotImpl,
     world: WorldImpl
 ) : Entity {
+
+    override val server: MinecraftServerImpl
+        get() = world.server
 
     override var world = world
         set(value) {
             if (field === world) return
 
-            runBlocking {
-                field.removeEntity(this@EntityImpl.id)
-                world.addEntity(this@EntityImpl)
-                field = value
+            field.removeEntity(this@EntityImpl.id)
+            world.addEntity(this@EntityImpl)
+            field = value
 
-                if (this is PlayerImpl) this.visibleChunks.clear()
-            }
+            if (this is PlayerImpl) this.visibleChunks.clear()
         }
 
     override var x: Double = 0.0
@@ -88,15 +89,17 @@ abstract class EntityImpl(
     private val random: Random
         get() = ThreadLocalRandom.current()
 
-    open suspend fun tick() {
+    open fun tick() {
         currentTick++
+
+        world.updatePosition(this)
     }
 
     init {
-        runBlocking { world.addEntity(this@EntityImpl) }
+        world.addEntity(this)
     }
 
-    override suspend fun attack(targetId: Int) {
+    override fun attack(targetId: Int) {
         val entity = world.getEntity(targetId) ?: return
 
         if (entity.currentTick - entity.lastDamaged < 10) return
@@ -158,27 +161,48 @@ abstract class EntityImpl(
             toVelocityUnits(motY), toVelocityUnits(motZ)
         )
 
-        if (entity is PlayerImpl) entity.connection.queuePacket(statusPacket, velocityPacket)
-
+        if (entity is PlayerImpl) entity.connection.queuePacket(velocityPacket)
         if (this is PlayerImpl) {
-            this.connection.queuePacket(
-                statusPacket, SoundEffectPacket(
-                    "game.player.hurt",
-                    toSoundUnits(entity.x), toSoundUnits(entity.y),
-                    toSoundUnits(entity.z), 1.0f, toPitchUnits(
-                        ((random.nextFloat()
-                                - random.nextFloat()) * 0.2f + 1.0f).toDouble()
-                    )
-                )
-            )
+            val chunkX = floor(this.x / 16).toByte()
+            val chunkZ = floor(this.z / 16).toByte()
+
+            for (xOffset in -2..2) {
+                val cX = (chunkX + xOffset).toByte()
+                for (zOffset in -2..2) {
+                    val cZ = (chunkZ + zOffset).toByte()
+                    val chunkKey = toKey(cX, cZ)
+                    val chunk = world.getChunk(chunkKey) as ChunkImpl
+                    val entityIterator = chunk.entities.iterator()
+                    while (entityIterator.hasNext()) {
+                        val entityId = entityIterator.nextInt()
+                        val player = world.getEntity(entityId) as? PlayerImpl ?: continue
+                        if (!player.visibleEntities.containsKey(entity.id) && player.id != entityId) continue
+
+                        player.connection.queuePacket(statusPacket)
+
+                        if (player.id != entity.id) {
+                            player.connection.queuePacket(
+                                SoundEffectPacket(
+                                    "game.player.hurt",
+                                    toSoundUnits(entity.x), toSoundUnits(entity.y),
+                                    toSoundUnits(entity.z), 1.0f, toPitchUnits(
+                                        ((random.nextFloat()
+                                                - random.nextFloat()) * 0.2f + 1.0f).toDouble()
+                                    )
+                                )
+                            )
+                        }
+                    }
+                }
+            }
         }
+
         entity.motX = motX
         entity.motY = motY
         entity.motZ = motZ
     }
 
-    suspend fun cleanup() {
+    fun cleanup() {
         world.removeEntity(this.id)
-        if (this is PlayerImpl) this.visibleChunks.clear()
     }
 }

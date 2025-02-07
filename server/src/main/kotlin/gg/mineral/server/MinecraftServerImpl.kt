@@ -1,20 +1,19 @@
 package gg.mineral.server
 
 import gg.mineral.api.MinecraftServer
-import gg.mineral.api.command.CommandExecutor
 import gg.mineral.api.entity.living.human.Player
-import gg.mineral.api.network.channel.FakeChannel
+import gg.mineral.api.network.connection.Connection
 import gg.mineral.api.plugin.MineralPlugin
 import gg.mineral.api.plugin.event.Event
-import gg.mineral.api.snapshot.ServerSnapshot
+import gg.mineral.api.tick.TickLoop
 import gg.mineral.api.world.World
 import gg.mineral.server.command.CommandMapImpl
 import gg.mineral.server.command.impl.*
 import gg.mineral.server.config.GroovyConfig
-import gg.mineral.server.network.channel.FakeChannelImpl
+import gg.mineral.server.entity.EntityImpl
+import gg.mineral.server.entity.living.human.PlayerImpl
 import gg.mineral.server.network.channel.ServerChannelInitializer
 import gg.mineral.server.network.connection.ConnectionImpl
-import gg.mineral.server.snapshot.AsyncServerSnapshotImpl
 import gg.mineral.server.tick.TickThreadFactory
 import gg.mineral.server.world.WorldImpl
 import gg.mineral.server.world.chunk.ChunkImpl
@@ -28,10 +27,19 @@ import io.netty.channel.epoll.EpollServerSocketChannel
 import io.netty.channel.kqueue.KQueue
 import io.netty.channel.kqueue.KQueueEventLoopGroup
 import io.netty.channel.kqueue.KQueueServerSocketChannel
+import io.netty.channel.local.LocalAddress
+import io.netty.channel.local.LocalChannel
+import io.netty.channel.local.LocalEventLoopGroup
+import io.netty.channel.local.LocalServerChannel
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
 import net.md_5.bungee.api.chat.BaseComponent
 import net.minecrell.terminalconsole.SimpleTerminalConsole
 import org.apache.logging.log4j.LogManager
@@ -43,21 +51,178 @@ import java.io.InputStreamReader
 import java.net.InetSocketAddress
 import java.net.URLClassLoader
 import java.util.*
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicInteger
 
 class MinecraftServerImpl(
-    override val executor: ScheduledExecutorService = Executors.newScheduledThreadPool(
-        cores,
-        TickThreadFactory.INSTANCE
-    ),
-    override val permissions: MutableSet<String> = ObjectOpenHashSet(listOf("*")),
-    override val name: String = "Mineral-main"
+    override val executor: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor(TickThreadFactory()),
+    val syncDispatcher: CoroutineDispatcher = executor.asCoroutineDispatcher(),
+    override val asyncExecutor: ExecutorService = Executors.newWorkStealingPool(),
+    override val permissions: MutableSet<String> = ObjectOpenHashSet(listOf("*"))
 ) : SimpleTerminalConsole(), MinecraftServer,
-    CommandExecutor,
     Completer {
-    val worlds: Byte2ObjectOpenHashMap<WorldImpl> by lazy {
+
+    val asyncScope = CoroutineScope(asyncExecutor.asCoroutineDispatcher())
+    val entities = Int2ObjectOpenHashMap<EntityImpl?>()
+    val players = Int2ObjectOpenHashMap<PlayerImpl?>()
+    val playerNames = Object2ObjectOpenHashMap<String, PlayerImpl?>()
+    val playerConnections = Object2ObjectOpenHashMap<ConnectionImpl, PlayerImpl?>()
+    override val connections: MutableSet<Connection> = ObjectOpenHashSet()
+    private val syncedTaskQueue = ConcurrentLinkedQueue<Runnable>()
+    val millis: Long
+        get() = (System.nanoTime() / 1e6).toLong()
+
+    private var currentTicks = 0
+    private var tickSection: Long = 0
+    private var curTime: Long = 0
+
+    override var tps1: RollingAverageImpl = RollingAverageImpl(60)
+    override var tps5: RollingAverageImpl = RollingAverageImpl(60 * 5)
+    override var tps15: RollingAverageImpl = RollingAverageImpl(60 * 15)
+
+    private fun startTickLoop() {
+        tickSection = System.nanoTime()
+
+        executor.scheduleAtFixedRate(
+            {
+                try {
+                    tick()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }, 50, 50,
+            TimeUnit.MILLISECONDS
+        )
+    }
+
+    class RollingAverageImpl internal constructor(private val size: Int) : TickLoop.RollingAverage {
+        private val samples = DoubleArray(size)
+        private val times = LongArray(size)
+        override val average: Double
+            get() = total / time
+
+        private var time = size * SEC_IN_NANO
+        private var total = (TPS * SEC_IN_NANO * size).toDouble()
+        private var index = 0
+
+        init {
+            for (i in 0..<size) {
+                samples[i] = TPS.toDouble()
+                times[i] = SEC_IN_NANO
+            }
+        }
+
+        fun add(x: Double, t: Long) {
+            time -= times[index]
+            total -= samples[index] * times[index]
+            samples[index] = x
+            times[index] = t
+            time += t
+            total += x * t
+            if (++index == size) index = 0
+        }
+    }
+
+    private fun tick() {
+        try {
+            curTime = System.nanoTime()
+            if (++currentTicks % SAMPLE_INTERVAL == 0) {
+                val diff = curTime - tickSection
+                val currentTps = 1E9 / diff * SAMPLE_INTERVAL
+                tps1.add(currentTps, diff)
+                tps5.add(currentTps, diff)
+                tps15.add(currentTps, diff)
+                tickSection = curTime
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        while (!syncedTaskQueue.isEmpty()) syncedTaskQueue.poll().run()
+        synchronized(this.connections) {
+            connections.forEach { it.call() }
+        }
+        synchronized(entities) {
+            entities.values.forEach { it?.tick() }
+        }
+    }
+
+    fun disconnected(connection: ConnectionImpl) = playerConnections.remove(connection)?.let {
+        LOGGER.info("{} has disconnected. [UUID: {}].", it.name, it.uuid)
+        synchronized(players) {
+            players.remove(it.id)
+            playerNames.remove(it.name)
+        }
+        synchronized(entities) {
+            entities.remove(it.id)?.cleanup()
+        }
+    }
+
+    @kotlin.Throws(IllegalStateException::class)
+    fun createPlayer(
+        connection: ConnectionImpl, x: Double = 0.0,
+        y: Double = 0.0,
+        z: Double = 0.0,
+        yaw: Float = 0.0f,
+        pitch: Float = 0.0f
+    ): PlayerImpl {
+        val spawnWorld = worlds[0.toByte()]
+
+        checkNotNull(spawnWorld) { "Spawn world not found for player." }
+
+        val player = PlayerImpl(connection, nextEntityId.getAndIncrement(), spawnWorld)
+        if (!player.onJoin(x, y, z, yaw, pitch)) return player
+        addPlayer(connection, player)
+        return player
+    }
+
+
+    @kotlin.Throws(IllegalStateException::class)
+    fun addPlayer(connection: ConnectionImpl, player: PlayerImpl) {
+        check(players.put(player.id, player) == null) { "Player with id " + player.id + " already exists." }
+        check(
+            playerConnections.put(
+                connection,
+                player
+            ) == null
+        ) { "Player with connection $connection already exists." }
+        check(
+            connection.channel is LocalChannel || playerNames.put(
+                player.name,
+                player
+            ) == null
+        ) { "Player with name " + player.name + " already exists." }
+        addEntity(player)
+    }
+
+    @kotlin.Throws(IllegalStateException::class)
+    fun addEntity(entity: EntityImpl) {
+        synchronized(entities) {
+            check(entities.put(entity.id, entity) == null) { "Entity with id " + entity.id + " already exists." }
+        }
+    }
+
+    fun removeEntity(id: Int) {
+        synchronized(entities) {
+            entities.remove(id)?.cleanup()
+        }
+        synchronized(players) {
+            players.remove(id)?.disconnect(config.disconnectUnknown)
+        }
+    }
+
+    override fun getPlayer(name: String) = playerNames[name]
+
+    override fun getPlayer(entityId: Int) = players[entityId]
+
+    override fun execute(runnable: Runnable) {
+        syncedTaskQueue.add(runnable)
+    }
+
+    override fun getOnlinePlayers(): Collection<Player> =
+        synchronized(players) { Collections.unmodifiableCollection<Player>(players.values) }
+
+    private val worlds: Byte2ObjectOpenHashMap<WorldImpl> by lazy {
         object : Byte2ObjectOpenHashMap<WorldImpl>() {
             init {
                 val startTime = System.nanoTime()
@@ -130,31 +295,14 @@ class MinecraftServerImpl(
             override fun remove(k: Byte): WorldImpl? = super.remove(k)
         }
     }
-
     override val server: MinecraftServer get() = this
-    override val serverSnapshot: ServerSnapshot
-        get() = this
-    override val snapshots: Array<ServerSnapshot> by lazy {
-        Array(cores) { AsyncServerSnapshotImpl(this) }
-    }
-    private val currentSnapshotIndex = AtomicInteger(0)
-
-    private val currentSnapshot: ServerSnapshot
-        get() = snapshots[currentSnapshotIndex.getAndIncrement() % snapshots.size]
 
     val config = GroovyConfig()
 
     private val loadedPlugins: ObjectOpenHashSet<MineralPlugin> by lazy {
         object : ObjectOpenHashSet<MineralPlugin>() {
             init {
-                val startTime = System.nanoTime()
                 this.loadPlugins(File(config.pluginsFolder))
-
-                LOGGER.info(
-                    "Loaded {} plugins [{}ms].",
-                    this.size,
-                    (System.nanoTime() - startTime) / 1000000
-                )
             }
 
             private fun loadPlugins(pluginDirectory: File) {
@@ -182,6 +330,7 @@ class MinecraftServerImpl(
 
                 val constructor = pluginClass.getConstructor()
                 val plugin = constructor.newInstance()
+                plugin.server = this@MinecraftServerImpl
 
                 this.add(plugin)
                 plugin.onEnable()
@@ -234,6 +383,7 @@ class MinecraftServerImpl(
     val nextEntityId = AtomicInteger(0)
     private var nextWorldId = 0
     private var group: EventLoopGroup? = null
+    private var fakeGroup: EventLoopGroup? = null
     private var running = false
     private val channelInitializer = ServerChannelInitializer(this)
 
@@ -270,12 +420,26 @@ class MinecraftServerImpl(
             .localAddress(InetSocketAddress(config.port))
             .childHandler(channelInitializer).bind().sync()
 
-        LOGGER.info("Server started on port {} [{}ms].", config.port, (System.nanoTime() - startTime) / 1000000)
+        val fakeBootstrap = ServerBootstrap()
+        val localAddress = LocalAddress("Mineral-fake")
+        fakeGroup = LocalEventLoopGroup()
+        fakeBootstrap.group(fakeGroup)
+            .channel(LocalServerChannel::class.java)
+            .localAddress(localAddress)
+            .childHandler(channelInitializer).bind().sync()
+
+        LOGGER.info(
+            "Server started on port {} [{}ms] [${loadedPlugins.size} plugin(s)].",
+            config.port,
+            (System.nanoTime() - startTime) / 1000000
+        )
+
+        startTickLoop()
 
         super.start()
     }
 
-    override suspend fun broadcastMessage(message: String) {
+    override fun broadcastMessage(message: String) {
         for (world in worlds.values) world.broadcastMessage(message)
     }
 
@@ -303,17 +467,7 @@ class MinecraftServerImpl(
     override fun shutdown() {
         this.running = false
         if (group != null) group!!.shutdownGracefully().sync()
-    }
-
-    override fun createFakeChannel(peerChannel: FakeChannel) =
-        FakeChannelImpl(channelInitializer, if (peerChannel is FakeChannelImpl) peerChannel else null)
-
-    override suspend fun getOnlinePlayers() = worlds.map { it.value.getEntities().filterIsInstance<Player>() }.flatten()
-
-    override suspend fun getOnlineCount(): Int {
-        var count = 0
-        for (world in worlds.values) count += world.entityCount(Player::class)
-        return count
+        if (fakeGroup != null) fakeGroup!!.shutdownGracefully().sync()
     }
 
     override fun buildReader(builder: LineReaderBuilder): LineReader = super.buildReader(
@@ -335,9 +489,10 @@ class MinecraftServerImpl(
         return false
     }
 
-    fun newConnection(): ConnectionImpl = currentSnapshot.let {
-        check(it is AsyncServerSnapshotImpl) { "Current snapshot is not an AsyncServerSnapshotImpl." }
-        return ConnectionImpl(it).also { connection -> it.connections.add(connection) }
+    fun newConnection() = ConnectionImpl(this).also { connection ->
+        synchronized(this.connections) {
+            this.connections.add(connection)
+        }
     }
 
     companion object {
@@ -345,9 +500,12 @@ class MinecraftServerImpl(
             MinecraftServerImpl::class.java
         )
 
+        private const val TPS = 20
+        private const val SEC_IN_NANO: Long = 1000000000
+        private const val SAMPLE_INTERVAL = 20
+
         private val cores = Runtime.getRuntime().availableProcessors().coerceAtLeast(1)
-        private val executor: ScheduledExecutorService = Executors
-            .newScheduledThreadPool(cores, TickThreadFactory.INSTANCE)
+        private val executor: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor(TickThreadFactory())
 
         private val DEFAULT_GENERATOR by lazy {
             World.Generator { world: World, chunkX: Byte, chunkZ: Byte ->

@@ -12,7 +12,7 @@ class HandshakePacket(
     var nextState: Int = 0,
     var serverAddress: String? = null
 ) : Packet.Incoming, Packet.EventLoopHandler {
-    override suspend fun receivedEventLoop(connection: Connection) {
+    override fun receivedEventLoop(connection: Connection) {
         if (connection is ConnectionImpl) {
             connection.protocolVersion = protocol.toByte()
             connection.protocolState = ProtocolState.getState(nextState)

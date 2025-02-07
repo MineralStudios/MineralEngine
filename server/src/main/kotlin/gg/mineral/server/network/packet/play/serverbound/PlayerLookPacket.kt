@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf
 
 class PlayerLookPacket(var yaw: Float = 0f, var pitch: Float = 0f, onGround: Boolean = false) : PlayerPacket(onGround) {
 
-    override suspend fun receivedSync(connection: Connection) {
+    override fun receivedSync(connection: Connection) {
         connection.player?.let {
             it.yaw = yaw
             it.pitch = pitch

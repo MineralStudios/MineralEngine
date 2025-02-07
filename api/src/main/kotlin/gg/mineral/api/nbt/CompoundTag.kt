@@ -87,7 +87,7 @@ class CompoundTag
         val original = getTagList(key, type)
         val result: MutableList<V> = ArrayList(original.size)
         result.addAll(
-            original.map { item -> item.value as V }.toList()
+            original.map { item -> item.value as V }
         )
         return result
     }

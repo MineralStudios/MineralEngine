@@ -13,19 +13,21 @@ class RequestPacket : Packet.Incoming, Packet.EventLoopHandler {
         val serverIcon by lazy { ServerPing.Icon("server-icon.png") }
     }
 
-    override suspend fun receivedEventLoop(connection: Connection) {
-        val server = connection.serverSnapshot.server
+    override fun receivedEventLoop(connection: Connection) {
+        val server = connection.server
 
         if (server !is MinecraftServerImpl) return
 
         val config: GroovyConfig = server.config
 
-        val serverPing = ServerPing(
-            config.motd,
-            server.getOnlineCount(),
-            config.maxPlayers, 5,
-            config.brandName, serverIcon
-        )
+        val serverPing = synchronized(server.players) {
+            ServerPing(
+                config.motd,
+                server.players.size,
+                config.maxPlayers, 5,
+                config.brandName, serverIcon
+            )
+        }
 
         connection.queuePacket(ResponsePacket(serverPing.toJsonString()))
     }

@@ -10,7 +10,7 @@ open class PlayerPositionPacket(
     open var z: Double = 0.0,
     onGround: Boolean = false
 ) : PlayerPacket(onGround) {
-    override suspend fun receivedSync(connection: Connection) {
+    override fun receivedSync(connection: Connection) {
         connection.player?.let {
             it.motX = x - it.x
             it.motY = feetY - it.y

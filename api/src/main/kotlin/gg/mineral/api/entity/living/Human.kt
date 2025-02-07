@@ -7,7 +7,7 @@ interface Human : Living {
     /**
      * Forces the player to swing their arm.
      */
-    suspend fun swingArm()
+    fun swingArm()
 
     /**
      * Gets if the player is sprinting.

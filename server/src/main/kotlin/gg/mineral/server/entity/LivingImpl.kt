@@ -2,12 +2,11 @@ package gg.mineral.server.entity
 
 import gg.mineral.api.entity.Living
 import gg.mineral.api.world.World
-import gg.mineral.server.snapshot.AsyncServerSnapshotImpl
 import gg.mineral.server.world.WorldImpl
 
-open class LivingImpl(id: Int, serverSnapshot: AsyncServerSnapshotImpl, world: WorldImpl) :
-    EntityImpl(id, serverSnapshot, world), Living {
-    override suspend fun tick() {
+open class LivingImpl(id: Int, world: WorldImpl) :
+    EntityImpl(id, world), Living {
+    override fun tick() {
         super.tick()
 
         if (motY < 0.005) motY = 0.0

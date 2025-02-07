@@ -1,7 +1,6 @@
 package gg.mineral.server.entity.living
 
 import gg.mineral.server.entity.LivingImpl
-import gg.mineral.server.snapshot.AsyncServerSnapshotImpl
 import gg.mineral.server.world.WorldImpl
 
-class Wolf(id: Int, serverSnapshot: AsyncServerSnapshotImpl, world: WorldImpl) : LivingImpl(id, serverSnapshot, world)
+class Wolf(id: Int, world: WorldImpl) : LivingImpl(id, world)

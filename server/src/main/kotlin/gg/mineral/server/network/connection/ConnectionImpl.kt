@@ -5,7 +5,7 @@ import gg.mineral.api.network.connection.Connection
 import gg.mineral.api.network.packet.Packet
 import gg.mineral.api.network.packet.registry.PacketRegistry
 import gg.mineral.api.network.packet.rw.ByteWriter
-import gg.mineral.server.network.channel.FakeChannelImpl
+import gg.mineral.server.MinecraftServerImpl
 import gg.mineral.server.network.login.LoginAuthData
 import gg.mineral.server.network.packet.handler.PacketDecrypter
 import gg.mineral.server.network.packet.handler.PacketEncrypter
@@ -16,25 +16,25 @@ import gg.mineral.server.network.packet.play.bidirectional.KeepAlivePacket
 import gg.mineral.server.network.packet.play.clientbound.DisconnectPacket
 import gg.mineral.server.network.protocol.ProtocolState
 import gg.mineral.server.network.protocol.ProtocolVersion
-import gg.mineral.server.snapshot.AsyncServerSnapshotImpl
 import gg.mineral.server.util.datatypes.UUIDUtil
 import gg.mineral.server.util.json.JsonUtil
 import gg.mineral.server.util.login.LoginUtil
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
+import io.netty.channel.local.LocalChannel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import net.md_5.bungee.api.chat.BaseComponent
-import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.apache.logging.log4j.core.config.Configurator
 import java.util.*
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 
-class ConnectionImpl(override val serverSnapshot: AsyncServerSnapshotImpl) :
+class ConnectionImpl(override val server: MinecraftServerImpl) :
     SimpleChannelInboundHandler<Packet.Incoming>(),
     Connection,
     ByteWriter {
@@ -46,30 +46,40 @@ class ConnectionImpl(override val serverSnapshot: AsyncServerSnapshotImpl) :
                 this.loginAuthData = null
         }
     var protocolVersion = ProtocolVersion.V1_7_6
-    private var channel: Channel? = null
+    var channel: Channel? = null
     var lastKeepAlive: Long = 0
     override var ping = 0
     private var loginAuthData: LoginAuthData? = null
+    private val authMutex = Mutex()
     override var name: String? = null
     override var uuid: UUID? = null
     private var packetsQueued = false
     override val player: Player?
-        get() = serverSnapshot.playerConnections[this]
+        get() = server.playerConnections[this]
     override val ipAddress: String
         get() = channel?.remoteAddress().toString()
     private var connected = true
+    var clientSideActive = false
 
-    fun attemptLogin(name: String) {
+    fun attemptLogin(
+        name: String,
+        uuid: UUID = UUIDUtil.fromName(name),
+        x: Double = 0.0,
+        y: Double = 0.0,
+        z: Double = 0.0,
+        yaw: Float = 0.0f,
+        pitch: Float = 0.0f
+    ) {
         this.name = name
 
-        val player = serverSnapshot.playerNames[name]
+        val player = server.playerNames[name]
 
-        if (player != null) {
-            disconnect(serverSnapshot.server.config.disconnectAlreadyLoggedIn)
+        if (player != null && channel !is LocalChannel) {
+            disconnect(server.config.disconnectAlreadyLoggedIn)
             return
         }
 
-        if (serverSnapshot.server.config.onlineMode && channel !is FakeChannelImpl) {
+        if (server.config.onlineMode && channel !is LocalChannel) {
             this.loginAuthData = LoginAuthData()
             queuePacket(
                 EncryptionRequestPacket(
@@ -80,19 +90,26 @@ class ConnectionImpl(override val serverSnapshot: AsyncServerSnapshotImpl) :
             return
         }
 
-        this.uuid = UUIDUtil.fromName(name)
+        this.uuid = uuid
+
         this.loginSuccess()
-        this.spawnPlayer()
+        this.spawnPlayer(x, y, z, yaw, pitch)
     }
 
     fun loginSuccess() {
         this.queuePacket(LoginSuccessPacket(uuid!!, name!!))
-        this.lastKeepAlive = serverSnapshot.millis
+        this.lastKeepAlive = server.millis
         this.protocolState = ProtocolState.PLAY
     }
 
-    fun spawnPlayer() =
-        serverSnapshot.createPlayer(this).onJoin()
+    fun spawnPlayer(
+        x: Double = 0.0,
+        y: Double = 0.0,
+        z: Double = 0.0,
+        yaw: Float = 0.0f,
+        pitch: Float = 0.0f
+    ) =
+        server.createPlayer(this, x, y, z, yaw, pitch)
 
     fun sendPacket(vararg packets: Packet.Outgoing) {
         for (packet in packets) {
@@ -121,37 +138,38 @@ class ConnectionImpl(override val serverSnapshot: AsyncServerSnapshotImpl) :
         close()
     }
 
-    fun authenticate(encryptedSharedSecret: ByteArray, encryptedVerifyToken: ByteArray): SecretKey? {
-        if (!loginAuthData!!.verifyToken.contentEquals(
-                LoginUtil.decryptRsa(
-                    loginAuthData!!.keyPair,
-                    encryptedVerifyToken
+    suspend fun authenticate(encryptedSharedSecret: ByteArray, encryptedVerifyToken: ByteArray): SecretKey? =
+        authMutex.withLock {
+            if (!loginAuthData!!.verifyToken.contentEquals(
+                    LoginUtil.decryptRsa(
+                        loginAuthData!!.keyPair,
+                        encryptedVerifyToken
+                    )
                 )
+            ) return null
+
+            val decryptedSharedSecret = LoginUtil.decryptRsa(
+                loginAuthData!!.keyPair,
+                encryptedSharedSecret
             )
-        ) return null
 
-        val decryptedSharedSecret = LoginUtil.decryptRsa(
-            loginAuthData!!.keyPair,
-            encryptedSharedSecret
-        )
+            val serverId = LoginUtil.hashSharedSecret(
+                loginAuthData!!.keyPair.public,
+                decryptedSharedSecret
+            )
 
-        val serverId = LoginUtil.hashSharedSecret(
-            loginAuthData!!.keyPair.public,
-            decryptedSharedSecret
-        )
+            val url = "https://sessionserver.mojang.com/session/minecraft/hasJoined?username=$name&serverId=$serverId"
 
-        val url = "https://sessionserver.mojang.com/session/minecraft/hasJoined?username=$name&serverId=$serverId"
+            val json = JsonUtil.getJsonObject(url)
 
-        val json = JsonUtil.getJsonObject(url)
+            val id = json.getString("id") ?: return null
 
-        val id = json.getString("id") ?: return null
+            val uuid = UUIDUtil.fromString(id)
 
-        val uuid = UUIDUtil.fromString(id)
+            this.uuid = uuid
 
-        this.uuid = uuid
-
-        return SecretKeySpec(decryptedSharedSecret, "AES")
-    }
+            return SecretKeySpec(decryptedSharedSecret, "AES")
+        }
 
     @Throws(Exception::class)
     override fun channelActive(channelhandlercontext: ChannelHandlerContext) {
@@ -163,9 +181,7 @@ class ConnectionImpl(override val serverSnapshot: AsyncServerSnapshotImpl) :
 
     @Throws(Exception::class)
     override fun channelInactive(ctx: ChannelHandlerContext) {
-        runBlocking {
-            serverSnapshot.disconnected(this@ConnectionImpl)
-        }
+        server.disconnected(this@ConnectionImpl)
         this.protocolState = ProtocolState.HANDSHAKE
         this.connected = false
         super.channelInactive(ctx)
@@ -186,30 +202,32 @@ class ConnectionImpl(override val serverSnapshot: AsyncServerSnapshotImpl) :
     override fun channelRead0(ctx: ChannelHandlerContext, received: Packet.Incoming) {
         LOGGER.debug("Packet received: " + received.javaClass.simpleName)
 
+        if (received is Packet.ChannelWhitelist<*>)
+            if (!received.kClass.isInstance(channel))
+                return
+
         if (received is Packet.SyncHandler) {
-            serverSnapshot.execute {
-                runBlocking {
-                    received.receivedSync(
-                        this@ConnectionImpl
-                    )
-                }
+            server.execute {
+                received.receivedSync(
+                    this@ConnectionImpl
+                )
             }
         }
 
         if (received is Packet.EventLoopHandler) runBlocking { received.receivedEventLoop(this@ConnectionImpl) }
 
-        if (received is Packet.AsyncHandler) serverSnapshot.scope.launch {
+        if (received is Packet.AsyncHandler) server.asyncScope.launch {
             received.receivedAsync(this@ConnectionImpl)
         }
     }
 
     override fun call(): Void? {
-        if (protocolState === ProtocolState.PLAY && serverSnapshot.millis - lastKeepAlive > 17500) { // 17.5
+        if (protocolState === ProtocolState.PLAY && server.millis - lastKeepAlive > 17500 && clientSideActive) { // 17.5
             // seconds
             // for
             // timeout
             queuePacket(KeepAlivePacket(0))
-            lastKeepAlive = serverSnapshot.millis
+            lastKeepAlive = server.millis
         }
 
         if (packetsQueued) {
@@ -217,7 +235,7 @@ class ConnectionImpl(override val serverSnapshot: AsyncServerSnapshotImpl) :
             packetsQueued = false
         }
 
-        if (!connected) serverSnapshot.connections.remove(this)
+        if (!connected) server.connections.remove(this)
         return null
     }
 
@@ -225,7 +243,7 @@ class ConnectionImpl(override val serverSnapshot: AsyncServerSnapshotImpl) :
         private val LOGGER: Logger = LogManager.getLogger(Connection::class.java)
 
         init {
-            Configurator.setAllLevels(LOGGER.name, Level.getLevel("debug"))
+            //Configurator.setAllLevels(LOGGER.name, Level.getLevel("debug"))
         }
     }
 }
