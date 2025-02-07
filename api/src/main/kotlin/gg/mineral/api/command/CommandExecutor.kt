@@ -1,6 +1,6 @@
 package gg.mineral.api.command
 
-import gg.mineral.api.snapshot.ServerSnapshot
+import gg.mineral.api.MinecraftServer
 import net.md_5.bungee.api.chat.BaseComponent
 
 interface CommandExecutor {
@@ -59,9 +59,9 @@ interface CommandExecutor {
     fun msg(vararg baseComponents: BaseComponent)
 
     /**
-     * Gets the server snapshot.
+     * Gets the server.
      *
-     * @return The server snapshot.
+     * @return The server.
      */
-    val serverSnapshot: ServerSnapshot
+    val server: MinecraftServer
 }

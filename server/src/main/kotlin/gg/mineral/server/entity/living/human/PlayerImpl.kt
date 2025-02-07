@@ -32,7 +32,6 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import it.unimi.dsi.fastutil.shorts.Short2IntLinkedOpenHashMap
 import it.unimi.dsi.fastutil.shorts.ShortOpenHashSet
-import kotlinx.coroutines.launch
 import net.md_5.bungee.api.chat.BaseComponent
 import net.md_5.bungee.api.chat.TextComponent
 import org.apache.logging.log4j.LogManager
@@ -43,14 +42,14 @@ import kotlin.math.abs
 open class PlayerImpl(
     override val connection: ConnectionImpl, id: Int, world: WorldImpl
 ) :
-    HumanImpl(id, connection.serverSnapshot, world, connection.name.toString()), Player {
+    HumanImpl(id, world, connection.name.toString()), Player {
     private val chunkUpdateTracker by lazy { Short2IntLinkedOpenHashMap() }
     val visibleChunks by lazy { ShortOpenHashSet() }
     override val permissions: MutableSet<String> by lazy { ObjectOpenHashSet() }
     private val attributeModifiers: MutableMap<String, AttributeInstance> by lazy { ConcurrentHashMap() }
 
     val uuid: UUID?
-        get() = connection?.uuid
+        get() = connection.uuid
 
     fun effect(effect: PotionEffect, amplifier: Byte, duration: Short) {
         effect.applyAttributes(this, amplifier.toInt(), duration.toDouble())
@@ -68,98 +67,98 @@ open class PlayerImpl(
 
         tickArm()
 
-        if (!firstTick && currentTick % serverSnapshot.server.config.relativeMoveFrequency == 0) updateVisibleEntities()
+        if (!firstTick && currentTick % server.config.relativeMoveFrequency == 0) updateVisibleEntities()
 
         firstTick = false
     }
 
     private fun updateVisibleEntities() {
 
-        val visibleChunksSnapshot = visibleChunks.clone()
+        if (!entityRemoveIds.isEmpty()) {
+            val ids = entityRemoveIds.toIntArray()
+            entityRemoveIds.clear()
+            connection.queuePacket(DestroyEntitiesPacket(ids))
+        }
 
-        // Sync visible entities to one thread
-        serverSnapshot.server.syncScope.launch {
-
-            if (!entityRemoveIds.isEmpty()) {
-                val ids = entityRemoveIds.toIntArray()
-                entityRemoveIds.clear()
-                connection.queuePacket(DestroyEntitiesPacket(ids))
+        for (e in visibleEntities.int2ObjectEntrySet()) {
+            val entity = world.getEntity(e.intKey)
+            if (entity == null) {
+                visibleEntities.remove(e.intKey)
+                entityRemoveIds.add(e.intKey)
+                continue
             }
 
-            for (e in visibleEntities.int2ObjectEntrySet()) {
-                val entity = world.getEntity(e.intKey)
-                if (entity == null) {
-                    visibleEntities.remove(e.intKey)
-                    return@launch
-                }
+            val x = toFixedPointInt(entity.x)
+            val y = toFixedPointInt(entity.y)
+            val z = toFixedPointInt(entity.z)
+            val yaw = angleToByte(entity.yaw)
+            val pitch = angleToByte(entity.pitch)
+            val prevLoc = e.setValue(intArrayOf(x, y, z, yaw.toInt(), pitch.toInt()))
 
-                val x = toFixedPointInt(entity.x)
-                val y = toFixedPointInt(entity.y)
-                val z = toFixedPointInt(entity.z)
-                val yaw = angleToByte(entity.yaw)
-                val pitch = angleToByte(entity.pitch)
-                val prevLoc = e.setValue(intArrayOf(x, y, z, yaw.toInt(), pitch.toInt()))
+            checkNotNull(prevLoc) { "Entity with id " + e.intKey + " has no previous location" }
+            val dx = x - prevLoc[0]
+            val dy = y - prevLoc[1]
+            val dz = z - prevLoc[2]
 
-                checkNotNull(prevLoc) { "Entity with id " + e.intKey + " has no previous location" }
-                val dx = x - prevLoc[0]
-                val dy = y - prevLoc[1]
-                val dz = z - prevLoc[2]
+            val largeMovement =
+                dx < Byte.MIN_VALUE || dx > Byte.MAX_VALUE || dy < Byte.MIN_VALUE || dy > Byte.MAX_VALUE || dz < Byte.MIN_VALUE || dz > Byte.MAX_VALUE
 
-                val largeMovement =
-                    dx < Byte.MIN_VALUE || dx > Byte.MAX_VALUE || dy < Byte.MIN_VALUE || dy > Byte.MAX_VALUE || dz < Byte.MIN_VALUE || dz > Byte.MAX_VALUE
-
-                if (largeMovement) {
-                    connection.queuePacket(
-                        EntityTeleportPacket(entity.id, x, y, z, yaw, pitch)
-                    )
-                    return@launch
-                }
-
-                val deltaX = dx.toByte()
-                val deltaY = dy.toByte()
-                val deltaZ = dz.toByte()
-                val deltaYaw = (yaw - prevLoc[3]).toByte()
-                val deltaPitch = (pitch - prevLoc[4]).toByte()
-
-                val moved = deltaX.toInt() != 0 || deltaY.toInt() != 0 || deltaZ.toInt() != 0
-                val rotated = abs(deltaYaw.toDouble()) >= 1 || abs(deltaPitch.toDouble()) >= 1
-                if (moved && rotated) connection.queuePacket(
-                    EntityLookAndRelativeMovePacket(
-                        entity.id,
-                        deltaX,
-                        deltaY, deltaZ,
-                        yaw, pitch
-                    ),
-                    EntityHeadLookPacket(entity.id, yaw)
+            if (largeMovement) {
+                connection.queuePacket(
+                    EntityTeleportPacket(entity.id, x, y, z, yaw, pitch)
                 )
-                else if (moved) connection.queuePacket(
-                    EntityRelativeMovePacket(
-                        entity.id,
-                        deltaX,
-                        deltaY, deltaZ
-                    )
-                )
-                else if (rotated) connection.queuePacket(
-                    EntityLookPacket(
-                        entity.id,
-                        yaw, pitch
-                    ),
-                    EntityHeadLookPacket(entity.id, yaw)
-                )
+                continue
             }
 
+            val deltaX = dx.toByte()
+            val deltaY = dy.toByte()
+            val deltaZ = dz.toByte()
+            val deltaYaw = (yaw - prevLoc[3]).toByte()
+            val deltaPitch = (pitch - prevLoc[4]).toByte()
 
-            val fastKeyIterator = visibleChunksSnapshot.iterator()
-            while (fastKeyIterator.hasNext()) {
-                val key = fastKeyIterator.nextShort()
-                val chunk = world.getChunk(key)
-                if (chunk is ChunkImpl) {
-                    chunk.iteratePlayers { player ->
-                        if (player.id == this@PlayerImpl.id || player.uuid == null || visibleEntities.containsKey(
-                                player.id
-                            )
-                        ) return@iteratePlayers
+            val moved = deltaX.toInt() != 0 || deltaY.toInt() != 0 || deltaZ.toInt() != 0
+            val rotated = abs(deltaYaw.toDouble()) >= 1 || abs(deltaPitch.toDouble()) >= 1
+            if (moved && rotated) connection.queuePacket(
+                EntityLookAndRelativeMovePacket(
+                    entity.id,
+                    deltaX,
+                    deltaY, deltaZ,
+                    yaw, pitch
+                ),
+                EntityHeadLookPacket(entity.id, yaw)
+            )
+            else if (moved) connection.queuePacket(
+                EntityRelativeMovePacket(
+                    entity.id,
+                    deltaX,
+                    deltaY, deltaZ
+                )
+            )
+            else if (rotated) connection.queuePacket(
+                EntityLookPacket(
+                    entity.id,
+                    yaw, pitch
+                ),
+                EntityHeadLookPacket(entity.id, yaw)
+            )
+        }
 
+
+        val fastKeyIterator = visibleChunks.iterator()
+        while (fastKeyIterator.hasNext()) {
+            val key = fastKeyIterator.nextShort()
+            val chunk = world.getChunk(key)
+            if (chunk is ChunkImpl) {
+                val iterator = chunk.entities.iterator()
+
+                while (iterator.hasNext()) {
+                    val entityId = iterator.nextInt()
+
+                    if (entityId == id || visibleEntities.containsKey(entityId)) continue
+
+                    val entity = world.getEntity(entityId) as? PlayerImpl
+
+                    entity?.let { player ->
                         val x = toFixedPointInt(player.x)
                         val y = toFixedPointInt(player.y)
                         val z = toFixedPointInt(player.z)
@@ -170,7 +169,7 @@ open class PlayerImpl(
                                 player.id,
                                 x, y, z, yaw,
                                 pitch, player.uuid.toString(),
-                                player.name, ArrayList(),  /* TODO: player property */0.toShort(),  /*
+                                player.name, /* TODO: player property */ArrayList(), 0.toShort(),  /*
                      * TODO:
                      * held
                      * item
@@ -186,11 +185,17 @@ open class PlayerImpl(
         }
     }
 
-    fun onJoin(): Boolean {
-        val playerJoinEvent = PlayerJoinEvent(this)
+    fun onJoin(
+        x: Double = this.x,
+        y: Double = this.y,
+        z: Double = this.z,
+        yaw: Float = this.yaw,
+        pitch: Float = this.pitch
+    ): Boolean {
+        val playerJoinEvent = PlayerJoinEvent(this, x, y, z, yaw, pitch)
 
-        if (serverSnapshot.server.callEvent(playerJoinEvent)) {
-            disconnect(serverSnapshot.server.config.disconnectUnknown)
+        if (server.callEvent(playerJoinEvent)) {
+            disconnect(server.config.disconnectUnknown)
             return false
         }
 
@@ -198,6 +203,8 @@ open class PlayerImpl(
         this.y = playerJoinEvent.y
         this.headY = playerJoinEvent.y + this.height
         this.z = playerJoinEvent.z
+        this.yaw = playerJoinEvent.yaw
+        this.pitch = playerJoinEvent.pitch
         connection.queuePacket(
             JoinGamePacket(
                 this.id, gamemode, Dimension.OVERWORLD, Difficulty.PEACEFUL,
@@ -323,13 +330,14 @@ open class PlayerImpl(
 
                     val chunk = world.getChunk(key)
                     if (chunk is ChunkImpl) {
-                        serverSnapshot.server.syncScope.launch {
-                            chunk.iterateEntityIds { playerId ->
-                                if (playerId != id)
-                                    this@PlayerImpl.visibleEntities.remove(
-                                        playerId
-                                    )
-                            }
+                        val entityIterator = chunk.entities.iterator()
+                        while (entityIterator.hasNext()) {
+                            val id = entityIterator.nextInt()
+                            if (id == this.id) continue
+                            this@PlayerImpl.visibleEntities.remove(
+                                id
+                            )
+                            this@PlayerImpl.entityRemoveIds.add(id)
                         }
                     }
 

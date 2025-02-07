@@ -2,53 +2,25 @@ package gg.mineral.server.world.chunk
 
 import gg.mineral.api.world.World
 import gg.mineral.api.world.chunk.Chunk
-import gg.mineral.server.entity.living.human.PlayerImpl
 import gg.mineral.server.network.packet.play.clientbound.ChunkDataPacket
 import gg.mineral.server.util.collection.NibbleArray
 import gg.mineral.server.world.block.Block
-import it.unimi.dsi.fastutil.ints.IntConsumer
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import java.io.ByteArrayOutputStream
 import java.io.IOException
-import java.util.concurrent.atomic.AtomicReferenceArray
-import java.util.function.Consumer
 import java.util.zip.DeflaterOutputStream
 
 open class ChunkImpl(
     private val world: World,
     override val x: Byte, override val z: Byte
 ) : Chunk {
-    private val entitiesMutex = Mutex()
-    private val entities by lazy { IntOpenHashSet() }
+    val entities by lazy { IntOpenHashSet() }
     private val cache by lazy { arrayOfNulls<ChunkDataPacket>(4) }
-
-    suspend fun removeEntity(entityId: Int) {
-        entitiesMutex.withLock { entities.remove(entityId) }
-    }
-
-    suspend fun addEntity(entityId: Int) {
-        entitiesMutex.withLock { entities.add(entityId) }
-    }
-
-    suspend fun iteratePlayers(consumer: Consumer<PlayerImpl>) {
-        entitiesMutex.withLock {
-            entities.forEach { entityId ->
-                val player = world.getPlayer(entityId)
-                if (player != null && player is PlayerImpl) consumer.accept(player)
-            }
-        }
-    }
-
-    suspend fun iterateEntityIds(consumer: IntConsumer) {
-        entitiesMutex.withLock { entities.forEach { consumer.accept(it) } }
-    }
 
     /**
      * The array of chunk sections this chunk contains, or null if it is unloaded.
      */
-    private val sections by lazy { AtomicReferenceArray<ChunkSection>(DEPTH / SEC_DEPTH) }
+    private val sections by lazy { arrayOfNulls<ChunkSection>(DEPTH / SEC_DEPTH) }
 
     /**
      * The array of biomes this chunk contains, or null if it is unloaded.
@@ -92,7 +64,7 @@ open class ChunkImpl(
      */
     private fun getSection(y: Short): ChunkSection? {
         val idx = y.toInt() shr 4
-        if (y < 0 || y >= DEPTH || idx >= sections.length()) return null
+        if (y < 0 || y >= DEPTH || idx >= sections.size) return null
 
         return sections[idx]
     }
@@ -131,7 +103,7 @@ open class ChunkImpl(
             } else {
                 // create new ChunkSection for this y coordinate
                 val idx = y.toInt() shr 4
-                if (y < 0 || y >= DEPTH || idx >= sections.length()) {
+                if (y < 0 || y >= DEPTH || idx >= sections.size) {
                     // y is out of range somehow
                     return
                 }

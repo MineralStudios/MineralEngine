@@ -69,19 +69,19 @@ open class AttributeInstance(
         val modifiers = getModifiers()
         var base: Float = baseValue
 
-        for (modifier in modifiers.stream()
-            .filter { mod: AttributeModifier -> mod.operation == AttributeOperation.ADDITION }
-            .toArray { arrayOfNulls<AttributeModifier>(it) }) base += modifier?.amount ?: 0.0f
+        modifiers.forEach {
+            if (it.operation == AttributeOperation.ADDITION) base += it.amount
+        }
 
         var result = base
 
-        for (modifier in modifiers.stream()
-            .filter { mod: AttributeModifier -> mod.operation == AttributeOperation.MULTIPLY_BASE }
-            .toArray { arrayOfNulls<AttributeModifier>(it) }) result += (base * (modifier?.amount ?: 0.0f))
-
-        for (modifier in modifiers.stream()
-            .filter { mod: AttributeModifier -> mod.operation == AttributeOperation.MULTIPLY_TOTAL }
-            .toArray { arrayOfNulls<AttributeModifier>(it) }) result *= (1.0f + (modifier?.amount ?: 0.0f))
+        modifiers.forEach {
+            when (it.operation) {
+                AttributeOperation.MULTIPLY_BASE -> result += base * it.amount
+                AttributeOperation.MULTIPLY_TOTAL -> result *= 1.0f + it.amount
+                AttributeOperation.ADDITION -> return@forEach
+            }
+        }
 
         this.value = min(result.toDouble(), attribute.maxValue.toDouble()).toFloat()
 

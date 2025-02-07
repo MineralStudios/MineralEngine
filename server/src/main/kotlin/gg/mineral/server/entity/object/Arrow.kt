@@ -1,8 +1,7 @@
 package gg.mineral.server.entity.`object`
 
 import gg.mineral.server.entity.EntityImpl
-import gg.mineral.server.snapshot.AsyncServerSnapshotImpl
 import gg.mineral.server.world.WorldImpl
 
-class Arrow(id: Int, serverSnapshot: AsyncServerSnapshotImpl, world: WorldImpl) :
-    EntityImpl(id, serverSnapshot, world)
+class Arrow(id: Int, world: WorldImpl) :
+    EntityImpl(id, world)

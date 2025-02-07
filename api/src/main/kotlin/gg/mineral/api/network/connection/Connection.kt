@@ -1,8 +1,8 @@
 package gg.mineral.api.network.connection
 
+import gg.mineral.api.MinecraftServer
 import gg.mineral.api.entity.living.human.Player
 import gg.mineral.api.network.packet.Packet
-import gg.mineral.api.snapshot.AsyncServerSnapshot
 import net.md_5.bungee.api.chat.BaseComponent
 import java.util.*
 
@@ -29,11 +29,11 @@ interface Connection : PreLoginConnection {
     val uuid: UUID?
 
     /**
-     * Gets the AsyncServerRunnable.
+     * Gets the server.
      *
-     * @return The AsyncServerRunnable.
+     * @return The server.
      */
-    val serverSnapshot: AsyncServerSnapshot
+    val server: MinecraftServer
 
     /**
      * Queues packets to be sent to the client.

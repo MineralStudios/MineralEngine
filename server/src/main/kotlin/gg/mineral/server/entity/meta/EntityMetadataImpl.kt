@@ -6,7 +6,6 @@ import gg.mineral.api.entity.meta.EntityMetadataType
 import gg.mineral.api.inventory.item.ItemStack
 import gg.mineral.server.entity.EntityImpl
 import java.util.*
-import java.util.stream.Collectors
 
 /**
  * A map for entity metadata.
@@ -129,16 +128,13 @@ class EntityMetadataImpl(private val entityClass: Class<out EntityImpl?>) : Enti
             val result =
                 ArrayList<EntityMetadata.Entry>(map.size)
             result.addAll(
-                map.entries.stream()
-                    .map { entry: Map.Entry<EntityMetadataIndex, Any> ->
-                        EntityMetadata.Entry(
-                            entry.key,
-                            entry.value
-                        )
-                    }
-                    .collect(
-                        Collectors.toList()
-                    ))
+                map.entries.map {
+                    EntityMetadata.Entry(
+                        it.key,
+                        it.value
+                    )
+                }
+            )
             result.sort()
             return result
         }

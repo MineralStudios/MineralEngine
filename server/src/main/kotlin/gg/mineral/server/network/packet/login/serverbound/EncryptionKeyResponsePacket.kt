@@ -5,26 +5,28 @@ import gg.mineral.api.network.packet.Packet
 import gg.mineral.server.network.connection.ConnectionImpl
 import gg.mineral.server.network.protocol.ProtocolState
 import io.netty.buffer.ByteBuf
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class EncryptionKeyResponsePacket(
     var sharedSecretBytes: ByteArray? = null,
     var verifyToken: ByteArray? = null
-) : Packet.Incoming, Packet.SyncHandler {
-    override fun receivedSync(connection: Connection) {
+) : Packet.Incoming, Packet.AsyncHandler {
+    override suspend fun receivedAsync(connection: Connection) {
         if (connection !is ConnectionImpl) return
-        connection.serverSnapshot.scope.launch {
-            val secretKey = connection.authenticate(sharedSecretBytes!!, verifyToken!!)
+        val secretKey = connection.authenticate(sharedSecretBytes!!, verifyToken!!)
 
-            val config = connection.serverSnapshot.server.config
-            if (secretKey != null) try {
+        val config = connection.server.config
+        if (secretKey != null) {
+            try {
                 connection.enableEncryption(secretKey)
                 connection.loginSuccess()
             } catch (e: Exception) {
                 e.printStackTrace()
                 connection.disconnect(config.disconnectCanNotAuthenticate)
-            } else connection.disconnect(config.disconnectCanNotAuthenticate)
+            }
+        } else connection.disconnect(config.disconnectCanNotAuthenticate)
 
+        withContext(connection.server.syncDispatcher) {
             if (connection.protocolState == ProtocolState.PLAY) connection.spawnPlayer()
         }
     }
