@@ -1,7 +1,6 @@
 package gg.mineral.api.entity
 
-
-import gg.mineral.api.snapshot.ServerSnapshot
+import gg.mineral.api.MinecraftServer
 import gg.mineral.api.world.World
 
 interface Entity {
@@ -161,16 +160,16 @@ interface Entity {
     var viewDistance: Byte
 
     /**
-     * Get the entity's server snapshot.
+     * Gets the server.
      *
-     * @return The entity's server snapshot.
+     * @return The server.
      */
-    val serverSnapshot: ServerSnapshot
+    val server: MinecraftServer
 
     /**
      * Attacks the target entity.
      *
      * @param targetId The ID of the target entity.
      */
-    suspend fun attack(targetId: Int)
+    fun attack(targetId: Int)
 }

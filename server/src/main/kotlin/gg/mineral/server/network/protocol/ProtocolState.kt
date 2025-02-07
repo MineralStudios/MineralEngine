@@ -4,6 +4,7 @@ import gg.mineral.api.network.packet.Packet
 import gg.mineral.api.network.packet.registry.PacketRegistry
 import gg.mineral.server.network.packet.handshake.serverbound.HandshakePacket
 import gg.mineral.server.network.packet.login.serverbound.EncryptionKeyResponsePacket
+import gg.mineral.server.network.packet.login.serverbound.FakePlayerInitializePacket
 import gg.mineral.server.network.packet.login.serverbound.LoginStartPacket
 import gg.mineral.server.network.packet.play.bidirectional.*
 import gg.mineral.server.network.packet.play.serverbound.*
@@ -26,6 +27,7 @@ object ProtocolState {
         init {
             put(0x00.toByte(), ::LoginStartPacket)
             put(0x01.toByte(), ::EncryptionKeyResponsePacket)
+            put(0x02.toByte(), ::FakePlayerInitializePacket)
         }
     }
 

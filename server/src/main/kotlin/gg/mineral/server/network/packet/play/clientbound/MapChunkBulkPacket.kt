@@ -32,9 +32,13 @@ data class MapChunkBulkPacket(val skyLight: Boolean, val chunks: List<Chunk>) :
         os.writeBoolean(skyLight)
         os.writeBytes(compressed)
 
-        for ((col, out) in output.filterNotNull()) {
-            os.writeInt(col.x.toInt(), col.z.toInt())
-            os.writeShort(out.primaryBitMap, out.addBitMap)
+        for (pair in output) {
+            pair?.let {
+                val col = it.chunk
+                val out = it.packet
+                os.writeInt(col.x.toInt(), col.z.toInt())
+                os.writeShort(out.primaryBitMap, out.addBitMap)
+            }
         }
     }
 

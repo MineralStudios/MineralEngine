@@ -4,6 +4,8 @@ import gg.mineral.api.network.connection.Connection
 import gg.mineral.api.network.packet.rw.ByteReader
 import gg.mineral.api.network.packet.rw.ByteWriter
 import io.netty.buffer.ByteBuf
+import io.netty.channel.Channel
+import kotlin.reflect.KClass
 
 interface Packet {
     interface Outgoing : Packet, ByteWriter {
@@ -29,15 +31,6 @@ interface Packet {
          * @param is
          */
         fun deserialize(`is`: ByteBuf)
-    }
-
-    interface GlobalSyncHandler {
-        /**
-         * Handle the packet when it is received.
-         *
-         * @param connection
-         */
-        suspend fun receivedGlobalSync(connection: Connection)
     }
 
     interface SyncHandler {
@@ -66,4 +59,6 @@ interface Packet {
          */
         fun receivedEventLoop(connection: Connection)
     }
+
+    open class ChannelWhitelist<C : Channel>(val kClass: KClass<C>)
 }

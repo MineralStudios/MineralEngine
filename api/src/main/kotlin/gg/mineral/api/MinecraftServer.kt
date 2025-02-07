@@ -1,12 +1,15 @@
 package gg.mineral.api
 
+import gg.mineral.api.command.CommandExecutor
 import gg.mineral.api.command.CommandMap
-import gg.mineral.api.network.channel.FakeChannel
-import gg.mineral.api.network.channel.MineralChannelInitializer
-import gg.mineral.api.snapshot.ServerSnapshot
+import gg.mineral.api.entity.living.human.Player
+import gg.mineral.api.network.connection.Connection
+import gg.mineral.api.tick.TickLoop
+import java.util.concurrent.Executor
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledExecutorService
 
-interface MinecraftServer : ServerSnapshot {
+interface MinecraftServer : Executor, TickLoop, CommandExecutor {
     /**
      * Gets the map of registered commands.
      *
@@ -22,11 +25,11 @@ interface MinecraftServer : ServerSnapshot {
     val executor: ScheduledExecutorService
 
     /**
-     * Gets the server snapshots.
+     * Gets the async executor.
      *
-     * @return The server snapshots.
+     * @return The async executor.
      */
-    val snapshots: Array<ServerSnapshot>
+    val asyncExecutor: ExecutorService
 
     /**
      * Starts the server.
@@ -40,28 +43,42 @@ interface MinecraftServer : ServerSnapshot {
      *
      * @param message The message to broadcast.
      */
-    suspend fun broadcastMessage(message: String)
+    fun broadcastMessage(message: String)
+
+    /**
+     * Gets the connections.
+     *
+     * @return The connections.
+     */
+    val connections: MutableSet<Connection>
+
+    /**
+     * Gets the player with the specified name.
+     *
+     * @param name The name of the player.
+     *
+     * @return The player with the specified name.
+     */
+    fun getPlayer(name: String): Player?
+
+    /**
+     * Gets the player with the specified entity ID.
+     *
+     * @param entityId The entity ID of the player.
+     *
+     * @return The player with the specified entity ID.
+     */
+    fun getPlayer(entityId: Int): Player?
+
+    /**
+     * Gets all the online players.
+     *
+     * @return All the online players.
+     */
+    fun getOnlinePlayers(): Collection<Player>
 
     /**
      * Stops the server.
      */
     fun shutdown()
-
-    /**
-     * Creates a fake channel.
-     *
-     * @param initializer The initializer.
-     *
-     * @return The fake channel.
-     */
-    fun createFakeChannel(initializer: MineralChannelInitializer, peerChannel: FakeChannel? = null): FakeChannel
-
-    /**
-     * Creates a fake server channel.
-     *
-     * @param peerChannel The peer channel.
-     *
-     * @return The fake server channel.
-     */
-    fun createFakeServerChannel(peerChannel: FakeChannel? = null): FakeChannel
 }

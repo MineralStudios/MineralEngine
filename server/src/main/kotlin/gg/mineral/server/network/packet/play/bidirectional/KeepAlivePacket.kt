@@ -19,7 +19,7 @@ class KeepAlivePacket(var keepAliveId: Int = 0) : Packet.Incoming, Packet.AsyncH
 
     override suspend fun receivedAsync(connection: Connection) {
         if (connection is ConnectionImpl) {
-            val time = connection.serverSnapshot.millis - connection.lastKeepAlive
+            val time = connection.server.millis - connection.lastKeepAlive
             connection.ping = ((connection.ping * 3 + time) / 4).toInt();
         }
     }

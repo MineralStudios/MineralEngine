@@ -5,9 +5,9 @@ import gg.mineral.api.network.packet.Packet
 import gg.mineral.server.network.connection.ConnectionImpl
 import io.netty.buffer.ByteBuf
 
-class LoginStartPacket(var name: String? = null) : Packet.Incoming, Packet.SyncHandler {
+class LoginStartPacket(var name: String = "") : Packet.Incoming, Packet.SyncHandler {
     override fun receivedSync(connection: Connection) {
-        if (connection is ConnectionImpl) connection.attemptLogin(name ?: "")
+        if (connection is ConnectionImpl) connection.attemptLogin(name)
     }
 
     override fun deserialize(`is`: ByteBuf) {

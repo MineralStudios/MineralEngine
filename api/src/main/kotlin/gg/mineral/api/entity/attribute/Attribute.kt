@@ -75,7 +75,7 @@ class Attribute(key: String, shareWithClient: Boolean, defaultValue: Float, maxV
 
     @JvmRecord
     data class Property(val value: Double, val modifiers: Collection<AttributeModifier>)
-    
+
     companion object {
         private val ATTRIBUTES: MutableMap<String, Attribute> = Object2ObjectOpenHashMap()
 
@@ -121,9 +121,7 @@ class Attribute(key: String, shareWithClient: Boolean, defaultValue: Float, maxV
          * @return an array containing registered, sharable attributes
          */
         fun sharedAttributes(): Array<Attribute> {
-            return ATTRIBUTES.values.stream()
-                .filter { obj: Attribute -> obj.isShared }
-                .toArray { arrayOfNulls<Attribute>(it) }
+            return ATTRIBUTES.values.filter { it.isShared }.toTypedArray()
         }
     }
 }

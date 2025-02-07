@@ -13,7 +13,7 @@ class ChatMessagePacket(private var message: String? = null) : Packet.Incoming, 
     override suspend fun receivedAsync(connection: Connection) {
         if (message!!.startsWith("/"))  // TODO: async command support
             return
-        val server = connection.serverSnapshot.server
+        val server = connection.server.server
         val chatMsg = ChatColor.GREEN.toString() + connection.name + ChatColor.RESET + ": " + message
         if (server is MinecraftServerImpl) server.msg(chatMsg)
         server.broadcastMessage(chatMsg)
@@ -22,7 +22,7 @@ class ChatMessagePacket(private var message: String? = null) : Packet.Incoming, 
     override fun receivedSync(connection: Connection) {
         if (message?.startsWith("/") == false) return
 
-        val server = connection.serverSnapshot.server
+        val server = connection.server.server
 
         val player = connection.player ?: return
 

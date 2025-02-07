@@ -4,8 +4,8 @@ import gg.mineral.api.network.connection.Connection
 import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 
-class UseEntityPacket(var target: Int = 0, var mouse: Byte = 0) : Packet.Incoming, Packet.AsyncHandler {
-    override suspend fun receivedAsync(connection: Connection) {
+class UseEntityPacket(var target: Int = 0, var mouse: Byte = 0) : Packet.Incoming, Packet.SyncHandler {
+    override fun receivedSync(connection: Connection) {
         if (mouse.toInt() == 1) { // left click
             if (target != -1) connection.player?.attack(target)
         }
