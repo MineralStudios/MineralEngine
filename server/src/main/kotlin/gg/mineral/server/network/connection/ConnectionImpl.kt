@@ -65,7 +65,7 @@ class ConnectionImpl(override val server: MinecraftServerImpl) :
         name: String,
         uuid: UUID = UUIDUtil.fromName(name),
         x: Double = 0.0,
-        y: Double = 0.0,
+        y: Double = 70.0,
         z: Double = 0.0,
         yaw: Float = 0.0f,
         pitch: Float = 0.0f
@@ -74,10 +74,7 @@ class ConnectionImpl(override val server: MinecraftServerImpl) :
 
         val player = server.playerNames[name]
 
-        if (player != null && channel !is LocalChannel) {
-            disconnect(server.config.disconnectAlreadyLoggedIn)
-            return
-        }
+        if (player != null && channel !is LocalChannel) return disconnect(server.config.disconnectAlreadyLoggedIn)
 
         if (server.config.onlineMode && channel !is LocalChannel) {
             this.loginAuthData = LoginAuthData()
@@ -104,7 +101,7 @@ class ConnectionImpl(override val server: MinecraftServerImpl) :
 
     fun spawnPlayer(
         x: Double = 0.0,
-        y: Double = 0.0,
+        y: Double = 70.0,
         z: Double = 0.0,
         yaw: Float = 0.0f,
         pitch: Float = 0.0f
@@ -114,7 +111,7 @@ class ConnectionImpl(override val server: MinecraftServerImpl) :
     fun sendPacket(vararg packets: Packet.Outgoing) {
         for (packet in packets) {
             channel!!.write(packet)
-            LOGGER.debug("Packet sent: " + packet.javaClass.simpleName)
+            LOGGER.debug("(${protocolState.name}) Packet sent: " + packet.javaClass.simpleName)
         }
 
         channel?.flush()
@@ -124,7 +121,7 @@ class ConnectionImpl(override val server: MinecraftServerImpl) :
         for (packet in packets) {
             channel!!.write(packet)
             packetsQueued = true
-            LOGGER.debug("Packet queued: " + packet.javaClass.simpleName)
+            LOGGER.debug("(${protocolState.name}) Packet queued: " + packet.javaClass.simpleName)
         }
     }
 
@@ -200,7 +197,7 @@ class ConnectionImpl(override val server: MinecraftServerImpl) :
 
     @Throws(Exception::class)
     override fun channelRead0(ctx: ChannelHandlerContext, received: Packet.Incoming) {
-        LOGGER.debug("Packet received: " + received.javaClass.simpleName)
+        LOGGER.debug("(${protocolState.name}) Packet received: " + received.javaClass.simpleName)
 
         if (received is Packet.ChannelWhitelist<*>)
             if (!received.kClass.isInstance(channel))

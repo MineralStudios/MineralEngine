@@ -17,13 +17,13 @@ object ProtocolState {
     val ATTRIBUTE_KEY: AttributeKey<PacketRegistry<Packet.Incoming>> = AttributeKey
         .valueOf("protocol_state")
 
-    val HANDSHAKE: PacketRegistryImpl<Packet.Incoming> = object : PacketRegistryImpl<Packet.Incoming>() {
+    val HANDSHAKE: PacketRegistryImpl<Packet.Incoming> = object : PacketRegistryImpl<Packet.Incoming>("handshake") {
         init {
             put(0x00.toByte(), ::HandshakePacket)
         }
     }
 
-    val LOGIN: PacketRegistryImpl<Packet.Incoming> = object : PacketRegistryImpl<Packet.Incoming>() {
+    val LOGIN: PacketRegistryImpl<Packet.Incoming> = object : PacketRegistryImpl<Packet.Incoming>("login") {
         init {
             put(0x00.toByte(), ::LoginStartPacket)
             put(0x01.toByte(), ::EncryptionKeyResponsePacket)
@@ -31,7 +31,7 @@ object ProtocolState {
         }
     }
 
-    val PLAY: PacketRegistryImpl<Packet.Incoming> = object : PacketRegistryImpl<Packet.Incoming>() {
+    val PLAY: PacketRegistryImpl<Packet.Incoming> = object : PacketRegistryImpl<Packet.Incoming>("play") {
         init {
             put(0x0A.toByte(), ::AnimationPacket)
             put(0x01.toByte(), ::ChatMessagePacket)
@@ -60,7 +60,7 @@ object ProtocolState {
         }
     }
 
-    val STATUS: PacketRegistryImpl<Packet.Incoming> = object : PacketRegistryImpl<Packet.Incoming>() {
+    val STATUS: PacketRegistryImpl<Packet.Incoming> = object : PacketRegistryImpl<Packet.Incoming>("status") {
         init {
             put(0x00.toByte(), ::RequestPacket)
             put(0x01.toByte(), ::PingPacket)

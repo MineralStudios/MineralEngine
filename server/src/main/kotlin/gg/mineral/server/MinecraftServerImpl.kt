@@ -56,12 +56,11 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class MinecraftServerImpl(
     override val executor: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor(TickThreadFactory()),
-    val syncDispatcher: CoroutineDispatcher = executor.asCoroutineDispatcher(),
     override val asyncExecutor: ExecutorService = Executors.newWorkStealingPool(),
     override val permissions: MutableSet<String> = ObjectOpenHashSet(listOf("*"))
 ) : SimpleTerminalConsole(), MinecraftServer,
     Completer {
-
+    val syncDispatcher: CoroutineDispatcher = executor.asCoroutineDispatcher()
     val asyncScope = CoroutineScope(asyncExecutor.asCoroutineDispatcher())
     val entities = Int2ObjectOpenHashMap<EntityImpl?>()
     val players = Int2ObjectOpenHashMap<PlayerImpl?>()
@@ -162,7 +161,7 @@ class MinecraftServerImpl(
     fun createPlayer(
         connection: ConnectionImpl, x: Double = 0.0,
         y: Double = 0.0,
-        z: Double = 0.0,
+        z: Double = 70.0,
         yaw: Float = 0.0f,
         pitch: Float = 0.0f
     ): PlayerImpl {
@@ -380,7 +379,7 @@ class MinecraftServerImpl(
             }
         }
     }
-    val nextEntityId = AtomicInteger(0)
+    private val nextEntityId = AtomicInteger(0)
     private var nextWorldId = 0
     private var group: EventLoopGroup? = null
     private var fakeGroup: EventLoopGroup? = null

@@ -5,7 +5,7 @@ import gg.mineral.api.network.packet.registry.PacketRegistry
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap
 import java.util.concurrent.Callable
 
-open class PacketRegistryImpl<P : Packet> : PacketRegistry<P> {
+open class PacketRegistryImpl<P : Packet>(override val name: String) : PacketRegistry<P> {
     private val underlyingMap: Byte2ObjectOpenHashMap<Callable<P>> = Byte2ObjectOpenHashMap()
 
     override fun put(key: Byte, value: Callable<P>): Callable<P>? = underlyingMap.put(key, value)

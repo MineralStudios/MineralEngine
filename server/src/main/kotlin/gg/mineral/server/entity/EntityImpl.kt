@@ -43,16 +43,16 @@ abstract class EntityImpl(
 
     override var x: Double = 0.0
         set(value) {
-            val oldChunkKey = ChunkImpl.toKey(field.toInt() shr 4, field.toInt() shr 4)
-            val newChunkKey = ChunkImpl.toKey(value.toInt() shr 4, value.toInt() shr 4)
+            val oldChunkKey = toKey(field.toInt() shr 4, field.toInt() shr 4)
+            val newChunkKey = toKey(value.toInt() shr 4, value.toInt() shr 4)
             world.updateEntityChunks(oldChunkKey, newChunkKey, this)
             field = value
         }
     override var y: Double = 70.0
     override var z: Double = 0.0
         set(value) {
-            val oldChunkKey = ChunkImpl.toKey(field.toInt() shr 4, field.toInt() shr 4)
-            val newChunkKey = ChunkImpl.toKey(value.toInt() shr 4, value.toInt() shr 4)
+            val oldChunkKey = toKey(field.toInt() shr 4, field.toInt() shr 4)
+            val newChunkKey = toKey(value.toInt() shr 4, value.toInt() shr 4)
             world.updateEntityChunks(oldChunkKey, newChunkKey, this)
             field = value
         }

@@ -4,6 +4,12 @@ import gg.mineral.api.network.packet.Packet
 import java.util.concurrent.Callable
 
 interface PacketRegistry<P : Packet> {
+
+    /**
+     * The name of the registry.
+     */
+    val name: String
+
     /**
      * Creates a packet with the given id.
      *

@@ -11,14 +11,14 @@ class FakePlayerInitializePacket(
     var name: String = "",
     var uuid: UUID = UUID.randomUUID(),
     var x: Double = 0.0,
-    var y: Double = 0.0,
+    var y: Double = 70.0,
     var z: Double = 0.0,
     var yaw: Float = 0.0f,
     var pitch: Float = 0.0f
 ) : Packet.Incoming,
     Packet.SyncHandler, Packet.ChannelWhitelist<LocalChannel>(LocalChannel::class) {
     override fun receivedSync(connection: Connection) {
-        if (connection is ConnectionImpl) connection.attemptLogin(name, uuid)
+        if (connection is ConnectionImpl) connection.attemptLogin(name, uuid, x, y, z, yaw, pitch)
     }
 
     override fun deserialize(`is`: ByteBuf) {
