@@ -24,7 +24,7 @@ dependencies {
 
     compileOnly 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.100'
     annotationProcessor 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.100'
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2"
 }
 
 shadowJar {
