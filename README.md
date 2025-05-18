@@ -11,7 +11,7 @@ A fully custom Minecraft Server implementation written in Kotlin.
 - Modern (Java 21 and updated dependencies)
 - Schematic World Loading
 - Array Chunk Caching (Less memory than ConcurrentHashMaps, while still having the same time complexity)
-- Annotation Processed Event Handlers (faster than using reflection at runtime)
+- Annotation Processed(Compile-time) Event Handlers (faster than using reflection at runtime)
 - Packet API
 - Shadow Worlds (designed to replace entity hiders)
 - Immutability by default
