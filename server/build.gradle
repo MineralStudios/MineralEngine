@@ -10,7 +10,7 @@ application {
 dependencies {
     implementation project(':api')
     implementation 'io.netty:netty-all:4.2.1.Final'
-    implementation 'com.velocitypowered:velocity-native:3.4.0-20241204.173938-17'
+    implementation 'com.velocitypowered:velocity-native:3.4.0-SNAPSHOT'
     implementation 'org.json:json:20250107'
     implementation 'com.eatthepath:fast-uuid:0.2.0'
     implementation 'it.unimi.dsi:fastutil:8.5.15'
@@ -20,7 +20,7 @@ dependencies {
     implementation 'org.jline:jline-reader:3.29.0'
     implementation 'org.jline:jline-terminal:3.30.1'
     implementation 'org.apache.groovy:groovy-all:4.0.26'
-    compileOnly 'net.md-5:bungeecord-chat:1.21-R0.3-SNAPSHOT'
+    compileOnly 'net.md-5:bungeecord-chat:1.21-R0.2-SNAPSHOT'
 
     compileOnly 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.100'
     annotationProcessor 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.100'

@@ -11,7 +11,6 @@ buildscript {
 allprojects {
     apply plugin: 'org.jetbrains.kotlin.jvm'
     apply plugin: 'maven-publish'
-    apply plugin: 'pmd'
 
     repositories {
         mavenCentral()
@@ -30,10 +29,6 @@ allprojects {
 
     compileJava {
         options.compilerArgs += ['-parameters']
-    }
-
-    pmd {
-        rulesMinimumPriority = 4
     }
 
     kotlin {
