@@ -20,7 +20,7 @@ dependencies {
     implementation 'org.jline:jline-reader:3.29.0'
     implementation 'org.jline:jline-terminal:3.30.1'
     implementation 'org.apache.groovy:groovy-all:4.0.26'
-    compileOnly 'net.md-5:bungeecord-chat:1.21-R0.2-SNAPSHOT'
+    compileOnly 'net.md-5:bungeecord-chat:1.21-R0.2'
 
     compileOnly 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.100'
     annotationProcessor 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.100'
