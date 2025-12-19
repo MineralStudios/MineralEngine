@@ -3,11 +3,12 @@ package gg.mineral.server.network.packet.login.clientbound
 import gg.mineral.api.network.packet.Packet
 import io.netty.buffer.ByteBuf
 import net.md_5.bungee.api.chat.BaseComponent
+import net.md_5.bungee.chat.ComponentSerializer
 
 @JvmRecord
 data class LoginDisconnectPacket(val components: Array<out BaseComponent>) : Packet.Outgoing {
     override fun serialize(os: ByteBuf) =
-        os.writeString(VersionedComponentSerializer.getDefault().toString(components))
+        os.writeString(ComponentSerializer.toString(components))
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
