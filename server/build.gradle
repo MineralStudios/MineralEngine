@@ -10,17 +10,17 @@ application {
 dependencies {
     implementation project(':api')
     implementation 'io.netty:netty-all:4.2.1.Final'
-    implementation 'com.velocitypowered:velocity-native:3.4.0-20241204.173938-17'
+    implementation 'com.velocitypowered:velocity-native:3.4.0-SNAPSHOT'
     implementation 'org.json:json:20250107'
     implementation 'com.eatthepath:fast-uuid:0.2.0'
     implementation 'it.unimi.dsi:fastutil:8.5.15'
-    implementation 'org.apache.logging.log4j:log4j-api:2.24.3'
-    implementation 'org.apache.logging.log4j:log4j-core:2.24.3'
+    implementation 'org.apache.logging.log4j:log4j-api:2.25.3'
+    implementation 'org.apache.logging.log4j:log4j-core:2.25.3'
     implementation 'net.minecrell:terminalconsoleappender:1.3.0'
     implementation 'org.jline:jline-reader:3.29.0'
-    implementation 'org.jline:jline-terminal:3.30.1'
-    implementation 'org.apache.groovy:groovy-all:4.0.26'
-    compileOnly 'net.md-5:bungeecord-chat:1.21-R0.3-SNAPSHOT'
+    implementation 'org.jline:jline-terminal:3.30.6'
+    implementation 'org.apache.groovy:groovy-all:5.0.2'
+    compileOnly 'net.md-5:bungeecord-chat:1.21-R0.2'
 
     compileOnly 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.100'
     annotationProcessor 'org.eclipse.jdt:org.eclipse.jdt.annotation:2.3.100'
