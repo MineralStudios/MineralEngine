@@ -11,7 +11,7 @@ dependencies {
     implementation project(':api')
     implementation 'io.netty:netty-all:4.2.9.Final'
     implementation 'com.velocitypowered:velocity-native:4.0.0-SNAPSHOT'
-    implementation 'org.json:json:20250107'
+    implementation 'org.json:json:20251224'
     implementation 'com.eatthepath:fast-uuid:0.2.0'
     implementation 'it.unimi.dsi:fastutil:8.5.15'
     implementation 'org.apache.logging.log4j:log4j-api:2.25.3'
